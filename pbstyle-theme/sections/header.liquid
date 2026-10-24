@@ -1,0 +1,288 @@
+<nav class="fixed top-0 w-full z-50 glass-nav border-b" style="border-bottom-color: var(--color-outline-variant-alpha);">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex justify-between items-center h-20">
+  
+  <!-- Mobile Left: Hamburger Icon -->
+  <button id="mobile-drawer-trigger" class="md:hidden material-symbols-outlined hover:text-primary transition-colors active:scale-95 cursor-pointer" style="color: var(--color-on-surface);" aria-label="Open menu">menu</button>
+
+  <!-- Desktop Left Group: Logo + Desktop Menu Links -->
+  <div class="hidden md:flex items-center gap-12">
+    <a class="text-[#8B5A45] hover:text-primary transition-colors flex items-center h-12 w-auto shrink-0" href="{{ routes.root_url }}">
+      {% render 'pbstyle-logo-horizontal', class: 'h-full w-auto' %}
+    </a>
+    <div class="flex items-center gap-8">
+      {% for link in linklists.main-menu.links %}
+        {% assign link_title = link.title %}
+        {% if link_title == 'Home' %}{% assign link_title = 'Startseite' %}
+        {% elsif link_title == 'Catalog' %}{% assign link_title = 'Katalog' %}
+        {% elsif link_title == 'Contact' %}{% assign link_title = 'Kontakt' %}
+        {% endif %}
+        <a class="font-body-md text-label-md uppercase tracking-widest transition-colors {% if link.active %}font-semibold border-b-2 pb-1{% endif %}" 
+           style="{% if link.active %}color: var(--color-primary); border-bottom-color: var(--color-primary);{% else %}color: var(--color-on-surface-variant);{% endif %}"
+           href="{{ link.url }}">{{ link_title }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Mobile Center: Logo (Only visible on mobile viewports) -->
+  <a class="md:hidden text-[#8B5A45] hover:text-primary transition-colors flex items-center h-10 w-auto shrink-0" href="{{ routes.root_url }}">
+    {% render 'pbstyle-logo-horizontal', class: 'h-full w-auto' %}
+  </a>
+
+  <!-- Right Side Icons -->
+  <div class="flex items-center gap-4 md:gap-6">
+    <!-- Language Switcher (Desktop) -->
+    {%- if localization.available_languages.size > 1 -%}
+      <div class="hidden md:block mr-2">
+        {%- form 'localization', id: 'HeaderLanguageForm', class: 'localization-form' -%}
+          <input type="hidden" name="locale_code" id="HeaderLocaleCode" value="{{ localization.language.iso_code }}">
+          <div class="flex items-center gap-2 font-label-sm uppercase tracking-widest text-on-surface-variant">
+            {%- for language in localization.available_languages -%}
+              {%- if forloop.first == false -%}
+                <span class="opacity-30">|</span>
+              {%- endif -%}
+              <button type="submit" 
+                      class="hover:text-primary transition-colors cursor-pointer text-[11px] {% if language.iso_code == localization.language.iso_code %}font-bold text-primary{% endif %}"
+                      style="background: transparent; border: none; padding: 0; margin: 0; font-family: inherit; font-size: inherit; line-height: inherit; color: inherit;"
+                      onclick="document.getElementById('HeaderLocaleCode').value = '{{ language.iso_code }}';">
+                {%- if language.iso_code == 'de' -%}
+                  DE
+                {%- elsif language.iso_code == 'en' -%}
+                  EN
+                {%- else -%}
+                  {{ language.iso_code | upcase }}
+                {%- endif -%}
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- endform -%}
+      </div>
+    {%- endif -%}
+
+    <!-- Hide theme toggle on mobile storefront, available in drawer -->
+    <button id="theme-toggle" class="hidden md:block material-symbols-outlined hover:text-primary transition-colors cursor-pointer active:scale-95 select-none" style="color: var(--color-on-surface-variant);" aria-label="Toggle theme">dark_mode</button>
+    
+    <!-- Cart -->
+    <a href="{{ routes.cart_url }}" class="material-symbols-outlined hover:text-primary transition-colors cursor-pointer active:scale-95 relative flex items-center" style="color: var(--color-on-surface-variant);" aria-label="Cart">
+      shopping_bag
+      <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold {% if cart.item_count == 0 %}hidden{% endif %}">{{ cart.item_count }}</span>
+    </a>
+    
+    <!-- Hide member account on mobile, available in drawer -->
+    <a href="{{ routes.account_url }}" class="hidden md:block material-symbols-outlined hover:text-primary transition-colors cursor-pointer active:scale-95" style="color: var(--color-on-surface-variant);" aria-label="Account">person</a>
+  </div>
+
+</div>
+
+</nav>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-drawer" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 md:hidden">
+  <div class="absolute top-0 left-0 w-[85vw] max-w-[340px] h-full p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-out shadow-2xl" style="background-color: var(--color-surface); border-right: 1px solid var(--color-outline-variant-alpha); color: var(--color-on-surface);">
+    
+    <!-- Top & Search (Fixed/Non-scrollable) -->
+    <div class="shrink-0">
+      <div class="flex justify-between items-center mb-8 border-b pb-4" style="border-bottom-color: var(--color-outline-variant-alpha);">
+        <a class="text-[#8B5A45] hover:text-primary transition-colors flex items-center h-8 w-auto shrink-0" href="{{ routes.root_url }}">
+          {% render 'pbstyle-logo-horizontal', class: 'h-full w-auto' %}
+        </a>
+        <button id="mobile-drawer-close" class="material-symbols-outlined hover:text-primary transition-colors active:scale-95 cursor-pointer" style="color: var(--color-on-surface);">close</button>
+      </div>
+      
+      <div class="relative mb-6 border-b pb-2" style="border-bottom-color: var(--color-outline-variant-alpha);">
+        <span class="material-symbols-outlined absolute left-0 top-2 text-[20px]" style="color: var(--color-on-surface-variant);">search</span>
+        <form action="{{ routes.search_url }}" method="get" class="w-full">
+          <input name="q" class="w-full bg-transparent border-none pl-8 py-2 text-label-sm outline-none focus:ring-0 focus:outline-none" style="color: var(--color-on-surface); --tw-ring-color: transparent;" placeholder="Durchsuche unsere Kollektionen..." type="text"/>
+        </form>
+      </div>
+    </div>
+
+    <!-- Navigation Area (Scrollable if overflow) -->
+    <div class="flex-grow overflow-y-auto no-scrollbar py-2 my-2">
+      <nav class="flex flex-col gap-5">
+        {% for link in linklists.main-menu.links %}
+          {% assign link_title = link.title %}
+          {% if link_title == 'Home' %}{% assign link_title = 'Startseite' %}
+          {% elsif link_title == 'Catalog' %}{% assign link_title = 'Katalog' %}
+          {% elsif link_title == 'Contact' %}{% assign link_title = 'Kontakt' %}
+          {% endif %}
+          <a class="font-body-md text-body-lg uppercase tracking-widest transition-colors pb-2 border-b-2" 
+             style="{% if link.active %}color: var(--color-primary); font-weight: 600; border-bottom-color: var(--color-primary);{% else %}color: var(--color-on-surface); border-bottom-color: var(--color-outline-variant-alpha);{% endif %}"
+             href="{{ link.url }}">{{ link_title }}</a>
+        {% endfor %}
+        
+        {% if customer %}
+          <a class="font-body-md text-body-lg uppercase tracking-widest transition-colors pb-2 border-b-2" 
+             style="{% if request.path == routes.account_url %}color: var(--color-primary); font-weight: 600; border-bottom-color: var(--color-primary);{% else %}color: var(--color-on-surface); border-bottom-color: var(--color-outline-variant-alpha);{% endif %}"
+             href="{{ routes.account_url }}">Mitglieder-Dashboard</a>
+          <a class="font-body-md text-body-lg uppercase tracking-widest transition-colors pb-2 border-b-2"
+             style="color: var(--color-on-surface); border-bottom-color: var(--color-outline-variant-alpha);"
+             href="{{ routes.account_logout_url }}">Abmelden</a>
+        {% else %}
+          <a class="font-body-md text-body-lg uppercase tracking-widest transition-colors pb-2 border-b-2"
+             style="color: var(--color-on-surface); border-bottom-color: var(--color-outline-variant-alpha);"
+             href="{{ routes.account_login_url }}">Anmelden / Registrieren</a>
+        {% endif %}
+      </nav>
+    </div>
+    
+    <!-- Footer Section (Fixed/Non-scrollable at bottom) -->
+    <div class="pt-6 mt-4 shrink-0 space-y-4 border-t" style="border-top-color: var(--color-outline-variant-alpha);">
+      <!-- Language Switcher (Mobile) -->
+      {%- if localization.available_languages.size > 1 -%}
+        <div class="pb-2 border-b" style="border-bottom-color: var(--color-outline-variant-alpha);">
+          {%- form 'localization', id: 'DrawerLanguageForm', class: 'localization-form' -%}
+            <input type="hidden" name="locale_code" id="DrawerLocaleCode" value="{{ localization.language.iso_code }}">
+            <div class="flex justify-between items-center">
+              <span class="font-label-sm uppercase tracking-widest" style="color: var(--color-on-surface-variant);">Sprache</span>
+              <div class="flex items-center gap-3 font-label-sm uppercase tracking-widest text-on-surface-variant">
+                {%- for language in localization.available_languages -%}
+                  {%- if forloop.first == false -%}
+                    <span class="opacity-30">|</span>
+                  {%- endif -%}
+                  <button type="submit" 
+                          class="hover:text-primary transition-colors cursor-pointer {% if language.iso_code == localization.language.iso_code %}font-bold text-primary{% endif %}"
+                          style="background: transparent; border: none; padding: 0; margin: 0; font-family: inherit; font-size: inherit; line-height: inherit; color: inherit;"
+                          onclick="document.getElementById('DrawerLocaleCode').value = '{{ language.iso_code }}';">
+                    {%- if language.iso_code == 'de' -%}
+                      Hochdeutsch
+                    {%- elsif language.iso_code == 'en' -%}
+                      English
+                    {%- else -%}
+                      {{ language.endonym_name }}
+                    {%- endif -%}
+                  </button>
+                {%- endfor -%}
+              </div>
+            </div>
+          {%- endform -%}
+        </div>
+      {%- endif -%}
+
+      <div class="flex justify-between items-center">
+        <span class="font-label-sm uppercase tracking-widest" style="color: var(--color-on-surface-variant);">Design-Modus</span>
+        <button id="drawer-theme-toggle" class="flex items-center gap-2 border px-4 py-2 font-label-sm uppercase tracking-widest transition-colors" style="border-color: var(--color-outline); color: var(--color-on-surface); background: transparent;">
+          <span class="material-symbols-outlined text-[18px]">dark_mode</span>
+          <span>Dunkelmodus</span>
+        </button>
+      </div>
+      <p class="font-label-sm text-center uppercase tracking-widest pt-2" style="color: var(--color-on-surface-variant); opacity: 0.6;">© 2026 PBSTYLE</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function initHeader() {
+      const drawer = document.getElementById('mobile-drawer');
+      const trigger = document.getElementById('mobile-drawer-trigger');
+      const closeBtn = document.getElementById('mobile-drawer-close');
+
+      function openDrawer() {
+        if (drawer) {
+          drawer.classList.remove('pointer-events-none', 'opacity-0');
+          drawer.classList.add('opacity-100');
+          const inner = drawer.firstElementChild;
+          if (inner) {
+            inner.classList.remove('-translate-x-full');
+            inner.classList.add('translate-x-0');
+          }
+          document.body.style.overflow = 'hidden';
+        }
+      }
+
+      function closeDrawer() {
+        if (drawer) {
+          drawer.classList.add('pointer-events-none', 'opacity-0');
+          drawer.classList.remove('opacity-100');
+          const inner = drawer.firstElementChild;
+          if (inner) {
+            inner.classList.add('-translate-x-full');
+            inner.classList.remove('translate-x-0');
+          }
+          document.body.style.overflow = '';
+        }
+      }
+
+      if (trigger) {
+        trigger.removeEventListener('click', openDrawer);
+        trigger.addEventListener('click', openDrawer);
+      }
+      if (closeBtn) {
+        closeBtn.removeEventListener('click', closeDrawer);
+        closeBtn.addEventListener('click', closeDrawer);
+      }
+      if (drawer) {
+        drawer.removeEventListener('click', closeDrawerOnOutsideClick);
+        drawer.addEventListener('click', closeDrawerOnOutsideClick);
+      }
+
+      function closeDrawerOnOutsideClick(e) {
+        if (e.target === drawer) closeDrawer();
+      }
+
+      // Dark/Light Theme Toggle
+      const themeToggles = [
+        document.getElementById('theme-toggle'),
+        document.getElementById('drawer-theme-toggle')
+      ];
+
+      function updateThemeUI() {
+        const isDark = document.documentElement.classList.contains('dark');
+        themeToggles.forEach(toggle => {
+          if (!toggle) return;
+          const icon = toggle.querySelector('.material-symbols-outlined') || toggle;
+          const textSpan = toggle.querySelector('span:not(.material-symbols-outlined)');
+          
+          if (isDark) {
+            if (icon) icon.innerText = 'light_mode';
+            if (textSpan) textSpan.innerText = 'Hellmodus';
+          } else {
+            if (icon) icon.innerText = 'dark_mode';
+            if (textSpan) textSpan.innerText = 'Dunkelmodus';
+          }
+        });
+      }
+
+      updateThemeUI();
+
+      themeToggles.forEach(toggle => {
+        if (!toggle) return;
+        toggle.removeEventListener('click', toggleTheme);
+        toggle.addEventListener('click', toggleTheme);
+      });
+
+      function toggleTheme() {
+        if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          localStorage.setItem('theme', 'light');
+        } else {
+          document.documentElement.classList.remove('light');
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+        updateThemeUI();
+      }
+    }
+
+    if (document.readyState !== 'loading') {
+      initHeader();
+    } else {
+      document.addEventListener('DOMContentLoaded', initHeader);
+    }
+
+    // Support theme editor reload
+    document.addEventListener('shopify:section:load', function(e) {
+      if (e.detail.sectionId === 'header' || document.getElementById('mobile-drawer-trigger')) {
+        initHeader();
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": []
+}
+{% endschema %}

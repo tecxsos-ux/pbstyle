@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html class="light" lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>pbstyle | Kollektionen</title>
+<script>
+  (function() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  })();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "var(--color-background)",
+                    "surface": "var(--color-surface)",
+                    "surface-container-lowest": "var(--color-surface-container-lowest)",
+                    "surface-container-low": "var(--color-surface-container-low)",
+                    "surface-container": "var(--color-surface-container)",
+                    "surface-container-high": "var(--color-surface-container-high)",
+                    "surface-container-highest": "var(--color-surface-container-highest)",
+                    "surface-bright": "var(--color-bright)",
+                    "surface-dim": "var(--color-dim)",
+                    "primary": "var(--color-primary)",
+                    "on-primary": "var(--color-on-primary)",
+                    "primary-container": "var(--color-primary-container)",
+                    "on-primary-container": "var(--color-on-primary-container)",
+                    "secondary": "var(--color-secondary)",
+                    "on-secondary": "var(--color-on-secondary)",
+                    "secondary-container": "var(--color-secondary-container)",
+                    "on-secondary-container": "var(--color-on-secondary-container)",
+                    "tertiary": "var(--color-tertiary)",
+                    "on-tertiary": "var(--color-on-tertiary)",
+                    "tertiary-container": "var(--color-tertiary-container)",
+                    "on-tertiary-container": "var(--color-on-tertiary-container)",
+                    "on-background": "var(--color-on-background)",
+                    "on-surface": "var(--color-on-surface)",
+                    "on-surface-variant": "var(--color-on-surface-variant)",
+                    "outline": "var(--color-outline)",
+                    "outline-variant": "var(--color-outline-variant)",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "var(--color-primary)",
+                    "inverse-surface": "var(--color-inverse-surface)",
+                    "inverse-on-surface": "var(--color-inverse-on-surface)",
+                    "inverse-primary": "var(--color-inverse-primary)"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "64px",
+                    "section-padding": "120px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Bodoni Moda"],
+                    "label-md": ["Hanken Grotesk"],
+                    "headline-lg": ["Bodoni Moda"],
+                    "headline-md": ["Bodoni Moda"],
+                    "display-lg": ["Bodoni Moda"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+  :root {
+    --color-background: #FAF6EF;
+    --color-surface: #FAF6EF;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #FAF6EF;
+    --color-surface-container: #F5EBE1;
+    --color-surface-container-high: #EEDAC8;
+    --color-surface-container-highest: #E8B898;
+    --color-bright: #FFFFFF;
+    --color-dim: #E8B898;
+    --color-primary: #B07D62;
+    --color-on-primary: #FFFFFF;
+    --color-primary-container: #E8B898;
+    --color-on-primary-container: #1F1F1F;
+    --color-secondary: #8B5A45;
+    --color-on-secondary: #FFFFFF;
+    --color-secondary-container: #E8B898;
+    --color-on-secondary-container: #1F1F1F;
+    --color-tertiary: #1F1F1F;
+    --color-on-tertiary: #FFFFFF;
+    --color-tertiary-container: #8B5A45;
+    --color-on-tertiary-container: #FAF6EF;
+    --color-on-background: #1F1F1F;
+    --color-on-surface: #1F1F1F;
+    --color-on-surface-variant: #8B5A45;
+    --color-outline: #B07D62;
+    --color-outline-variant: #E8B898;
+    --color-inverse-surface: #1F1F1F;
+    --color-inverse-on-surface: #FAF6EF;
+    --color-inverse-primary: #E8B898;
+    
+    --color-glass-nav: rgba(250, 246, 239, 0.85);
+    --color-outline-variant-alpha: rgba(176, 125, 98, 0.3);
+  }
+
+  html.dark {
+    --color-background: #121212;
+    --color-surface: #121212;
+    --color-surface-container-lowest: #1E1E1E;
+    --color-surface-container-low: #181818;
+    --color-surface-container: #242424;
+    --color-surface-container-high: #2D2D2D;
+    --color-surface-container-highest: #383838;
+    --color-bright: #1C1C1C;
+    --color-dim: #101010;
+    --color-primary: #E8B898;
+    --color-on-primary: #121212;
+    --color-primary-container: #8B5A45;
+    --color-on-primary-container: #FAF6EF;
+    --color-secondary: #EEDAC8;
+    --color-on-secondary: #121212;
+    --color-secondary-container: #3E3E3E;
+    --color-on-secondary-container: #FAF6EF;
+    --color-tertiary: #FAF6EF;
+    --color-on-tertiary: #121212;
+    --color-tertiary-container: #E8B898;
+    --color-on-tertiary-container: #121212;
+    --color-on-background: #FAF6EF;
+    --color-on-surface: #FAF6EF;
+    --color-on-surface-variant: #EEDAC8;
+    --color-outline: #E8B898;
+    --color-outline-variant: #8B5A45;
+    --color-inverse-surface: #FAF6EF;
+    --color-inverse-on-surface: #121212;
+    --color-inverse-primary: #B07D62;
+
+    --color-glass-nav: rgba(18, 18, 18, 0.85);
+    --color-outline-variant-alpha: rgba(232, 184, 152, 0.3);
+  }
+
+  body, header, nav, main, footer, div, section, a, button, summary, details, input, select, textarea {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-nav {
+      background: var(--color-glass-nav);
+      backdrop-filter: blur(20px);
+  }
+  .brushed-steel-border {
+      border: 0.5px solid var(--color-outline-variant-alpha);
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-4 md:px-16 flex justify-between items-center h-20">
+<div class="flex items-center gap-6 md:gap-12">
+<button id="mobile-menu-trigger" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors md:hidden active:scale-95 cursor-pointer">menu</button>
+<a class="font-display-lg text-headline-md tracking-tighter text-on-surface" href="/">pbstyle</a>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Schmuck</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Beauty-Tools</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Neuheiten</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/brand-story.html">Markenphilosophie</a>
+</div>
+</div>
+<div class="flex items-center gap-4 md:gap-6">
+<button id="theme-toggle" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">dark_mode</button>
+<a href="/checkout.html" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95 relative flex items-center">
+shopping_bag
+<span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
+</a>
+<a href="/dashboard.html" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">person</a>
+</div>
+</div>
+</nav>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-drawer" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="absolute top-0 left-0 w-80 h-full bg-surface border-r border-outline-variant/30 p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-out shadow-2xl">
+    <div>
+      <div class="flex justify-between items-center mb-8 border-b border-outline-variant/10 pb-4">
+        <span class="font-display-lg text-headline-md text-on-surface">pbstyle</span>
+        <button id="mobile-drawer-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-95 cursor-pointer">close</button>
+      </div>
+      
+      <div class="relative mb-8 border-b border-outline/30 pb-2">
+        <span class="material-symbols-outlined absolute left-0 top-2 text-on-surface-variant text-[20px]">search</span>
+        <input class="w-full bg-transparent border-none pl-8 py-2 text-label-sm placeholder:text-outline-variant outline-none" placeholder="Kollektion durchsuchen..." type="text"/>
+      </div>
+ 
+      <nav class="flex flex-col gap-6">
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Schmuck</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Beauty-Tools</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Neuheiten</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/brand-story.html">Markenphilosophie</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/dashboard.html">Mitglieder-Dashboard</a>
+      </nav>
+    </div>
+    
+    <div class="border-t border-outline-variant/20 pt-6 space-y-4">
+      <div class="flex justify-between items-center">
+        <span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Design-Modus</span>
+        <button id="drawer-theme-toggle" class="flex items-center gap-2 border border-outline/30 px-4 py-2 font-label-sm uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors">
+          <span class="material-symbols-outlined text-[18px]">dark_mode</span>
+          <span>Dunkelmodus</span>
+        </button>
+      </div>
+      <p class="font-label-sm text-on-surface-variant/60 text-center uppercase tracking-widest pt-2">© 2026 PBSTYLE</p>
+    </div>>
+  </div>
+</div>
+<main class="pt-20">
+<!-- Category Header -->
+<header class="pt-section-padding pb-gutter bg-surface">
+<div class="max-w-container-max mx-auto px-margin-desktop text-center">
+<h1 class="font-display-lg text-display-lg mb-8">Alle Kollektionen</h1>
+<div class="flex justify-center gap-12 border-b border-outline-variant/20 pb-4">
+<button class="font-label-md text-label-md uppercase tracking-widest text-primary border-b border-primary">Alle Objekte</button>
+<button class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Schmuck</button>
+<button class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Beauty-Tools</button>
+<button class="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors">Accessoires</button>
+</div>
+</div>
+</header>
+<section class="max-w-container-max mx-auto px-4 md:px-16 flex flex-col lg:flex-row gap-gutter pb-section-padding">
+<!-- Filter Sidebar -->
+<aside class="hidden lg:block w-64 flex-shrink-0 sticky top-32 h-fit border-r border-outline-variant/20 pr-8">
+<div class="space-y-12">
+<!-- Material Filter -->
+<div>
+<h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface-variant">Material</h3>
+<div class="space-y-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="platinum"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Platin</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="brushed steel"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Gebürsteter Stahl</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="sterling silver"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Sterlingsilber</span>
+</label>
+</div>
+</div>
+<!-- Category Filter -->
+<div>
+<h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface-variant">Kategorie</h3>
+<div class="space-y-4">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="rings"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Ringe</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="tweezers"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Pinzetten</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="brushes"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Bürsten</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="desktop-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="necklaces"/>
+<span class="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">Halsketten</span>
+</label>
+</div>
+</div>
+<!-- Price Filter -->
+<div>
+<h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface-variant">Preisspanne</h3>
+<div class="pt-2">
+<input id="desktop-price-slider" class="w-full h-1 bg-outline-variant appearance-none cursor-pointer accent-primary" type="range" min="0" max="5000" value="5000"/>
+<div class="flex justify-between mt-4 font-label-sm text-label-sm text-on-surface-variant">
+<span>CHF 0</span>
+<span id="desktop-price-value">CHF 5'000+</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+
+<!-- Product Grid Wrapper -->
+<div class="flex-grow">
+<div class="flex justify-between items-center mb-8 pb-4 border-b border-outline-variant/10">
+  <span class="font-body-md text-on-surface-variant" id="product-count-label">Zeige 4 Objekte</span>
+  <div class="hidden lg:flex items-center gap-4">
+    <span class="font-label-sm uppercase tracking-widest text-on-surface-variant">Sortieren nach</span>
+    <select id="desktop-sort-select" class="bg-transparent border border-outline-variant/30 py-2 px-4 focus:border-primary focus:ring-0 outline-none font-body-md text-label-sm uppercase tracking-wider transition-colors cursor-pointer text-on-surface">
+      <option value="featured">Ausgewählt</option>
+      <option value="price-asc">Preis: niedrig bis hoch</option>
+      <option value="price-desc">Preis: hoch bis niedrig</option>
+      <option value="title-asc">Alphabetisch: A-Z</option>
+    </select>
+  </div>
+</div>
+<div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 gap-x-gutter gap-y-16">
+<!-- Product Item 1 -->
+<div class="product-item group cursor-pointer" data-material="platinum" data-category="rings" data-price="2450">
+<div class="relative aspect-[4/5] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Eine Makroaufnahme eines schweren, minimalistischen Platinrings mit feiner gebürsteter Oberfläche..." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdjntWv6yHbxg0CZKo2MFCwpCbZ3tA6jzNipHDUIT9H5H4IuK3iAY_NPD5QxmRxUBDoCxBSogUAskqCwEEC6f6NrRthEJiuesWt1a6wE8YCKXn1or_N8P25VW6uVKUvR65XIv0fmtpfMQJv-CFSuyKzzXIaF4xHqUViK7Gfuu7VKOIoQSum71TTYqZ2QCy-m_DQALNbi4u6gt47N8Pv9D2nZ1B8hQ_Oc6G9QPePPneuuec71cTkBgDEr3RSmr_ABMMJ1kRnIZiEgE"/>
+<div class="absolute inset-0 bg-inverse-surface/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<a href="/product-detail.html" class="bg-surface px-8 py-3 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform">Details ansehen</a>
+</div>
+<div class="absolute top-4 left-4">
+<span class="bg-surface px-3 py-1 font-label-sm text-label-sm uppercase tracking-widest ghost-border">Neuheit</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Monolith-Ring</h3>
+<p class="font-body-md text-on-surface-variant">950 Platin, gebürstetes Finish</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">CHF 2'450</span>
+</div>
+</div>
+<!-- Product Item 2 -->
+<div class="product-item group cursor-pointer" data-material="brushed steel" data-category="tweezers" data-price="85">
+<div class="relative aspect-[4/5] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Nahaufnahme einer professionellen Kosmetikpinzette aus Edelstahl im aerodynamischen Design..." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtRjOqjJK8dTOsrxOxl5yuTJPf0AbTeOBiKKoZFUNDv6fx-UBtt1DviExuZRQbvXfd9cRyjd_xAWa_ZxF-MUAWvuSf67DFv7j8oC5esKRpJcgQOtXqzjGjDikSBpaBCyQsV1ZSoLPG0Cgm8d3CyJewdR9bmmUxoLzs6emmWgJoBIL6smQA4esdyK6KnavJeB0UfGEThvBjcOV-wU986ofKgs5iBfKLYnkwSZddkO9wSerfcCmZAJdN501nand0PTIsUfTkJw5bQPg"/>
+<div class="absolute inset-0 bg-inverse-surface/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<a href="/product-detail.html" class="bg-surface px-8 py-3 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform">Details ansehen</a>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Präzisionspinzette</h3>
+<p class="font-body-md text-on-surface-variant">Japanischer Chirurgenstahl</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">CHF 85</span>
+</div>
+</div>
+<!-- Product Item 3 -->
+<div class="product-item group cursor-pointer" data-material="brushed steel" data-category="brushes" data-price="120">
+<div class="relative aspect-[4/5] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Ein luxuriöser Puderpinsel mit silberfarbenem Metallgriff für angenehme Haptik..." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB24XbQlUX7wzHBc9XKtkUwFWDQ4wgoL4S7B3EAgxEfMOlTYyUWEFhRTRbl5BndO_zx177PgzRdRC3FmqiWZoBWAUrsOwi5NjDKNYmhasKQ6YG-tqSnibO5vhcu6ySH9rIzZTxJt7VsnRoFlFKjjue117jU3DXvA33aM7mBFKlGc941CBfg27sZ4Nyaa-eig2h6pC8yAWM8B4udo4VnfodcW5Q7ghanAgm3qPVyDWczRc9MSBTV26B-w1phHqemGBqSRr41mNeZSLA"/>
+<div class="absolute inset-0 bg-inverse-surface/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<a href="/product-detail.html" class="bg-surface px-8 py-3 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform">Details ansehen</a>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Silberionen-Pinsel</h3>
+<p class="font-body-md text-on-surface-variant">Antimikrobielle Verchromung</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">CHF 120</span>
+</div>
+</div>
+<!-- Product Item 4 -->
+<div class="product-item group cursor-pointer" data-material="platinum" data-category="necklaces" data-price="3800">
+<div class="relative aspect-[4/5] bg-surface-container-low overflow-hidden mb-6">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Eine feine Kette aus Platin mit einem minimalistischen, geometrischen Anhänger..." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8DxlyWKoj1_fug149Ux4zigrvTRaN3Vk2X7MMm3-s0i7icQIGVpaBPyjI6Y-UKEno1nDNQvoKBviFndTQYJ9tlIfH1iUtsaWc3Muk1HpTLtZb3pOSJsuuYud_RM36FSo4Vy44AHrRuS4a9HZ6lmCtDGIjDSmNLsxCjybxwShD29YlXq9BvoFGrBXeNpKyzRpIer7AqrmCVIE97dR_GgPHPuSTfL2n3SpGZkw0rH0B8FMaB6TW1SYrwLg7D1rXH0BHqb5__yjnu20"/>
+<div class="absolute inset-0 bg-inverse-surface/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<a href="/product-detail.html" class="bg-surface px-8 py-3 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform">Details ansehen</a>
+</div>
+<div class="absolute top-4 left-4">
+<span class="bg-surface px-3 py-1 font-label-sm text-label-sm uppercase tracking-widest ghost-border">Limitierte Edition</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-headline-md mb-1">Linearer Anhänger</h3>
+<p class="font-body-md text-on-surface-variant">Konstruktion aus massivem Platin</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">CHF 3'800</span>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-24 flex justify-center items-center gap-8">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="chevron_left">chevron_left</button>
+<div class="flex gap-6 font-label-md text-label-md uppercase tracking-widest">
+<span class="text-primary font-bold border-b border-primary">01</span>
+<span class="text-on-surface-variant hover:text-primary cursor-pointer transition-colors">02</span>
+<span class="text-on-surface-variant hover:text-primary cursor-pointer transition-colors">03</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</button>
+</div>
+</div>
+</section>
+<!-- Newsletter Section (Asymmetric) -->
+<section class="bg-surface-container-low py-section-padding">
+<div class="max-w-container-max mx-auto px-margin-desktop flex flex-col md:flex-row items-center gap-20">
+<div class="md:w-1/2">
+<h2 class="font-display-lg text-headline-lg mb-6">Bleiben Sie inspiriert.</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-md">Abonnieren Sie unseren Newsletter, um exklusiven Zugang zu limitierten Kollektionen und Einblicke in unsere Handwerkskunst zu erhalten.</p>
+<form class="flex border-b border-outline max-w-md">
+<input class="bg-transparent border-none focus:ring-0 w-full py-4 font-body-md text-body-md placeholder:text-outline-variant" placeholder="Ihre E-Mail-Adresse" type="email"/>
+<button class="font-label-md text-label-md uppercase tracking-widest text-primary hover:opacity-70 transition-opacity">Abonnieren</button>
+</form>
+</div>
+<div class="md:w-1/2 relative">
+<div class="ghost-border p-4">
+<img class="grayscale w-full aspect-video object-cover" data-alt="An artistic black and white photo of a metal workshop's interior, showing heavy machinery and clean workspaces. The image has a calm, professional mood with stark contrast and generous light, illustrating the industrial craftsmanship and elegance behind the brand's luxury products." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBk7MnhJ9AmwM4ZVHl-gG4J6kedDo3op_uX4aN8P5Go6NXf-jAyz8_eZko27xlVmDnzbK3R8nK8s6DrjTnFgeY3arJazb4xmjeJeeFuBYDR0Tcb2VV-FQuJl8ebJyBKQ7pFbmkfxIo16E7GNgd-MtOuRZoTeeriz-3WdofzK_FrU7XxCZAN2dWYe0l_MPsPu7E08Q_xnAd0DLKFFkFK6ZdKs7vLZKGU0fBklwjufPXHIcuj1uehMxUAA4BYoBjw92P5bVR4Xd1quHE"/>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<!-- Mobile Floating Filter Button -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 lg:hidden">
+  <button id="mobile-filter-trigger" class="flex items-center gap-2 bg-on-background text-background px-6 py-3 shadow-xl font-label-md text-label-sm uppercase tracking-widest active:scale-95 transition-transform">
+    <span class="material-symbols-outlined text-[18px]">filter_list</span>
+    <span>Filtern & Sortieren</span>
+  </button>
+</div>
+
+<!-- Mobile Filter & Sort Drawer -->
+<div id="mobile-filter-drawer" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="absolute bottom-0 left-0 w-full bg-surface border-t border-outline-variant/30 p-6 flex flex-col justify-between max-h-[85vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out shadow-2xl rounded-t-xl text-on-surface">
+    <div>
+      <div class="flex justify-between items-center mb-6 border-b border-outline-variant/10 pb-4">
+        <span class="font-label-md text-label-md uppercase tracking-widest text-on-surface">Filtern & Sortieren</span>
+        <button id="mobile-filter-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-95 cursor-pointer">close</button>
+      </div>
+
+      <div class="space-y-8 pb-12">
+        <!-- Sort By Mobile -->
+        <div>
+          <h3 class="font-label-md text-label-md uppercase tracking-widest mb-4 text-on-surface-variant">Sortieren nach</h3>
+          <select id="mobile-sort-select" class="w-full bg-transparent border border-outline-variant py-3 px-4 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors text-on-surface">
+            <option value="featured">Ausgewählt</option>
+            <option value="price-asc">Preis: niedrig bis hoch</option>
+            <option value="price-desc">Preis: hoch bis niedrig</option>
+            <option value="title-asc">Alphabetisch: A-Z</option>
+          </select>
+        </div>
+
+        <!-- Material Filter Mobile -->
+        <div>
+          <h3 class="font-label-md text-label-md uppercase tracking-widest mb-4 text-on-surface-variant">Material</h3>
+          <div class="space-y-4">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="platinum"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Platin</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="brushed steel"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Gebürsteter Stahl</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="sterling silver"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Sterlingsilber</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Category Filter Mobile -->
+        <div>
+          <h3 class="font-label-md text-label-md uppercase tracking-widest mb-4 text-on-surface-variant">Kategorie</h3>
+          <div class="space-y-4">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="rings"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Ringe</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="tweezers"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Pinzetten</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="brushes"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Bürsten</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="mobile-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm" type="checkbox" value="necklaces"/>
+              <span class="font-body-md text-body-md text-on-surface-variant">Halsketten</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Price Filter Mobile -->
+        <div>
+          <h3 class="font-label-md text-label-md uppercase tracking-widest mb-4 text-on-surface-variant">Preisspanne</h3>
+          <div class="pt-2">
+            <input id="mobile-price-slider" class="w-full h-1 bg-outline-variant appearance-none cursor-pointer accent-primary" type="range" min="0" max="5000" value="5000"/>
+            <div class="flex justify-between mt-4 font-label-sm text-label-sm text-on-surface-variant">
+              <span>CHF 0</span>
+              <span id="mobile-price-value">CHF 5'000+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex gap-4">
+        <button id="mobile-filter-reset" class="flex-1 py-4 border border-outline text-on-surface font-label-md uppercase tracking-widest hover:bg-surface-container-low transition-colors">Zurücksetzen</button>
+        <button id="mobile-filter-apply" class="flex-1 py-4 bg-on-background text-background font-label-md uppercase tracking-widest hover:opacity-90 transition-opacity">Anwenden</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="w-full pt-section-padding pb-gutter bg-surface-container-lowest border-t border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-4 md:px-16 flex flex-col md:flex-row justify-between items-start gap-gutter">
+<div class="space-y-6">
+<div class="font-display-lg text-headline-md text-on-surface">pbstyle</div>
+<p class="max-w-xs font-body-md text-body-md text-on-surface-variant">Die Schnittstelle zwischen industrieller Präzision und zeitloser Eleganz.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-12">
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-on-surface">Unternehmen</h4>
+<nav class="flex flex-col gap-2">
+<a class="font-body-md text-body-md text-on-surface-variant hover:underline decoration-primary/30 underline-offset-4" href="/brand-story.html">Nachhaltigkeit</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:underline decoration-primary/30 underline-offset-4" href="/brand-story.html">Handwerkskunst</a>
+</nav>
+</div>
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-on-surface">Kundenservice</h4>
+<nav class="flex flex-col gap-2">
+<a class="font-body-md text-body-md text-on-surface-variant hover:underline decoration-primary/30 underline-offset-4" href="#">Versand</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:underline decoration-primary/30 underline-offset-4" href="#">Rücksendungen</a>
+</nav>
+</div>
+<div class="space-y-4">
+<h4 class="font-label-md text-label-md uppercase tracking-widest text-on-surface">Rechtliches</h4>
+<nav class="flex flex-col gap-2">
+<a class="font-body-md text-body-md text-on-surface-variant hover:underline decoration-primary/30 underline-offset-4" href="#">Datenschutzrichtlinie</a>
+</nav>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-4 md:px-16 mt-20 pt-8 border-t border-outline-variant/10 text-center md:text-left">
+<p class="font-body-md text-body-md text-on-surface-variant/60">© 2026 PBSTYLE Industrielle Eleganz. Alle Rechte vorbehalten.</p>
+</div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Theme toggle logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const drawerThemeToggleBtn = document.getElementById('drawer-theme-toggle');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'light_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'light_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Lichtmodus';
+        }
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'dark_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'dark_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Dunkelmodus';
+        }
+      }
+    }
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(currentTheme);
+
+    function toggleTheme() {
+      const activeTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      localStorage.setItem('theme', activeTheme);
+      applyTheme(activeTheme);
+    }
+
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+    if (drawerThemeToggleBtn) drawerThemeToggleBtn.addEventListener('click', toggleTheme);
+
+    // 2. Mobile drawer logic
+    const drawer = document.getElementById('mobile-drawer');
+    const drawerContent = drawer ? drawer.firstElementChild : null;
+    const trigger = document.getElementById('mobile-menu-trigger');
+    const closeBtn = document.getElementById('mobile-drawer-close');
+
+    function openDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawerContent.classList.remove('-translate-x-full');
+      }
+    }
+
+    function closeDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.add('pointer-events-none', 'opacity-0');
+        drawerContent.classList.add('-translate-x-full');
+      }
+    }
+
+    if (trigger) trigger.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        if (e.target === drawer) closeDrawer();
+      });
+    }
+
+    // 3. Simple Cart Badge check
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+      const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+      if (totalItems > 0) {
+        badge.textContent = totalItems;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    // 4. Dynamic Filter and Sort Engine
+    const products = Array.from(document.querySelectorAll('.product-item'));
+    const desktopMaterialCheckboxes = document.querySelectorAll('.desktop-material-checkbox');
+    const desktopCategoryCheckboxes = document.querySelectorAll('.desktop-category-checkbox');
+    const desktopPriceSlider = document.getElementById('desktop-price-slider');
+    const desktopPriceValue = document.getElementById('desktop-price-value');
+    const desktopSortSelect = document.getElementById('desktop-sort-select');
+
+    const mobileMaterialCheckboxes = document.querySelectorAll('.mobile-material-checkbox');
+    const mobileCategoryCheckboxes = document.querySelectorAll('.mobile-category-checkbox');
+    const mobilePriceSlider = document.getElementById('mobile-price-slider');
+    const mobilePriceValue = document.getElementById('mobile-price-value');
+    const mobileSortSelect = document.getElementById('mobile-sort-select');
+    
+    const countLabel = document.getElementById('product-count-label');
+    const productGrid = document.getElementById('product-grid');
+
+    function syncControls(source) {
+      if (source === 'desktop') {
+        mobilePriceSlider.value = desktopPriceSlider.value;
+        if (mobilePriceValue) mobilePriceValue.textContent = desktopPriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + desktopPriceSlider.value;
+        if (mobileSortSelect) mobileSortSelect.value = desktopSortSelect.value;
+        
+        desktopMaterialCheckboxes.forEach((cb, idx) => {
+          mobileMaterialCheckboxes[idx].checked = cb.checked;
+        });
+        desktopCategoryCheckboxes.forEach((cb, idx) => {
+          mobileCategoryCheckboxes[idx].checked = cb.checked;
+        });
+      } else {
+        desktopPriceSlider.value = mobilePriceSlider.value;
+        if (desktopPriceValue) desktopPriceValue.textContent = mobilePriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + mobilePriceSlider.value;
+        if (desktopSortSelect) desktopSortSelect.value = mobileSortSelect.value;
+
+        mobileMaterialCheckboxes.forEach((cb, idx) => {
+          desktopMaterialCheckboxes[idx].checked = cb.checked;
+        });
+        mobileCategoryCheckboxes.forEach((cb, idx) => {
+          desktopCategoryCheckboxes[idx].checked = cb.checked;
+        });
+      }
+    }
+
+    function runFilters() {
+      const activeMaterials = Array.from(desktopMaterialCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value.toLowerCase());
+      
+      const activeCategories = Array.from(desktopCategoryCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value.toLowerCase());
+        
+      const maxPrice = parseFloat(desktopPriceSlider.value);
+      
+      let visibleCount = 0;
+      let visibleProducts = [];
+
+      products.forEach(p => {
+        const mat = p.getAttribute('data-material').toLowerCase();
+        const cat = p.getAttribute('data-category').toLowerCase();
+        const price = parseFloat(p.getAttribute('data-price'));
+
+        const matMatch = activeMaterials.length === 0 || activeMaterials.includes(mat);
+        const catMatch = activeCategories.length === 0 || activeCategories.includes(cat);
+        const priceMatch = price <= maxPrice;
+
+        if (matMatch && catMatch && priceMatch) {
+          visibleProducts.push(p);
+          p.style.display = 'block';
+          p.style.opacity = '0';
+          setTimeout(() => {
+            p.style.opacity = '1';
+            p.style.transition = 'opacity 0.3s ease';
+          }, 10);
+          visibleCount++;
+        } else {
+          p.style.display = 'none';
+        }
+      });
+
+      // Handle Sorting
+      const sortVal = desktopSortSelect.value;
+      if (sortVal === 'price-asc') {
+        visibleProducts.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
+      } else if (sortVal === 'price-desc') {
+        visibleProducts.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
+      } else if (sortVal === 'title-asc') {
+        visibleProducts.sort((a, b) => a.querySelector('h3').textContent.localeCompare(b.querySelector('h3').textContent));
+      }
+
+      // Re-append sorted elements
+      visibleProducts.forEach(p => productGrid.appendChild(p));
+
+      if (countLabel) {
+        countLabel.textContent = `Zeige ${visibleCount} Objekt${visibleCount === 1 ? '' : 'e'}`;
+      }
+    }
+
+    desktopMaterialCheckboxes.forEach(cb => cb.addEventListener('change', () => { runFilters(); syncControls('desktop'); }));
+    desktopCategoryCheckboxes.forEach(cb => cb.addEventListener('change', () => { runFilters(); syncControls('desktop'); }));
+    desktopPriceSlider.addEventListener('input', () => {
+      if (desktopPriceValue) desktopPriceValue.textContent = desktopPriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + desktopPriceSlider.value;
+      runFilters();
+      syncControls('desktop');
+    });
+    desktopSortSelect.addEventListener('change', () => { runFilters(); syncControls('desktop'); });
+
+    const applyBtn = document.getElementById('mobile-filter-apply');
+    const resetBtn = document.getElementById('mobile-filter-reset');
+    
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        syncControls('mobile');
+        runFilters();
+        closeFilterDrawer();
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        mobileMaterialCheckboxes.forEach(cb => cb.checked = false);
+        mobileCategoryCheckboxes.forEach(cb => cb.checked = false);
+        mobilePriceSlider.value = 5000;
+        mobilePriceValue.textContent = "CHF 5'000+";
+        syncControls('mobile');
+        runFilters();
+        closeFilterDrawer();
+      });
+    }
+
+    mobilePriceSlider.addEventListener('input', () => {
+      if (mobilePriceValue) mobilePriceValue.textContent = mobilePriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + mobilePriceSlider.value;
+    });
+
+    const filterDrawer = document.getElementById('mobile-filter-drawer');
+    const filterDrawerContent = filterDrawer ? filterDrawer.firstElementChild : null;
+    const filterTrigger = document.getElementById('mobile-filter-trigger');
+    const filterClose = document.getElementById('mobile-filter-close');
+
+    function openFilterDrawer() {
+      if (filterDrawer && filterDrawerContent) {
+        filterDrawer.classList.remove('pointer-events-none', 'opacity-0');
+        filterDrawerContent.classList.remove('translate-y-full');
+      }
+    }
+
+    function closeFilterDrawer() {
+      if (filterDrawer && filterDrawerContent) {
+        filterDrawer.classList.add('pointer-events-none', 'opacity-0');
+        filterDrawerContent.classList.add('translate-y-full');
+      }
+    }
+
+    if (filterTrigger) filterTrigger.addEventListener('click', openFilterDrawer);
+    if (filterClose) filterClose.addEventListener('click', closeFilterDrawer);
+    if (filterDrawer) {
+      filterDrawer.addEventListener('click', (e) => {
+        if (e.target === filterDrawer) closeFilterDrawer();
+      });
+    }
+  });
+</script>
+</body></html>

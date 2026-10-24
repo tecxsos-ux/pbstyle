@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" class="{{ class | default: 'w-full h-full' }}">
+  <defs>
+    <style>
+      .logo-mark { font-family: 'Bodoni Moda', serif; fill: currentColor; }
+      .logo-text { font-family: 'Bodoni Moda', serif; fill: currentColor; letter-spacing: 0.12em; }
+      .logo-sub { font-family: 'Hanken Grotesk', sans-serif; fill: currentColor; letter-spacing: 0.2em; font-size: 11px; font-weight: 500; }
+      .logo-frame { fill: none; stroke: currentColor; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <!-- Geometric Shapes: Soft circles / thin frames for balance and modernity -->
+  <circle cx="200" cy="160" r="100" class="logo-frame" />
+  <circle cx="200" cy="160" r="92" class="logo-frame" stroke-width="0.5" />
+
+  <!-- Monogram: Stylish, interlocking PB for a high-end luxury feel -->
+  <!-- The P and B coordinates are placed close together so their serifs elegantly overlap -->
+  <text x="175" y="215" class="logo-mark" font-size="160" font-weight="400" text-anchor="middle">P</text>
+  <text x="235" y="215" class="logo-mark" font-size="160" font-weight="400" text-anchor="middle">B</text>
+
+  <!-- Typography: Serif (Classic/Authority) for main brand -->
+  <text x="200" y="320" class="logo-text" font-size="44" font-weight="400" text-anchor="middle">PBSTYLE</text>
+
+  <!-- Typography: Sans-Serif (Modern/Clean) for subtitle -->
+  <text x="200" y="360" class="logo-sub" text-anchor="middle">FASHION &amp; BEAUTY TOOLS</text>
+</svg>

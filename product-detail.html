@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html class="light" lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monolith Ring | PBSTYLE</title>
+<script>
+  (function() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "var(--color-background)",
+                    "surface": "var(--color-surface)",
+                    "surface-container-lowest": "var(--color-surface-container-lowest)",
+                    "surface-container-low": "var(--color-surface-container-low)",
+                    "surface-container": "var(--color-surface-container)",
+                    "surface-container-high": "var(--color-surface-container-high)",
+                    "surface-container-highest": "var(--color-surface-container-highest)",
+                    "surface-bright": "var(--color-bright)",
+                    "surface-dim": "var(--color-dim)",
+                    "primary": "var(--color-primary)",
+                    "on-primary": "var(--color-on-primary)",
+                    "primary-container": "var(--color-primary-container)",
+                    "on-primary-container": "var(--color-on-primary-container)",
+                    "secondary": "var(--color-secondary)",
+                    "on-secondary": "var(--color-on-secondary)",
+                    "secondary-container": "var(--color-secondary-container)",
+                    "on-secondary-container": "var(--color-on-secondary-container)",
+                    "tertiary": "var(--color-tertiary)",
+                    "on-tertiary": "var(--color-on-tertiary)",
+                    "tertiary-container": "var(--color-tertiary-container)",
+                    "on-tertiary-container": "var(--color-on-tertiary-container)",
+                    "on-background": "var(--color-on-background)",
+                    "on-surface": "var(--color-on-surface)",
+                    "on-surface-variant": "var(--color-on-surface-variant)",
+                    "outline": "var(--color-outline)",
+                    "outline-variant": "var(--color-outline-variant)",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "var(--color-primary)",
+                    "inverse-surface": "var(--color-inverse-surface)",
+                    "inverse-on-surface": "var(--color-inverse-on-surface)",
+                    "inverse-primary": "var(--color-inverse-primary)"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "64px",
+                    "section-padding": "120px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Bodoni Moda"],
+                    "label-md": ["Hanken Grotesk"],
+                    "headline-lg": ["Bodoni Moda"],
+                    "headline-md": ["Bodoni Moda"],
+                    "display-lg": ["Bodoni Moda"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+  :root {
+    --color-background: #FAF6EF;
+    --color-surface: #FAF6EF;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #FAF6EF;
+    --color-surface-container: #F5EBE1;
+    --color-surface-container-high: #EEDAC8;
+    --color-surface-container-highest: #E8B898;
+    --color-bright: #FFFFFF;
+    --color-dim: #E8B898;
+    --color-primary: #B07D62;
+    --color-on-primary: #FFFFFF;
+    --color-primary-container: #E8B898;
+    --color-on-primary-container: #1F1F1F;
+    --color-secondary: #8B5A45;
+    --color-on-secondary: #FFFFFF;
+    --color-secondary-container: #E8B898;
+    --color-on-secondary-container: #1F1F1F;
+    --color-tertiary: #1F1F1F;
+    --color-on-tertiary: #FFFFFF;
+    --color-tertiary-container: #8B5A45;
+    --color-on-tertiary-container: #FAF6EF;
+    --color-on-background: #1F1F1F;
+    --color-on-surface: #1F1F1F;
+    --color-on-surface-variant: #8B5A45;
+    --color-outline: #B07D62;
+    --color-outline-variant: #E8B898;
+    --color-inverse-surface: #1F1F1F;
+    --color-inverse-on-surface: #FAF6EF;
+    --color-inverse-primary: #E8B898;
+    
+    --color-glass-nav: rgba(250, 246, 239, 0.85);
+    --color-outline-variant-alpha: rgba(176, 125, 98, 0.3);
+  }
+
+  html.dark {
+    --color-background: #121212;
+    --color-surface: #121212;
+    --color-surface-container-lowest: #1E1E1E;
+    --color-surface-container-low: #181818;
+    --color-surface-container: #242424;
+    --color-surface-container-high: #2D2D2D;
+    --color-surface-container-highest: #383838;
+    --color-bright: #1C1C1C;
+    --color-dim: #101010;
+    --color-primary: #E8B898;
+    --color-on-primary: #121212;
+    --color-primary-container: #8B5A45;
+    --color-on-primary-container: #FAF6EF;
+    --color-secondary: #EEDAC8;
+    --color-on-secondary: #121212;
+    --color-secondary-container: #3E3E3E;
+    --color-on-secondary-container: #FAF6EF;
+    --color-tertiary: #FAF6EF;
+    --color-on-tertiary: #121212;
+    --color-tertiary-container: #E8B898;
+    --color-on-tertiary-container: #121212;
+    --color-on-background: #FAF6EF;
+    --color-on-surface: #FAF6EF;
+    --color-on-surface-variant: #EEDAC8;
+    --color-outline: #E8B898;
+    --color-outline-variant: #8B5A45;
+    --color-inverse-surface: #FAF6EF;
+    --color-inverse-on-surface: #121212;
+    --color-inverse-primary: #B07D62;
+
+    --color-glass-nav: rgba(18, 18, 18, 0.85);
+    --color-outline-variant-alpha: rgba(232, 184, 152, 0.3);
+  }
+
+  body, header, nav, main, footer, div, section, a, button, summary, details, input, select, textarea {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-nav {
+      background: var(--color-glass-nav);
+      backdrop-filter: blur(20px);
+  }
+  .brushed-steel-border {
+      border: 0.5px solid var(--color-outline-variant-alpha);
+  }
+  .text-underline-expand {
+      position: relative;
+  }
+  .text-underline-expand::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 1px;
+      bottom: -2px;
+      left: 0;
+      background-color: var(--color-primary);
+      transition: width 0.3s ease;
+  }
+  .text-underline-expand:hover::after {
+      width: 100%;
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-4 md:px-16 flex justify-between items-center h-20">
+<div class="flex items-center gap-6 md:gap-12">
+<button id="mobile-menu-trigger" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors md:hidden active:scale-95 cursor-pointer">menu</button>
+<a class="font-display-lg text-headline-md tracking-tighter text-on-surface" href="/">pbstyle</a>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Schmuck</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Beauty-Tools</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Neuheiten</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/brand-story.html">Markenphilosophie</a>
+</div>
+</div>
+<div class="flex items-center gap-4 md:gap-6">
+<button id="theme-toggle" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">dark_mode</button>
+<button id="cart-trigger" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95 relative flex items-center">
+shopping_bag
+<span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
+</button>
+<a href="/dashboard.html" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">person</a>
+</div>
+</div>
+</nav>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-drawer" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="absolute top-0 left-0 w-80 h-full bg-surface border-r border-outline-variant/30 p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-out shadow-2xl">
+    <div>
+      <div class="flex justify-between items-center mb-8 border-b border-outline-variant/10 pb-4">
+        <span class="font-display-lg text-headline-md text-on-surface">pbstyle</span>
+        <button id="mobile-drawer-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-95 cursor-pointer">close</button>
+      </div>
+      
+      <div class="relative mb-8 border-b border-outline/30 pb-2">
+        <span class="material-symbols-outlined absolute left-0 top-2 text-on-surface-variant text-[20px]">search</span>
+        <input class="w-full bg-transparent border-none pl-8 py-2 text-label-sm placeholder:text-outline-variant outline-none" placeholder="Kollektionen durchsuchen..." type="text"/>
+      </div>
+
+      <nav class="flex flex-col gap-6">
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Schmuck</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Beauty-Tools</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Neuheiten</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/brand-story.html">Markenphilosophie</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/dashboard.html">Mitglieder-Dashboard</a>
+      </nav>
+    </div>
+    
+    <div class="border-t border-outline-variant/20 pt-6 space-y-4">
+      <div class="flex justify-between items-center">
+        <span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Theme-Modus</span>
+        <button id="drawer-theme-toggle" class="flex items-center gap-2 border border-outline/30 px-4 py-2 font-label-sm uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors">
+          <span class="material-symbols-outlined text-[18px]">dark_mode</span>
+          <span>Dunkelmodus</span>
+        </button>
+      </div>
+      <p class="font-label-sm text-on-surface-variant/60 text-center uppercase tracking-widest pt-2">© 2026 PBSTYLE</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide-over Mini-Cart Drawer -->
+<div id="mini-cart" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="absolute top-0 right-0 w-full max-w-md h-full bg-surface border-l border-outline-variant/30 flex flex-col justify-between translate-x-full transition-transform duration-300 ease-out shadow-2xl">
+    <div class="p-6 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-low">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">shopping_bag</span>
+        <h3 class="font-headline-md text-headline-md">Ihr Warenkorb</h3>
+        <span id="mini-cart-count" class="bg-primary-container text-on-primary-container px-2 py-0.5 text-xs rounded-full font-bold">0</span>
+      </div>
+      <button id="mini-cart-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-95 cursor-pointer">close</button>
+    </div>
+
+    <!-- Cart Items Scroll Area -->
+    <div id="mini-cart-items" class="flex-grow overflow-y-auto p-6 space-y-6 custom-scrollbar">
+      <!-- Dynamic list -->
+      <div class="flex flex-col items-center justify-center h-48 text-on-surface-variant/60">
+        <span class="material-symbols-outlined text-[48px] mb-2">production_quantity_limits</span>
+        <p class="font-label-sm uppercase tracking-wider">Ihr Warenkorb ist leer</p>
+      </div>
+    </div>
+
+    <!-- Footer Summary -->
+    <div class="p-6 border-t border-outline-variant/20 bg-surface-container-low space-y-4">
+      <div class="flex justify-between items-center font-body-lg">
+        <span class="font-label-md uppercase tracking-wider text-on-surface-variant">Zwischensumme</span>
+        <span id="mini-cart-subtotal" class="font-semibold text-primary">CHF 0.00</span>
+      </div>
+      <p class="text-xs text-on-surface-variant/60">Versandkosten und Steuern werden beim Checkout berechnet.</p>
+      <div class="pt-2">
+        <a href="/checkout.html" class="w-full block text-center py-4 bg-primary text-on-primary font-label-md uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all shadow-lg">
+          Sicherer Checkout
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="pt-32 pb-section-padding">
+<!-- Product Detail Section -->
+<div class="max-w-container-max mx-auto px-4 md:px-16 grid grid-cols-1 md:grid-cols-12 gap-gutter items-start">
+  
+  <!-- Asymmetric Product Gallery -->
+  <div class="md:col-span-7 flex flex-col gap-6">
+    <div class="w-full aspect-[4/5] bg-surface-container-low overflow-hidden group relative border border-outline-variant/20">
+      <img id="main-image" alt="Monolith Ring Main View" class="w-full h-full object-cover transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk7XJxGMmViCkJqx-GPuG6YqvBlv7WzT8bSJU6ZKmvAWLFTpX6-EBtHIdceDGDsnPk-1sCNem1xOwDNyihWqQwh7CH8zQPYjgXNqMIS4obK8CmYzZ9XKdjFnzjUimXwgAHgvVLijO7aiZWslb2oQBtygMCQu4ZXu4vzBAcn5cVout96QsYoO4ltYZzkmpoCfoBTqSdp10dT9n5raxHTTL8Y6hgMlsD7ujYCiludFfMXqg7jEWqUrqqSJDrRZB05osarhKKYjiisdI"/>
+      <div id="image-zoom-btn" class="absolute bottom-6 right-6 p-4 glass-nav border border-outline-variant/30 rounded-full cursor-pointer hover:bg-surface-container-high transition-colors active:scale-95 shadow-md">
+        <span class="material-symbols-outlined" data-icon="zoom_in">zoom_in</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="aspect-square bg-surface-container-low border border-outline-variant/20 cursor-pointer overflow-hidden relative active:scale-95 transition-transform duration-200">
+        <img alt="Monolith Ring Main View Thumb" class="gallery-thumb w-full h-full object-cover border-2 border-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk7XJxGMmViCkJqx-GPuG6YqvBlv7WzT8bSJU6ZKmvAWLFTpX6-EBtHIdceDGDsnPk-1sCNem1xOwDNyihWqQwh7CH8zQPYjgXNqMIS4obK8CmYzZ9XKdjFnzjUimXwgAHgvVLijO7aiZWslb2oQBtygMCQu4ZXu4vzBAcn5cVout96QsYoO4ltYZzkmpoCfoBTqSdp10dT9n5raxHTTL8Y6hgMlsD7ujYCiludFfMXqg7jEWqUrqqSJDrRZB05osarhKKYjiisdI"/>
+      </div>
+      <div class="aspect-square bg-surface-container-low border border-outline-variant/20 cursor-pointer overflow-hidden relative active:scale-95 transition-transform duration-200">
+        <img alt="Monolith Ring Detail 1" class="gallery-thumb w-full h-full object-cover filter brightness-95" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM3lYH8rOpWhp_LJJ9uZgEsSgXbXj2pVlVWC0nEDlJ4vlH1tVf7UIWuEMaA4_CQjvcsIZDdSZlYK3sp6hrfGlatswK_9sCMbYwyb_9ohD3e7_p4zBmqZo-hUjNvSi1Q2TIuImy2QJ_zcxa6Yq1GybHiAazI2EZ7iToWqYvOHQmQqhYz6Z21Ddx_YzHcvwa7UGffEFfmSt8jqU0UDlekEsGoU8Ly8rng2Z0ZqvuS9ZGMRLyni-AX7Xx0e14Sq3eM5_cJ_TYfhrKOLk"/>
+      </div>
+      <div class="aspect-square bg-surface-container-low border border-outline-variant/20 cursor-pointer overflow-hidden relative active:scale-95 transition-transform duration-200">
+        <img alt="Monolith Ring Detail 2" class="gallery-thumb w-full h-full object-cover filter brightness-95" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3UxVDLXPV0WOO532hArnMlRDx1fHleDDus6V-B2izNBVRhxBeYUauCFwXwqmwiobAXsQrgytPDhP6GYN3su9MboU_t8CjOyfImJedrrLdSJ9evuJyVF7aMGylpk_WGKNlX_frbodSlN6AORtOaX13FVAwWJ6hTWS-WJclrAlNjfHuhb00x48zFsi84rA4u5x1wMYPKl7YQ88gZp6Ifg4E-cUscrprnNJcXvcGwOzustMpFMkfFYVvXvTMyts62s2W2jMtAT_jl8k"/>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Product Info -->
+  <div class="md:col-span-5 md:sticky md:top-28 space-y-8 mt-8 md:mt-0">
+    <header class="space-y-3">
+      <div class="flex items-center">
+        <span class="bg-surface-container border border-primary/30 py-1 px-3 text-label-sm uppercase tracking-widest text-primary font-semibold">Limitierte Auflage</span>
+      </div>
+      <h1 class="font-display-lg text-headline-lg md:text-display-lg leading-tight text-on-surface">Monolith Ring</h1>
+      <p class="font-headline-md text-headline-md text-primary">CHF 3'450.00</p>
+    </header>
+
+    <div class="border-t border-outline-variant/30 pt-6 space-y-6">
+      <!-- Description snippet -->
+      <p class="font-body-md text-on-surface-variant leading-relaxed">
+        Facettenreiches, skulpturales Band, geschmiedet aus 950er Platin, das rohe architektonische Geometrien gepaart mit Hochglanzpolitur zeigt. Gefertigt für eine kraftvolle Präsenz.
+      </p>
+
+      <!-- Custom Size Selector -->
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="font-label-md text-label-md uppercase tracking-wider text-primary">Grösse wählen (US)</span>
+          <span id="selected-size-label" class="text-label-sm text-on-surface-variant font-medium">Grösse: 9</span>
+        </div>
+        <div class="grid grid-cols-6 gap-2" id="size-selector-container">
+          <button class="size-btn py-3 border border-outline-variant text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" data-size="6">6</button>
+          <button class="size-btn py-3 border border-outline-variant text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" data-size="7">7</button>
+          <button class="size-btn py-3 border border-outline-variant text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" data-size="8">8</button>
+          <button class="size-btn py-3 border border-primary bg-primary/10 text-primary text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center font-bold" data-size="9">9</button>
+          <button class="size-btn py-3 border border-outline-variant text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" data-size="10">10</button>
+          <button class="size-btn py-3 border border-outline-variant text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" data-size="11">11</button>
+        </div>
+      </div>
+
+      <!-- Quantity Stepper -->
+      <div class="space-y-3">
+        <span class="font-label-md text-label-md uppercase tracking-wider text-primary block">Menge</span>
+        <div class="flex items-center w-32 border border-outline-variant">
+          <button id="qty-minus" class="w-10 h-10 flex items-center justify-center hover:bg-surface-container active:scale-90 transition-all font-bold cursor-pointer">-</button>
+          <span id="qty-value" class="flex-grow text-center font-body-md font-semibold select-none">1</span>
+          <button id="qty-plus" class="w-10 h-10 flex items-center justify-center hover:bg-surface-container active:scale-90 transition-all font-bold cursor-pointer">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="space-y-4 pt-4 border-t border-outline-variant/30">
+      <button id="add-to-bag-btn" class="w-full py-5 bg-[#1F1F1F] text-white dark:bg-[#FAF6EF] dark:text-[#121212] font-label-md text-label-md uppercase tracking-widest hover:opacity-90 transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-3">
+        <span>In den Warenkorb</span>
+      </button>
+      <button id="wishlist-btn" class="w-full py-5 border border-outline bg-transparent text-on-surface font-label-md text-label-md uppercase tracking-widest hover:bg-surface-container transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+        <span class="material-symbols-outlined text-[20px]" id="wishlist-icon">favorite_border</span>
+        <span>Wunschliste</span>
+      </button>
+    </div>
+
+    <!-- Details Accordions -->
+    <div class="pt-6 border-t border-outline-variant/30 space-y-4">
+      <div class="border-b border-outline-variant/20 pb-4">
+        <button class="accordion-trigger w-full flex justify-between items-center text-left focus:outline-none" data-target="panel-craftsmanship">
+          <span class="font-label-md text-label-md uppercase tracking-wider font-semibold">Handwerkskunst &amp; Pflege</span>
+          <span class="material-symbols-outlined transition-transform duration-300 transform" id="arrow-panel-craftsmanship">expand_more</span>
+        </button>
+        <div id="panel-craftsmanship" class="accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+          <p class="pt-4 font-body-md text-on-surface-variant leading-relaxed text-sm">
+            Jeder Monolith Ring wird aus einem einzigen Barren 950er Platin kaltgeschmiedet, was eine unübertroffene strukturelle Integrität, Gewicht und Dichte garantiert. Handveredelt mit Hochglanzpolitur. Zur Reinigung verwenden Sie bitte das mitgelieferte fusselfreie Mikrofasertuch.
+          </p>
+        </div>
+      </div>
+
+      <div class="border-b border-outline-variant/20 pb-4">
+        <button class="accordion-trigger w-full flex justify-between items-center text-left focus:outline-none" data-target="panel-shipping">
+          <span class="font-label-md text-label-md uppercase tracking-wider font-semibold">Versand &amp; Rückgabe</span>
+          <span class="material-symbols-outlined transition-transform duration-300 transform" id="arrow-panel-shipping">expand_more</span>
+        </button>
+        <div id="panel-shipping" class="accordion-content max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+          <p class="pt-4 font-body-md text-on-surface-variant leading-relaxed text-sm">
+            Kostenlose Lieferung am nächsten Tag (Unterschrift erforderlich) innerhalb der Schweiz. Rückgaben sind bis zu 30 Tage in makellosem, ungetragenem Zustand mit intaktem Sicherheitssiegel möglich.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Zoom Modal -->
+<div id="zoom-modal" class="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+  <button id="zoom-modal-close" class="absolute top-6 right-6 text-white material-symbols-outlined text-[36px] hover:text-primary transition-colors cursor-pointer active:scale-95">close</button>
+  <img id="zoom-modal-img" class="max-w-[90%] max-h-[85%] object-contain shadow-2xl rounded-sm" src=""/>
+</div>
+
+<!-- Complete the Look -->
+<section class="max-w-container-max mx-auto px-4 md:px-16 mt-section-padding">
+<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 border-b border-outline-variant/20 pb-6">
+  <h2 class="font-headline-lg text-headline-lg max-w-md">Präzision trifft auf Performance. Vervollständigen Sie den Look.</h2>
+  <a class="font-body-md text-label-md uppercase italic text-underline-expand pb-1 text-primary" href="/catalog.html">Alle Beauty-Tools ansehen</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+  <!-- Suggestion 1 -->
+  <div class="group cursor-pointer">
+    <div class="aspect-[3/4] bg-surface-container-low mb-6 overflow-hidden relative border border-outline-variant/20">
+      <img alt="Steel Precision Pinzette" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE1xo0aN0Ivb0imDFERYKKv-eqKv_N_J4X0rxKuMoiEq4Qy3w12kRVfr1dnk6c67bLncfxC5hvbHgIuAehVvShaUKulJMFa8SlAi8U-i9CblRzji7Ve_ZzndsGyK8Kian_J6f9S2L2TfFJDHPtF0JCLSPhVDR4vVkOjOS36Wg8RwnvrDVE0wP9zowUYv3Uss0Bi4BL50F6N8P8wHvVdPTM0H4Win1Jrpho2zCCsTHYpY3kAOUjgngo8pw-GJM-DRIAx5BW3-J25HE"/>
+      <div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <button class="bg-surface p-4 rounded-full shadow-lg hover:bg-primary hover:text-on-primary transition-all duration-300 active:scale-90 quick-add-btn" data-id="steel-tweezer" data-name="Steel Precision Pinzette" data-price="120" data-img="https://lh3.googleusercontent.com/aida-public/AB6AXuBE1xo0aN0Ivb0imDFERYKKv-eqKv_N_J4X0rxKuMoiEq4Qy3w12kRVfr1dnk6c67bLncfxC5hvbHgIuAehVvShaUKulJMFa8SlAi8U-i9CblRzji7Ve_ZzndsGyK8Kian_J6f9S2L2TfFJDHPtF0JCLSPhVDR4vVkOjOS36Wg8RwnvrDVE0wP9zowUYv3Uss0Bi4BL50F6N8P8wHvVdPTM0H4Win1Jrpho2zCCsTHYpY3kAOUjgngo8pw-GJM-DRIAx5BW3-J25HE">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+    </div>
+    <h4 class="font-label-md text-label-md uppercase mb-1">Steel Precision Pinzette</h4>
+    <p class="font-body-md text-primary">CHF 120.00</p>
+  </div>
+  <!-- Suggestion 2 -->
+  <div class="group cursor-pointer">
+    <div class="aspect-[3/4] bg-surface-container-low mb-6 overflow-hidden relative border border-outline-variant/20">
+      <img alt="Platinum Series Wimpernzange" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWYUIaBj-MeGOHqwjR589XSC_3Wez5YZ_eS_P7QcLXKAJZi6b_3JDWViDYXJBftbc_b5lIETJy_ayEihdWd4dfPU65ssDwPZVdv0G6_CKr9fKCJUIKC7UsOxMYRfDP1A4-VSwXzH4TKEwqARxKCuugaDyeeN8S57_9RmNcFXbt3anM_b79LPjzy3FeQrE0t0aCTpK4oRHYfyWdkyMZvGPDKR_SHyTuguHX6TFpPI93wifCHI0wT2VaAP5QX3tnsDJBGOO7oqlYzc4"/>
+      <div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <button class="bg-surface p-4 rounded-full shadow-lg hover:bg-primary hover:text-on-primary transition-all duration-300 active:scale-90 quick-add-btn" data-id="platinum-curler" data-name="Platinum Series Wimpernzange" data-price="280" data-img="https://lh3.googleusercontent.com/aida-public/AB6AXuAWYUIaBj-MeGOHqwjR589XSC_3Wez5YZ_eS_P7QcLXKAJZi6b_3JDWViDYXJBftbc_b5lIETJy_ayEihdWd4dfPU65ssDwPZVdv0G6_CKr9fKCJUIKC7UsOxMYRfDP1A4-VSwXzH4TKEwqARxKCuugaDyeeN8S57_9RmNcFXbt3anM_b79LPjzy3FeQrE0t0aCTpK4oRHYfyWdkyMZvGPDKR_SHyTuguHX6TFpPI93wifCHI0wT2VaAP5QX3tnsDJBGOO7oqlYzc4">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+    </div>
+    <h4 class="font-label-md text-label-md uppercase mb-1">Platinum Series Wimpernzange</h4>
+    <p class="font-body-md text-primary">CHF 280.00</p>
+  </div>
+  <!-- Suggestion 3 -->
+  <div class="group cursor-pointer">
+    <div class="aspect-[3/4] bg-surface-container-low mb-6 overflow-hidden relative border border-outline-variant/20">
+      <img alt="Steel Contour Buffer" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhz4rltdQ3EUUnUEVMa8Ff0he997G-leh5An5Ggi98yWg8BhfahTTVqCMzfcb_yFvHJt7qr2lPrJeXQar_k_bBbln-e41rHRSrgMLJvetcSCI-bSKalE1jKCBbNAXl9UZizMPkCmE9zo4ttuyhDFf7_-ekPCjfGQt52FLkn-Lpiw9kyvQC0UpzE3NG5u7jsGHwb5jBG0EOGHj_roa0qFq1XmXWwpHIq7ac26T95YwVfR161O-uq0iN21_UFsY2RlN97NZ4ld8rAAM"/>
+      <div class="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <button class="bg-surface p-4 rounded-full shadow-lg hover:bg-primary hover:text-on-primary transition-all duration-300 active:scale-90 quick-add-btn" data-id="steel-buffer" data-name="Steel Contour Buffer" data-price="185" data-img="https://lh3.googleusercontent.com/aida-public/AB6AXuAhz4rltdQ3EUUnUEVMa8Ff0he997G-leh5An5Ggi98yWg8BhfahTTVqCMzfcb_yFvHJt7qr2lPrJeXQar_k_bBbln-e41rHRSrgMLJvetcSCI-bSKalE1jKCBbNAXl9UZizMPkCmE9zo4ttuyhDFf7_-ekPCjfGQt52FLkn-Lpiw9kyvQC0UpzE3NG5u7jsGHwb5jBG0EOGHj_roa0qFq1XmXWwpHIq7ac26T95YwVfR161O-uq0iN21_UFsY2RlN97NZ4ld8rAAM">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+    </div>
+    <h4 class="font-label-md text-label-md uppercase mb-1">Steel Contour Buffer</h4>
+    <p class="font-body-md text-primary">CHF 185.00</p>
+  </div>
+</div>
+</section>
+</main>
+
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/30 w-full pt-section-padding pb-gutter">
+<div class="max-w-container-max mx-auto px-4 md:px-16 flex flex-col md:flex-row justify-between items-start gap-gutter">
+<div class="space-y-6 max-w-xs">
+<div class="font-display-lg text-headline-md text-on-surface">pbstyle</div>
+<p class="font-body-md text-on-surface-variant">Die Schnittstelle zwischen roher industrieller Kraft und raffinierter ästhetischer Eleganz. Unsere Werkzeuge und Schmuckstücke sind für eine lebenslange Präzision geschaffen.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-12 font-label-md">
+<div class="space-y-4">
+<h5 class="uppercase text-primary tracking-widest text-[13px]">Kollektionen</h5>
+<ul class="space-y-2">
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/catalog.html">Schmuck</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/catalog.html">Beauty-Tools</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/catalog.html">Neuheiten</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h5 class="uppercase text-primary tracking-widest text-[13px]">Unternehmen</h5>
+<ul class="space-y-2">
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/brand-story.html">Nachhaltigkeit</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/brand-story.html">Handwerkskunst</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="/brand-story.html">Markenphilosophie</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h5 class="uppercase text-primary tracking-widest text-[13px]">Support</h5>
+<ul class="space-y-2">
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Versand</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Rücksendungen</a></li>
+<li><a class="font-body-md text-on-surface-variant hover:text-primary transition-all" href="#">Datenschutzerklärung</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-4 md:px-16 mt-20 pt-8 border-t border-outline-variant/10">
+<p class="font-body-md text-label-sm text-on-surface-variant">© 2026 PBSTYLE Industrial Elegance. Alle Rechte vorbehalten.</p>
+</div>
+</footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Theme toggle logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const drawerThemeToggleBtn = document.getElementById('drawer-theme-toggle');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'light_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'light_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Light Mode';
+        }
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'dark_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'dark_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Dark Mode';
+        }
+      }
+    }
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(currentTheme);
+
+    function toggleTheme() {
+      const activeTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      localStorage.setItem('theme', activeTheme);
+      applyTheme(activeTheme);
+    }
+
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+    if (drawerThemeToggleBtn) drawerThemeToggleBtn.addEventListener('click', toggleTheme);
+
+    // 2. Mobile drawer navigation logic
+    const drawer = document.getElementById('mobile-drawer');
+    const drawerContent = drawer ? drawer.firstElementChild : null;
+    const trigger = document.getElementById('mobile-menu-trigger');
+    const closeBtn = document.getElementById('mobile-drawer-close');
+
+    function openDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawerContent.classList.remove('-translate-x-full');
+      }
+    }
+
+    function closeDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.add('pointer-events-none', 'opacity-0');
+        drawerContent.classList.add('-translate-x-full');
+      }
+    }
+
+    if (trigger) trigger.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        if (e.target === drawer) closeDrawer();
+      });
+    }
+
+    // 3. Product thumbnail gallery switcher
+    const mainImg = document.getElementById('main-image');
+    const thumbs = document.querySelectorAll('.gallery-thumb');
+
+    thumbs.forEach(thumb => {
+      // Swapping image on click
+      thumb.addEventListener('click', () => {
+        // Remove active class (border-primary) from all
+        thumbs.forEach(t => t.classList.remove('border-2', 'border-primary'));
+        
+        // Add active class to clicked thumb
+        thumb.classList.add('border-2', 'border-primary');
+        
+        // Set main image source with quick fade transition
+        mainImg.style.opacity = '0';
+        setTimeout(() => {
+          mainImg.src = thumb.src;
+          mainImg.style.opacity = '1';
+        }, 200);
+      });
+    });
+
+    // Zoom modal logic
+    const zoomBtn = document.getElementById('image-zoom-btn');
+    const zoomModal = document.getElementById('zoom-modal');
+    const zoomModalImg = document.getElementById('zoom-modal-img');
+    const zoomModalClose = document.getElementById('zoom-modal-close');
+
+    if (zoomBtn && zoomModal && zoomModalImg) {
+      zoomBtn.addEventListener('click', () => {
+        zoomModalImg.src = mainImg.src;
+        zoomModal.classList.remove('pointer-events-none', 'opacity-0');
+      });
+    }
+
+    if (zoomModalClose) {
+      zoomModalClose.addEventListener('click', () => {
+        zoomModal.classList.add('pointer-events-none', 'opacity-0');
+      });
+    }
+
+    if (zoomModal) {
+      zoomModal.addEventListener('click', (e) => {
+        if (e.target === zoomModal) zoomModal.classList.add('pointer-events-none', 'opacity-0');
+      });
+    }
+
+    // 4. Custom selectors (size & quantity)
+    let selectedSize = '9';
+    const selectedSizeLabel = document.getElementById('selected-size-label');
+    const sizeButtons = document.querySelectorAll('.size-btn');
+
+    sizeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sizeButtons.forEach(b => {
+          b.classList.remove('border-primary', 'bg-primary/10', 'text-primary', 'font-bold');
+          b.classList.add('border-outline-variant', 'bg-transparent');
+        });
+        btn.classList.add('border-primary', 'bg-primary/10', 'text-primary', 'font-bold');
+        btn.classList.remove('border-outline-variant', 'bg-transparent');
+        selectedSize = btn.getAttribute('data-size');
+        if (selectedSizeLabel) selectedSizeLabel.textContent = 'Size: ' + selectedSize;
+      });
+    });
+
+    let quantity = 1;
+    const qtyValue = document.getElementById('qty-value');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+
+    if (qtyMinus && qtyPlus && qtyValue) {
+      qtyMinus.addEventListener('click', () => {
+        if (quantity > 1) {
+          quantity--;
+          qtyValue.textContent = quantity;
+        }
+      });
+
+      qtyPlus.addEventListener('click', () => {
+        quantity++;
+        qtyValue.textContent = quantity;
+      });
+    }
+
+    // Wishlist Toggle
+    const wishlistBtn = document.getElementById('wishlist-btn');
+    const wishlistIcon = document.getElementById('wishlist-icon');
+    if (wishlistBtn && wishlistIcon) {
+      let isWishlisted = false;
+      wishlistBtn.addEventListener('click', () => {
+        isWishlisted = !isWishlisted;
+        if (isWishlisted) {
+          wishlistIcon.textContent = 'favorite';
+          wishlistIcon.classList.add('text-primary');
+          wishlistBtn.querySelector('span + span').textContent = 'In Wishlist';
+        } else {
+          wishlistIcon.textContent = 'favorite_border';
+          wishlistIcon.classList.remove('text-primary');
+          wishlistBtn.querySelector('span + span').textContent = 'Wishlist';
+        }
+      });
+    }
+
+    // Accordions
+    const accordionTriggers = document.querySelectorAll('.accordion-trigger');
+    accordionTriggers.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const targetId = trigger.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const arrow = document.getElementById('arrow-' + targetId);
+        
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+          content.style.maxHeight = '0px';
+          arrow.classList.remove('rotate-180');
+        } else {
+          // Close others
+          document.querySelectorAll('.accordion-content').forEach(c => {
+            c.style.maxHeight = '0px';
+          });
+          document.querySelectorAll('.accordion-trigger span[id^="arrow-"]').forEach(a => {
+            a.classList.remove('rotate-180');
+          });
+          // Open target
+          content.style.maxHeight = content.scrollHeight + 'px';
+          arrow.classList.add('rotate-180');
+        }
+      });
+    });
+
+    // 5. Cart Management & Slide-over Mini-cart logic
+    const miniCart = document.getElementById('mini-cart');
+    const miniCartContent = miniCart ? miniCart.firstElementChild : null;
+    const miniCartClose = document.getElementById('mini-cart-close');
+    const cartTrigger = document.getElementById('cart-trigger');
+    const addToBagBtn = document.getElementById('add-to-bag-btn');
+
+    function getCart() {
+      return JSON.parse(localStorage.getItem('cart')) || [];
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem('cart', JSON.stringify(cart));
+      updateCartUI();
+    }
+
+    function openMiniCart() {
+      if (miniCart && miniCartContent) {
+        miniCart.classList.remove('pointer-events-none', 'opacity-0');
+        miniCartContent.classList.remove('translate-x-full');
+      }
+    }
+
+    function closeMiniCart() {
+      if (miniCart && miniCartContent) {
+        miniCart.classList.add('pointer-events-none', 'opacity-0');
+        miniCartContent.classList.add('translate-x-full');
+      }
+    }
+
+    if (cartTrigger) cartTrigger.addEventListener('click', openMiniCart);
+    if (miniCartClose) miniCartClose.addEventListener('click', closeMiniCart);
+    if (miniCart) {
+      miniCart.addEventListener('click', (e) => {
+        if (e.target === miniCart) closeMiniCart();
+      });
+    }
+
+    function updateCartUI() {
+      const cart = getCart();
+      const badge = document.getElementById('cart-badge');
+      const miniCount = document.getElementById('mini-cart-count');
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+      // Badge
+      if (badge) {
+        if (totalItems > 0) {
+          badge.textContent = totalItems;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      // Mini-cart Count
+      if (miniCount) {
+        miniCount.textContent = totalItems;
+      }
+
+      // Render Items in Mini-cart
+      const itemsContainer = document.getElementById('mini-cart-items');
+      const subtotalLabel = document.getElementById('mini-cart-subtotal');
+      
+      if (!itemsContainer) return;
+
+      if (cart.length === 0) {
+        itemsContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center h-48 text-on-surface-variant/60">
+            <span class="material-symbols-outlined text-[48px] mb-2">production_quantity_limits</span>
+            <p class="font-label-sm uppercase tracking-wider">Ihr Warenkorb ist leer</p>
+          </div>
+        `;
+        if (subtotalLabel) subtotalLabel.textContent = 'CHF 0.00';
+        return;
+      }
+
+      let subtotal = 0;
+      let html = '<div class="space-y-6">';
+      
+      cart.forEach((item, index) => {
+        const itemPrice = parseFloat(item.price);
+        const itemSubtotal = itemPrice * item.quantity;
+        subtotal += itemSubtotal;
+
+        html += `
+          <div class="flex gap-4 border-b border-outline-variant/10 pb-4">
+            <div class="w-20 h-24 bg-surface-container-low overflow-hidden border border-outline-variant/20 flex-shrink-0">
+              <img src="${item.img}" class="w-full h-full object-cover"/>
+            </div>
+            <div class="flex-grow flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-start">
+                  <h4 class="font-label-md uppercase text-[13px] tracking-wide max-w-[180px] truncate">${item.name}</h4>
+                  <span class="font-label-sm text-primary font-bold">CHF ${itemPrice.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+                ${item.size ? `<p class="text-xs text-on-surface-variant/70 mt-1">Grösse: ${item.size}</p>` : ''}
+              </div>
+              <div class="flex justify-between items-center mt-2">
+                <!-- Quantity Stepper inside MiniCart -->
+                <div class="flex items-center border border-outline-variant/60">
+                  <button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-low transition-colors select-none font-bold text-sm cursor-pointer qty-dec-mini" data-index="${index}">-</button>
+                  <span class="w-8 text-center text-xs font-semibold select-none">${item.quantity}</span>
+                  <button class="w-8 h-8 flex items-center justify-center hover:bg-surface-container-low transition-colors select-none font-bold text-sm cursor-pointer qty-inc-mini" data-index="${index}">+</button>
+                </div>
+                <button class="text-xs text-on-surface-variant/60 hover:text-error transition-colors uppercase tracking-wider font-semibold remove-mini" data-index="${index}">Entfernen</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      itemsContainer.innerHTML = html;
+      
+      if (subtotalLabel) {
+        subtotalLabel.textContent = 'CHF ' + subtotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+
+      // Add event listeners to mini-cart buttons
+      document.querySelectorAll('.qty-dec-mini').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          const c = getCart();
+          if (c[idx].quantity > 1) {
+            c[idx].quantity--;
+            saveCart(c);
+          } else {
+            c.splice(idx, 1);
+            saveCart(c);
+          }
+        });
+      });
+
+      document.querySelectorAll('.qty-inc-mini').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          const c = getCart();
+          c[idx].quantity++;
+          saveCart(c);
+        });
+      });
+
+      document.querySelectorAll('.remove-mini').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-index'));
+          const c = getCart();
+          c.splice(idx, 1);
+          saveCart(c);
+        });
+      });
+    }
+
+    // 6. Add to Bag button click handler (with animated states)
+    if (addToBagBtn) {
+      addToBagBtn.addEventListener('click', () => {
+        // Change to loading spinner state
+        const originalContent = addToBagBtn.innerHTML;
+        addToBagBtn.disabled = true;
+        addToBagBtn.innerHTML = `
+          <svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Wird hinzugefügt...</span>
+        `;
+
+        setTimeout(() => {
+          // Success State
+          addToBagBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[20px]">check_circle</span>
+            <span>Erfolgreich hinzugefügt!</span>
+          `;
+          
+          // Add Item to LocalStorage
+          const cart = getCart();
+          const existingItemIndex = cart.findIndex(item => item.id === 'monolith-ring' && item.size === selectedSize);
+          
+          if (existingItemIndex > -1) {
+            cart[existingItemIndex].quantity += quantity;
+          } else {
+            cart.push({
+              id: 'monolith-ring',
+              name: 'Monolith Ring',
+              price: 3450,
+              size: selectedSize,
+              quantity: quantity,
+              img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAk7XJxGMmViCkJqx-GPuG6YqvBlv7WzT8bSJU6ZKmvAWLFTpX6-EBtHIdceDGDsnPk-1sCNem1xOwDNyihWqQwh7CH8zQPYjgXNqMIS4obK8CmYzZ9XKdjFnzjUimXwgAHgvVLijO7aiZWslb2oQBtygMCQu4ZXu4vzBAcn5cVout96QsYoO4ltYZzkmpoCfoBTqSdp10dT9n5raxHTTL8Y6hgMlsD7ujYCiludFfMXqg7jEWqUrqqSJDrRZB05osarhKKYjiisdI'
+            });
+          }
+          saveCart(cart);
+
+          // Return to normal after another second and open mini-cart
+          setTimeout(() => {
+            addToBagBtn.innerHTML = originalContent;
+            addToBagBtn.disabled = false;
+            openMiniCart();
+          }, 800);
+
+        }, 800);
+      });
+    }
+
+    // 7. Quick Add for suggestion grid items
+    const quickAddBtns = document.querySelectorAll('.quick-add-btn');
+    quickAddBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent clicking card triggering navigations
+        const itemId = btn.getAttribute('data-id');
+        const itemName = btn.getAttribute('data-name');
+        const itemPrice = parseFloat(btn.getAttribute('data-price'));
+        const itemImg = btn.getAttribute('data-img');
+
+        const cart = getCart();
+        const existingItemIndex = cart.findIndex(item => item.id === itemId);
+
+        if (existingItemIndex > -1) {
+          cart[existingItemIndex].quantity += 1;
+        } else {
+          cart.push({
+            id: itemId,
+            name: itemName,
+            price: itemPrice,
+            size: '',
+            quantity: 1,
+            img: itemImg
+          });
+        }
+        
+        saveCart(cart);
+        openMiniCart();
+      });
+    });
+
+    // Initialize UI
+    updateCartUI();
+  });
+</script>
+</body>
+</html>

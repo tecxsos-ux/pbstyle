@@ -1,0 +1,489 @@
+{% comment %}
+  PBStyle Precision Catalog / Collections Page
+{% endcomment %}
+
+<main class="pt-24 bg-background text-on-surface">
+  
+  <!-- Category Header -->
+  <header class="pt-16 pb-12 bg-background border-b border-outline-variant/10">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center space-y-6">
+      <span class="font-label-sm text-label-sm uppercase text-primary tracking-[0.25em] block">Tresor-Kollektion</span>
+      <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface leading-none">{{ collection.title | default: 'Alle Objekte' }}</h1>
+      <p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+        Ein Katalog präzisionsgefertigter Schmuckstücke und Designwerkzeuge, hergestellt aus beständigen Materialien für dauerhaften Wert.
+      </p>
+      
+      <!-- Top Level Collection Quick Links -->
+      <div class="flex flex-wrap justify-center gap-x-4 md:gap-x-8 gap-y-4 pt-4 font-label-md text-label-md uppercase tracking-widest">
+        <a href="{{ routes.all_products_collection_url }}" class="hover:text-primary transition-colors pb-1 {% if collection.handle == 'all' or collection.handle == nil %}text-primary border-b border-primary font-semibold{% else %}text-on-surface-variant/70{% endif %}">Alle Objekte</a>
+        {% for c in collections %}
+          {% if c.handle != 'all' and c.handle != 'frontpage' %}
+            <a href="{{ c.url }}" class="hover:text-primary transition-colors pb-1 {% if collection.handle == c.handle %}text-primary border-b border-primary font-semibold{% else %}text-on-surface-variant/70{% endif %}">{{ c.title }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Filter & Catalog Grid Layout -->
+  <section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col lg:flex-row gap-12 py-16">
+    
+    {% comment %} Setup Dynamic Filters based on Collection Products {% endcomment %}
+    {% assign filter_materials = "platinum,brushed steel,sterling silver" | split: "," %}
+    {% assign filter_categories = "rings,tweezers,brushes,necklaces" | split: "," %}
+
+    <!-- Desktop Minimal Filter Sidebar -->
+    <aside class="hidden lg:block w-64 flex-shrink-0 sticky top-32 h-fit border-r border-outline-variant/20 pr-8 space-y-12">
+      <!-- Material Filter -->
+      <div>
+        <h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface font-bold">Material</h3>
+        <div class="space-y-4">
+          {% for material in filter_materials %}
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="desktop-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm bg-transparent" type="checkbox" value="{{ material }}"/>
+              <span class="font-body-md text-sm text-on-surface-variant group-hover:text-primary transition-colors">
+                {% if material == 'platinum' %}Platin{% elsif material == 'brushed steel' %}Gebürsteter Stahl{% elsif material == 'sterling silver' %}Sterlingsilber{% else %}{{ material | capitalize }}{% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div>
+        <h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface font-bold">Kategorie</h3>
+        <div class="space-y-4">
+          {% for category in filter_categories %}
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="desktop-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm bg-transparent" type="checkbox" value="{{ category }}"/>
+              <span class="font-body-md text-sm text-on-surface-variant group-hover:text-primary transition-colors">
+                {% if category == 'rings' %}Ringe{% elsif category == 'tweezers' %}Pinzetten{% elsif category == 'brushes' %}Pinsel{% elsif category == 'necklaces' %}Halsketten{% else %}{{ category | capitalize }}{% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Price Filter -->
+      <div>
+        <h3 class="font-label-md text-label-md uppercase tracking-widest mb-6 text-on-surface font-bold">Preislimit</h3>
+        <div class="pt-2">
+          <input id="desktop-price-slider" class="w-full h-1 bg-outline-variant/30 appearance-none cursor-pointer accent-primary" type="range" min="0" max="5000" value="5000"/>
+          <div class="flex justify-between mt-4 font-label-sm text-xs text-on-surface-variant">
+            <span>CHF 0</span>
+            <span id="desktop-price-value">CHF 5'000+</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Product Grid Area -->
+    <div class="flex-grow">
+      
+      <!-- Top Action Bar (Showing counts, sorting, and mobile filter trigger) -->
+      <div class="flex justify-between items-center mb-8 pb-4 border-b border-outline-variant/10">
+        <span class="font-body-md text-on-surface-variant text-sm" id="product-count-label">{{ collection.products.size }} Objekte angezeigt</span>
+        
+        <div class="flex items-center gap-4">
+          <!-- Mobile Filter Button -->
+          <button id="mobile-filter-trigger" class="lg:hidden flex items-center gap-2 border border-outline-variant/30 py-2 px-4 font-label-sm text-xs uppercase tracking-widest text-on-surface active:scale-95 transition-transform">
+            <span class="material-symbols-outlined text-sm">filter_list</span> Filter
+          </button>
+
+          <!-- Sorting Select (Hidden on Mobile) -->
+          <div class="hidden lg:flex items-center gap-4">
+            <span class="font-label-sm uppercase tracking-widest text-on-surface-variant text-xs font-semibold">Sortieren nach</span>
+            <select id="desktop-sort-select" class="bg-transparent border border-outline-variant/30 py-2 px-4 focus:border-primary focus:ring-0 outline-none font-body-md text-xs uppercase tracking-wider transition-colors cursor-pointer text-on-surface">
+              <option value="featured">Ausgewählt</option>
+              <option value="price-asc">Preis: Aufsteigend</option>
+              <option value="price-desc">Preis: Absteigend</option>
+              <option value="title-asc">Alphabetisch: A-Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {% paginate collection.products by 24 %}
+        {% if collection.products.size > 0 %}
+          <!-- Product Grid -->
+          <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-16">
+            {% for product in collection.products %}
+              
+              {% comment %} Calculate clean material type for client filtering {% endcomment %}
+              {% assign product_material = "platinum" %}
+              {% assign lower_title = product.title | downcase %}
+              {% if lower_title contains "steel" or lower_title contains "tweezer" %}
+                {% assign product_material = "brushed steel" %}
+              {% elsif lower_title contains "silver" %}
+                {% assign product_material = "sterling silver" %}
+              {% endif %}
+
+              {% comment %} Calculate category tag {% endcomment %}
+              {% assign product_category = product.type | default: "rings" | downcase %}
+              {% if lower_title contains "brush" %}
+                {% assign product_category = "brushes" %}
+              {% elsif lower_title contains "necklace" %}
+                {% assign product_category = "necklaces" %}
+              {% elsif lower_title contains "tweezer" %}
+                {% assign product_category = "tweezers" %}
+              {% endif %}
+
+              {% assign product_price_raw = product.price | money_without_currency | replace: ",", "" | replace: " ", "" | plus: 0 %}
+
+              <!-- Product Card -->
+              <div class="product-item group cursor-pointer block relative" 
+                   data-material="{{ product_material }}" 
+                   data-category="{{ product_category }}" 
+                   data-price="{{ product_price_raw }}">
+                
+                <!-- Image Wrapper -->
+                <div class="relative aspect-[4/5] bg-surface-container-low overflow-hidden border border-outline-variant/10 shadow-sm group-hover:shadow-xl transition-all duration-750 mb-6">
+                  <!-- Main Image -->
+                  <img class="w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-105" 
+                       src="{{ product.featured_image | img_url: '800x' }}" 
+                       alt="{{ product.title | escape }}"/>
+                  
+                  <!-- Secondary Hover Image (Dynamic Cross-Fade) -->
+                  {% if product.images.size > 1 %}
+                    <img class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700" 
+                         src="{{ product.images[1] | img_url: '800x' }}" 
+                         alt="{{ product.title | escape }}"/>
+                  {% endif %}
+
+                  <!-- Badges -->
+                  {% if product.available == false %}
+                    <div class="absolute top-4 left-4 z-20">
+                      <span class="bg-inverse-surface/90 text-inverse-on-surface backdrop-blur-sm px-3 py-1 font-label-sm text-[10px] uppercase tracking-widest font-bold">Ausverkauft</span>
+                    </div>
+                  {% elsif product.tags contains 'New' or product.tags contains 'new' %}
+                    <div class="absolute top-4 left-4 z-20">
+                      <span class="bg-primary text-white px-3 py-1 font-label-sm text-[10px] uppercase tracking-widest font-bold">Neuheit</span>
+                    </div>
+                  {% endif %}
+
+                  <!-- Hover Action Overlay -->
+                  <div class="absolute inset-0 bg-inverse-surface/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <a href="{{ product.url }}" class="bg-surface px-8 py-3 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-xl translate-y-4 group-hover:translate-y-0 transition-transform font-bold">Details ansehen</a>
+                  </div>
+                </div>
+
+                <!-- Info Block -->
+                <div class="flex justify-between items-start gap-4">
+                  <div class="space-y-1">
+                    <h3 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors duration-300 font-semibold">{{ product.title }}</h3>
+                    <p class="font-body-md text-sm text-on-surface-variant font-light capitalize">
+                      {% if product_material == 'platinum' %}Platin{% elsif product_material == 'brushed steel' %}Gebürsteter Stahl{% elsif product_material == 'sterling silver' %}Sterlingsilber{% else %}{{ product_material | capitalize }}{% endif %}, 
+                      {% if product.type == 'Ring' %}Ring{% elsif product.type == 'Tweezer' %}Pinzette{% elsif product.type == 'Brush' %}Pinsel{% elsif product.type == 'Necklace' %}Halskette{% else %}{{ product.type | default: 'Objekt' }}{% endif %}
+                    </p>
+                  </div>
+                  <span class="font-body-lg text-primary tracking-widest font-bold">{{ product.price | money }}</span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Pagination -->
+          {% if paginate.pages > 1 %}
+            <div class="mt-24 flex justify-center items-center gap-8 border-t border-outline-variant/20 pt-12">
+              {% if paginate.previous %}
+                <a href="{{ paginate.previous.url }}" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">chevron_left</a>
+              {% else %}
+                <span class="material-symbols-outlined text-on-surface-variant opacity-30">chevron_left</span>
+              {% endif %}
+              
+              <div class="flex gap-6 font-label-md text-label-md uppercase tracking-widest">
+                {% for part in paginate.parts %}
+                  {% if part.is_link %}
+                    <a href="{{ part.url }}" class="text-on-surface-variant hover:text-primary cursor-pointer transition-colors">{{ part.title }}</a>
+                  {% else %}
+                    <span class="text-primary font-bold border-b border-primary">{{ part.title }}</span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if paginate.next %}
+                <a href="{{ paginate.next.url }}" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">chevron_right</a>
+              {% else %}
+                <span class="material-symbols-outlined text-on-surface-variant opacity-30">chevron_right</span>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% else %}
+          <!-- Empty Grid State -->
+          <div class="py-24 text-center bg-surface-container border border-outline-variant/20 shadow-sm max-w-2xl mx-auto space-y-6">
+            <span class="material-symbols-outlined text-5xl text-outline mb-4">inventory_2</span>
+            <h3 class="font-headline-lg text-headline-lg text-on-surface font-semibold">Keine Objekte registriert</h3>
+            <p class="font-body-md text-sm text-on-surface-variant max-w-md mx-auto">Dieses Archiv ist derzeit leer. Bitte durchsuchen Sie andere Kollektionen.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="inline-block bg-on-surface text-surface px-8 py-3 font-label-md uppercase tracking-widest hover:opacity-90 transition-all font-semibold">Katalog erkunden</a>
+          </div>
+        {% endif %}
+      {% endpaginate %}
+    </div>
+  </section>
+
+  <!-- Mobile Filters Drawer Overlay -->
+  <div id="mobile-filter-drawer" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex justify-end">
+    <div class="w-full max-w-md bg-surface border-l border-outline-variant/30 h-full flex flex-col justify-between translate-x-full transition-transform duration-300 p-6 shadow-2xl">
+      <div>
+        <div class="flex justify-between items-center border-b border-outline-variant/10 pb-4 mb-6">
+          <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Filter</h3>
+          <button id="mobile-filter-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-90 cursor-pointer">close</button>
+        </div>
+
+        <div class="space-y-8">
+          <!-- Material -->
+          <div>
+            <h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Material</h4>
+            <div class="space-y-3">
+              {% for material in filter_materials %}
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <input class="mobile-material-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm bg-transparent" type="checkbox" value="{{ material }}"/>
+                  <span class="font-body-md text-sm text-on-surface-variant group-hover:text-primary transition-colors">
+                    {% if material == 'platinum' %}Platin{% elsif material == 'brushed steel' %}Gebürsteter Stahl{% elsif material == 'sterling silver' %}Sterlingsilber{% else %}{{ material | capitalize }}{% endif %}
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div>
+            <h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Kategorie</h4>
+            <div class="space-y-3">
+              {% for category in filter_categories %}
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <input class="mobile-category-checkbox w-4 h-4 border-outline-variant text-primary focus:ring-0 rounded-sm bg-transparent" type="checkbox" value="{{ category }}"/>
+                  <span class="font-body-md text-sm text-on-surface-variant group-hover:text-primary transition-colors">
+                    {% if category == 'rings' %}Ringe{% elsif category == 'tweezers' %}Pinzetten{% elsif category == 'brushes' %}Pinsel{% elsif category == 'necklaces' %}Halsketten{% else %}{{ category | capitalize }}{% endif %}
+                  </span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Price -->
+          <div>
+            <h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Preislimit</h4>
+            <div class="pt-2">
+              <input id="mobile-price-slider" class="w-full h-1 bg-outline-variant/30 appearance-none cursor-pointer accent-primary" type="range" min="0" max="5000" value="5000"/>
+              <div class="flex justify-between mt-4 font-label-sm text-xs text-on-surface-variant">
+                <span>CHF 0</span>
+                <span id="mobile-price-value">CHF 5'000+</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sorting on Mobile -->
+          <div>
+            <h4 class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant mb-4">Sortieren nach</h4>
+            <select id="mobile-sort-select" class="w-full bg-transparent border border-outline-variant/30 py-3 px-4 focus:border-primary focus:ring-0 outline-none font-body-md text-xs uppercase tracking-wider transition-colors cursor-pointer text-on-surface">
+              <option value="featured">Ausgewählt</option>
+              <option value="price-asc">Preis: Aufsteigend</option>
+              <option value="price-desc">Preis: Absteigend</option>
+              <option value="title-asc">Alphabetisch: A-Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 border-t border-outline-variant/20 pt-6 mt-6">
+        <button id="mobile-filter-reset" class="py-4 border border-outline text-label-sm uppercase tracking-widest text-on-surface hover:bg-surface-container transition-all font-bold">Zurücksetzen</button>
+        <button id="mobile-filter-apply" class="py-4 bg-on-surface text-surface text-label-sm uppercase tracking-widest hover:opacity-90 transition-all font-bold">Anwenden</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  (function() {
+    function initCatalog() {
+      const products = Array.from(document.querySelectorAll('.product-item'));
+      const desktopMaterialCheckboxes = document.querySelectorAll('.desktop-material-checkbox');
+      const desktopCategoryCheckboxes = document.querySelectorAll('.desktop-category-checkbox');
+      const desktopPriceSlider = document.getElementById('desktop-price-slider');
+      const desktopPriceValue = document.getElementById('desktop-price-value');
+      const desktopSortSelect = document.getElementById('desktop-sort-select');
+
+      const mobileMaterialCheckboxes = document.querySelectorAll('.mobile-material-checkbox');
+      const mobileCategoryCheckboxes = document.querySelectorAll('.mobile-category-checkbox');
+      const mobilePriceSlider = document.getElementById('mobile-price-slider');
+      const mobilePriceValue = document.getElementById('mobile-price-value');
+      const mobileSortSelect = document.getElementById('mobile-sort-select');
+      
+      const countLabel = document.getElementById('product-count-label');
+      const productGrid = document.getElementById('product-grid');
+
+      function syncControls(source) {
+        if (source === 'desktop') {
+          if (mobilePriceSlider && desktopPriceSlider) mobilePriceSlider.value = desktopPriceSlider.value;
+          if (mobilePriceValue && desktopPriceSlider) mobilePriceValue.textContent = desktopPriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + desktopPriceSlider.value;
+          if (mobileSortSelect && desktopSortSelect) mobileSortSelect.value = desktopSortSelect.value;
+          
+          desktopMaterialCheckboxes.forEach((cb, idx) => {
+            if (mobileMaterialCheckboxes[idx]) mobileMaterialCheckboxes[idx].checked = cb.checked;
+          });
+          desktopCategoryCheckboxes.forEach((cb, idx) => {
+            if (mobileCategoryCheckboxes[idx]) mobileCategoryCheckboxes[idx].checked = cb.checked;
+          });
+        } else {
+          if (desktopPriceSlider && mobilePriceSlider) desktopPriceSlider.value = mobilePriceSlider.value;
+          if (desktopPriceValue && mobilePriceSlider) desktopPriceValue.textContent = mobilePriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + mobilePriceSlider.value;
+          if (desktopSortSelect && mobileSortSelect) desktopSortSelect.value = mobileSortSelect.value;
+
+          mobileMaterialCheckboxes.forEach((cb, idx) => {
+            if (desktopMaterialCheckboxes[idx]) desktopMaterialCheckboxes[idx].checked = cb.checked;
+          });
+          mobileCategoryCheckboxes.forEach((cb, idx) => {
+            if (desktopCategoryCheckboxes[idx]) desktopCategoryCheckboxes[idx].checked = cb.checked;
+          });
+        }
+      }
+
+      function runFilters() {
+        if (products.length === 0) return;
+
+        const activeMaterials = Array.from(desktopMaterialCheckboxes)
+          .filter(cb => cb.checked)
+          .map(cb => cb.value.toLowerCase());
+        
+        const activeCategories = Array.from(desktopCategoryCheckboxes)
+          .filter(cb => cb.checked)
+          .map(cb => cb.value.toLowerCase());
+          
+        const maxPrice = desktopPriceSlider ? parseFloat(desktopPriceSlider.value) : 5000;
+        
+        let visibleCount = 0;
+        let visibleProducts = [];
+
+        products.forEach(p => {
+          const mat = p.getAttribute('data-material').toLowerCase();
+          const cat = p.getAttribute('data-category').toLowerCase();
+          const price = parseFloat(p.getAttribute('data-price'));
+
+          const matMatch = activeMaterials.length === 0 || activeMaterials.includes(mat);
+          const catMatch = activeCategories.length === 0 || activeCategories.includes(cat);
+          const priceMatch = price <= maxPrice;
+
+          if (matMatch && catMatch && priceMatch) {
+            visibleProducts.push(p);
+            p.style.display = 'block';
+            p.style.opacity = '0';
+            setTimeout(() => {
+              p.style.opacity = '1';
+              p.style.transition = 'opacity 0.3s ease';
+            }, 10);
+            visibleCount++;
+          } else {
+            p.style.display = 'none';
+          }
+        });
+
+        // Handle Sorting
+        const sortVal = desktopSortSelect ? desktopSortSelect.value : 'featured';
+        if (sortVal === 'price-asc') {
+          visibleProducts.sort((a, b) => parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price')));
+        } else if (sortVal === 'price-desc') {
+          visibleProducts.sort((a, b) => parseFloat(b.getAttribute('data-price')) - parseFloat(a.getAttribute('data-price')));
+        } else if (sortVal === 'title-asc') {
+          visibleProducts.sort((a, b) => a.querySelector('h3').textContent.localeCompare(b.querySelector('h3').textContent));
+        }
+
+        // Re-append sorted elements
+        if (productGrid) {
+          visibleProducts.forEach(p => productGrid.appendChild(p));
+        }
+
+        if (countLabel) {
+          countLabel.textContent = `${visibleCount} Objekt` + (visibleCount === 1 ? '' : 'e') + ' angezeigt';
+        }
+      }
+
+      // Connect Events
+      desktopMaterialCheckboxes.forEach(cb => cb.addEventListener('change', () => { runFilters(); syncControls('desktop'); }));
+      desktopCategoryCheckboxes.forEach(cb => cb.addEventListener('change', () => { runFilters(); syncControls('desktop'); }));
+      
+      if (desktopPriceSlider) {
+        desktopPriceSlider.addEventListener('input', () => {
+          if (desktopPriceValue) desktopPriceValue.textContent = desktopPriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + desktopPriceSlider.value;
+          runFilters();
+          syncControls('desktop');
+        });
+      }
+
+      if (desktopSortSelect) {
+        desktopSortSelect.addEventListener('change', () => { runFilters(); syncControls('desktop'); });
+      }
+
+      // Mobile Apply / Reset Buttons
+      const applyBtn = document.getElementById('mobile-filter-apply');
+      const resetBtn = document.getElementById('mobile-filter-reset');
+      
+      if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+          syncControls('mobile');
+          runFilters();
+          closeFilterDrawer();
+        });
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          mobileMaterialCheckboxes.forEach(cb => cb.checked = false);
+          mobileCategoryCheckboxes.forEach(cb => cb.checked = false);
+          if (mobilePriceSlider) mobilePriceSlider.value = 5000;
+          if (mobilePriceValue) mobilePriceValue.textContent = "CHF 5'000+";
+          syncControls('mobile');
+          runFilters();
+          closeFilterDrawer();
+        });
+      }
+
+      if (mobilePriceSlider) {
+        mobilePriceSlider.addEventListener('input', () => {
+          if (mobilePriceValue) mobilePriceValue.textContent = mobilePriceSlider.value == 5000 ? "CHF 5'000+" : 'CHF ' + mobilePriceSlider.value;
+        });
+      }
+
+      // Mobile Drawer Opening/Closing
+      const filterDrawer = document.getElementById('mobile-filter-drawer');
+      const filterDrawerContent = filterDrawer ? (filterDrawer.querySelector('.w-80') || filterDrawer.firstElementChild) : null;
+      const filterTrigger = document.getElementById('mobile-filter-trigger');
+      const filterClose = document.getElementById('mobile-filter-close');
+
+      function openFilterDrawer() {
+        if (filterDrawer && filterDrawerContent) {
+          filterDrawer.classList.remove('pointer-events-none', 'opacity-0');
+          filterDrawerContent.classList.remove('translate-x-full');
+        }
+      }
+
+      function closeFilterDrawer() {
+        if (filterDrawer && filterDrawerContent) {
+          filterDrawer.classList.add('pointer-events-none', 'opacity-0');
+          filterDrawerContent.classList.add('translate-x-full');
+        }
+      }
+
+      if (filterTrigger) filterTrigger.addEventListener('click', openFilterDrawer);
+      if (filterClose) filterClose.addEventListener('click', closeFilterDrawer);
+      if (filterDrawer) {
+        filterDrawer.addEventListener('click', (e) => {
+          if (e.target === filterDrawer) closeFilterDrawer();
+        });
+      }
+    }
+
+    if (document.readyState !== 'loading') {
+      initCatalog();
+    } else {
+      document.addEventListener('DOMContentLoaded', initCatalog);
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "PBStyle Catalog",
+  "settings": []
+}
+{% endschema %}

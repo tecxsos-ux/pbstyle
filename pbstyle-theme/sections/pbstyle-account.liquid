@@ -1,0 +1,520 @@
+{% comment %}
+  PBStyle Premium Responsive Account Dashboard
+{% endcomment %}
+
+<main class="pt-32 pb-section-padding bg-background text-on-surface">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop space-y-12">
+    
+    <!-- Welcome Header -->
+    <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-outline-variant/10">
+      <div>
+        <span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold block mb-2">Mitglieder-Tresor-Arbeitsbereich</span>
+        <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Willkommen zurück, {{ customer.first_name | default: 'Mitglied' }}.</h1>
+      </div>
+      <div class="bg-surface-container border border-outline-variant/20 px-6 py-4 flex items-center space-x-4 shadow-sm">
+        <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+        <div>
+          <p class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Statusstufe</p>
+          <p class="font-headline-md text-headline-md text-on-surface font-semibold">
+            {% if customer.orders_count > 5 %}Platin-Mitglied{% elsif customer.orders_count > 1 %}Gold-Mitglied{% else %}Standard-Mitglied{% endif %}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Metrics Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Metric 1: Total Orders -->
+      <div class="bg-surface-container-lowest p-6 border border-outline-variant/30 relative overflow-hidden group hover:border-primary transition-all duration-300">
+        <div class="flex justify-between items-start mb-4 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[24px]">local_shipping</span>
+          <span class="text-[9px] uppercase tracking-widest font-bold">Erwerbe</span>
+        </div>
+        <p class="font-display-lg text-display-lg-mobile md:text-headline-lg text-on-surface mb-1 font-bold">{{ customer.orders_count }}</p>
+        <p class="font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">Registrierte Objekte gesamt</p>
+      </div>
+
+      <!-- Metric 2: Value Stored -->
+      <div class="bg-surface-container-lowest p-6 border border-outline-variant/30 relative overflow-hidden group hover:border-primary transition-all duration-300">
+        <div class="flex justify-between items-start mb-4 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[24px]">payments</span>
+          <span class="text-[9px] uppercase tracking-widest font-bold">Zertifizierter Wert</span>
+        </div>
+        <p class="font-display-lg text-display-lg-mobile md:text-headline-lg text-on-surface mb-1 font-bold">{{ customer.total_spent | money }}</p>
+        <p class="font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">Geschätzter hinterlegter Wert</p>
+      </div>
+
+      <!-- Metric 3: Sustainability Score -->
+      <div class="bg-surface-container-lowest p-6 border border-outline-variant/30 relative overflow-hidden group hover:border-primary transition-all duration-300">
+        <div class="flex justify-between items-start mb-4 text-on-surface-variant">
+          <span class="material-symbols-outlined text-[24px]">eco</span>
+          <span class="text-[9px] uppercase tracking-widest font-bold">Effizienz-Wert</span>
+        </div>
+        {% assign sustainability_points = customer.orders_count | times: 120 | default: 0 %}
+        <p class="font-display-lg text-display-lg-mobile md:text-headline-lg text-on-surface mb-1 font-bold">
+          {% if sustainability_points > 0 %}{{ sustainability_points }}{% else %}0{% endif %}
+        </p>
+        <p class="font-label-md text-label-sm text-on-surface-variant uppercase tracking-wider">Nachhaltigkeitspunkte</p>
+      </div>
+    </section>
+
+    <!-- Horizontal Responsive Tab Navigation -->
+    <section>
+      <div class="flex border-b border-outline-variant/20 overflow-x-auto gap-4 pb-2 scrollbar-none">
+        <button class="tab-btn pb-3 px-2 font-label-md text-label-sm uppercase tracking-wider text-primary border-b-2 border-primary font-bold whitespace-nowrap active:scale-95 transition-all" data-target="panel-vault">Mein Tresor</button>
+        <button class="tab-btn pb-3 px-2 font-label-md text-label-sm uppercase tracking-wider text-on-surface-variant border-b-2 border-transparent hover:text-primary whitespace-nowrap active:scale-95 transition-all" data-target="panel-orders">Letzte Bestellungen</button>
+        <button class="tab-btn pb-3 px-2 font-label-md text-label-sm uppercase tracking-wider text-on-surface-variant border-b-2 border-transparent hover:text-primary whitespace-nowrap active:scale-95 transition-all" data-target="panel-impact">Nachhaltigkeitsübersicht</button>
+        <button class="tab-btn pb-3 px-2 font-label-md text-label-sm uppercase tracking-wider text-on-surface-variant border-b-2 border-transparent hover:text-primary whitespace-nowrap active:scale-95 transition-all" data-target="panel-account">Kontoeinstellungen</button>
+      </div>
+    </section>
+
+    <!-- Tab Panels Container -->
+    <section class="min-h-[400px]">
+      
+      <!-- Panel 1: Vault Collection -->
+      <div id="panel-vault" class="tab-panel space-y-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface">Der Tresor</h2>
+            <p class="text-sm text-on-surface-variant max-w-lg mt-1">Ein sicheres Register Ihrer dauerhaften Erwerbe. Klicken Sie auf eine Objektkarte, um die Echtheitszertifikate und Wertgutachten einzusehen.</p>
+          </div>
+          <button id="valuation-btn" class="px-6 py-3 border border-outline text-label-sm uppercase tracking-widest text-on-surface hover:bg-on-surface hover:text-surface transition-all duration-300 font-semibold active:scale-95">Wertgutachten anfordern</button>
+        </div>
+
+        {% if customer.orders.size > 0 %}
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+            {% for order in customer.orders %}
+              {% for line_item in order.line_items %}
+                {% if line_item.image %}
+                  {% assign item_serial = "PB-" | append: line_item.id | slice: -6, 6 %}
+                  <!-- Vault Card -->
+                  <div class="vault-card group cursor-pointer space-y-4 border border-outline-variant/20 p-4 bg-surface-container-lowest hover:border-primary transition-all duration-300"
+                       data-id="{{ line_item.id }}" 
+                       data-name="{{ line_item.title | escape }}" 
+                       data-serial="{{ item_serial }}" 
+                       data-material="Chirurgenstahl" 
+                       data-edition="Standardausführung" 
+                       data-valuation="{{ line_item.final_price | money }}" 
+                       data-img="{{ line_item.image | img_url: '600x' }}" 
+                       data-desc="Authentifizierter Erwerb, registriert in den PBSTYLE-Akten. Hergestellt aus hochwertigen Materialien und präzisen industriellen Geometrien.">
+                    
+                    <div class="aspect-[4/5] bg-surface-container overflow-hidden relative border border-outline-variant/10">
+                      <img alt="{{ line_item.title | escape }}" 
+                           class="w-full h-full object-cover filter brightness-95 transition-transform duration-750 group-hover:scale-105" 
+                           src="{{ line_item.image | img_url: '600x' }}"/>
+                      <div class="absolute top-4 right-4">
+                        <span class="bg-surface/90 text-on-surface backdrop-blur-sm px-3 py-1 font-label-sm text-[10px] uppercase tracking-widest border border-outline-variant/30 font-bold">Registriert</span>
+                      </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <h4 class="font-label-md text-label-md uppercase font-bold text-on-surface truncate max-w-[200px]">{{ line_item.title }}</h4>
+                        <p class="text-xs text-on-surface-variant">Seriennummer {{ item_serial }}</p>
+                      </div>
+                      <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">info</span>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="border border-outline-variant/30 p-12 text-center bg-surface-container-lowest">
+            <span class="material-symbols-outlined text-4xl text-outline mb-4">diamond</span>
+            <h3 class="font-headline-md text-on-surface mb-2">Ihr Tresor ist leer</h3>
+            <p class="font-body-md text-on-surface-variant mb-6">Beginnen Sie Ihre Sammlung, indem Sie unsere präzisionsgefertigten Objekte erkunden.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="inline-block bg-on-surface text-surface px-8 py-3 font-label-md uppercase tracking-widest hover:opacity-90 transition-all font-semibold">Kollektion erkunden</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Panel 2: Recent Orders -->
+      <div id="panel-orders" class="tab-panel space-y-6 hidden">
+        <div class="flex justify-between items-center border-b border-outline-variant/20 pb-4">
+          <h2 class="font-headline-lg text-headline-lg text-on-surface">Bestellverlauf</h2>
+          <span class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Zeigt die letzten {{ customer.orders.size }} Bestellungen</span>
+        </div>
+
+        {% if customer.orders.size > 0 %}
+          <div class="overflow-x-auto border border-outline-variant/20 bg-surface-container-lowest">
+            <table class="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr class="border-b border-outline-variant/40 text-on-surface-variant text-[11px] uppercase tracking-wider font-bold">
+                  <th class="py-4 px-6">Produkt</th>
+                  <th class="py-4 px-6">Datum</th>
+                  <th class="py-4 px-6">Bestellnummer</th>
+                  <th class="py-4 px-6">Status</th>
+                  <th class="py-4 px-6 text-right">Berechneter Preis</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/10 text-sm">
+                {% for order in customer.orders %}
+                  <tr class="hover:bg-surface-container-low/50 transition-colors">
+                    <td class="py-5 px-6 flex items-center gap-4">
+                      {% assign first_item = order.line_items.first %}
+                      {% if first_item.image %}
+                        <div class="w-12 h-16 bg-surface overflow-hidden border border-outline-variant/20 flex-shrink-0">
+                          <img src="{{ first_item.image | img_url: '100x' }}" class="w-full h-full object-cover" alt="item image"/>
+                        </div>
+                      {% endif %}
+                      <div>
+                        <p class="font-bold text-on-surface uppercase text-xs tracking-wider truncate max-w-[200px]">{{ first_item.title }}</p>
+                        {% if order.line_items.size > 1 %}
+                          <p class="text-[10px] text-on-surface-variant">+ {{ order.line_items.size | minus: 1 }} weitere Artikel</p>
+                        {% endif %}
+                      </div>
+                    </td>
+                    <td class="py-5 px-6 text-on-surface-variant text-xs">{{ order.created_at | date: "%d. %b %Y" }}</td>
+                    <td class="py-5 px-6 font-mono text-xs text-on-surface-variant">{{ order.name }}</td>
+                    <td class="py-5 px-6">
+                      <span class="inline-flex items-center gap-1.5 text-xs text-primary font-bold">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        {{ order.fulfillment_status_label | upcase }}
+                      </span>
+                    </td>
+                    <td class="py-5 px-6 text-right font-bold text-on-surface">{{ order.total_price | money }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="border border-outline-variant/30 p-12 text-center bg-surface-container-lowest">
+            <span class="material-symbols-outlined text-4xl text-outline mb-4">receipt_long</span>
+            <p class="font-body-md text-on-surface-variant mb-6">Keine Bestellungen gefunden.</p>
+            <a href="{{ routes.all_products_collection_url }}" class="inline-block bg-on-surface text-surface px-8 py-3 font-label-md uppercase tracking-widest hover:opacity-90 transition-all font-semibold">Katalog ansehen</a>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Panel 3: Impact Overview -->
+      <div id="panel-impact" class="tab-panel space-y-12 hidden">
+        <div class="flex flex-col md:flex-row gap-8">
+          <!-- Circular Score Card -->
+          <div class="flex-1 bg-surface-container-lowest border border-outline-variant/20 p-8 flex flex-col justify-between items-center text-center">
+            <div class="space-y-2 mb-6">
+              <h3 class="font-label-md text-label-md text-on-surface uppercase tracking-widest">Effizienz-Ring</h3>
+              <p class="text-xs text-on-surface-variant">CO2-Reduktion im Vergleich zu herkömmlichem Industrieschmuck</p>
+            </div>
+            
+            <div class="relative w-48 h-48">
+              <svg class="progress-ring w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle class="text-outline-variant/20" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" stroke-width="3"></circle>
+                <!-- 82% = 263.89 * (1 - 0.82) = 47.5 stroke-dashoffset -->
+                <circle id="impact-progress-circle" class="text-primary progress-ring-circle" cx="50" cy="50" fill="transparent" r="42" stroke="currentColor" stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round" stroke-width="4.5"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="font-display-lg text-[40px] text-on-surface font-bold">82%</span>
+                <span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Öko-Index</span>
+              </div>
+            </div>
+
+            <div class="pt-6 border-t border-outline-variant/20 mt-6 w-full text-center">
+              <p class="font-body-md text-on-surface font-medium">Verifizierter Schweizer Öko-Panel-Standard</p>
+            </div>
+          </div>
+
+          <!-- Linear Chart Card -->
+          <div class="flex-[2] bg-surface-container-lowest border border-outline-variant/20 p-8 flex flex-col justify-between">
+            <div class="flex justify-between items-start mb-6">
+              <div>
+                <h3 class="font-label-md text-label-md text-on-surface uppercase tracking-widest">Anlagenallokation & Wachstum</h3>
+                <p class="text-xs text-on-surface-variant">Langfristiger CO2-Wertgutachten-Index im Zeitverlauf</p>
+              </div>
+              <span class="bg-primary/10 text-primary text-[10px] uppercase tracking-widest px-2.5 py-1 font-bold">Aufsteigend</span>
+            </div>
+
+            <!-- SVG Line Graph -->
+            <div class="w-full h-48 relative pt-4">
+              <svg class="w-full h-full overflow-visible" viewBox="0 0 600 180" preserveAspectRatio="none">
+                <!-- Grid Lines -->
+                <line x1="0" y1="40" x2="600" y2="40" stroke="currentColor" class="text-outline-variant/10" stroke-width="1" stroke-dasharray="4"/>
+                <line x1="0" y1="90" x2="600" y2="90" stroke="currentColor" class="text-outline-variant/10" stroke-width="1" stroke-dasharray="4"/>
+                <line x1="0" y1="140" x2="600" y2="140" stroke="currentColor" class="text-outline-variant/10" stroke-width="1" stroke-dasharray="4"/>
+                
+                <!-- Chart Line -->
+                <path id="timeline-chart-line" d="M 0 160 Q 150 140 250 100 T 500 50 T 600 30" fill="none" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round" class="animate-line-chart"/>
+                
+                <!-- Chart Dots -->
+                <circle cx="250" cy="100" r="5" fill="var(--color-primary)" class="hover:scale-150 transition-transform cursor-pointer"/>
+                <circle cx="500" cy="50" r="5" fill="var(--color-primary)" class="hover:scale-150 transition-transform cursor-pointer"/>
+                <circle cx="600" cy="30" r="5" fill="var(--color-primary)" class="hover:scale-150 transition-transform cursor-pointer"/>
+              </svg>
+              <div class="absolute bottom-[-16px] left-0 right-0 flex justify-between text-[10px] text-on-surface-variant/70 uppercase tracking-widest">
+                <span>Phase I</span>
+                <span>Phase II</span>
+                <span>Phase III</span>
+                <span>Present</span>
+              </div>
+            </div>
+
+            <div class="pt-8 border-t border-outline-variant/20 mt-6 flex justify-between items-center text-xs text-on-surface-variant">
+              <span>Nächstes Audit: Dezember 2026</span>
+              <span class="font-bold text-on-surface">Geschätzter kumulierter Einfluss: +18.4%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Account Settings -->
+      <div id="panel-account" class="tab-panel space-y-8 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          
+          <!-- Profile Details Card -->
+          <div class="bg-surface-container-lowest border border-outline-variant/20 p-6 space-y-6">
+            <h3 class="font-headline-md text-headline-md text-on-surface">Mitglieder-Anmeldedaten</h3>
+            
+            <div class="space-y-4 text-sm">
+              <div>
+                <span class="text-xs text-on-surface-variant uppercase tracking-wider block">Vollständiger Name</span>
+                <span class="font-semibold text-on-surface text-base">{{ customer.name | default: 'Nicht angegeben' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-on-surface-variant uppercase tracking-wider block">E-Mail-Adresse</span>
+                <span class="font-semibold text-on-surface text-base">{{ customer.email | default: 'Nicht angegeben' }}</span>
+              </div>
+              <div>
+                <span class="text-xs text-on-surface-variant uppercase tracking-wider block">Standardadresse</span>
+                {% if customer.default_address %}
+                  <div class="font-semibold text-on-surface text-base mt-1 space-y-0.5">
+                    <p>{{ customer.default_address.address1 }}</p>
+                    {% if customer.default_address.address2 %}
+                      <p>{{ customer.default_address.address2 }}</p>
+                    {% endif %}
+                    <p>{{ customer.default_address.city }}, {{ customer.default_address.province_code }} {{ customer.default_address.zip }}</p>
+                    <p>{{ customer.default_address.country }}</p>
+                  </div>
+                {% else %}
+                  <span class="font-semibold text-on-surface-variant text-base">Keine Standardadresse registriert</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Card -->
+          <div class="bg-surface-container-lowest border border-outline-variant/20 p-6 flex flex-col justify-between">
+            <div class="space-y-4">
+              <h3 class="font-headline-md text-headline-md text-on-surface">Sicherheit & Kontrolle</h3>
+              <p class="text-sm text-on-surface-variant">Aktualisieren Sie Ihre registrierten Lieferorte oder melden Sie sich sicher aus Ihrer PBSTYLE-Sitzung ab.</p>
+            </div>
+            
+            <div class="space-y-4 pt-6">
+              <a href="{{ routes.account_addresses_url }}" class="w-full text-center block py-4 border border-outline text-label-sm uppercase tracking-widest text-on-surface hover:bg-surface-container transition-all font-bold">
+                Lieferadressen verwalten
+              </a>
+              <a href="{{ routes.account_logout_url }}" class="w-full text-center block py-4 bg-on-surface text-surface text-label-sm uppercase tracking-widest hover:opacity-90 transition-all font-bold">
+                Abmelden
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</main>
+
+<!-- Vault Item Details Modal -->
+<div id="vault-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+  <div class="bg-surface border border-outline-variant/30 w-full max-w-4xl max-h-[90vh] overflow-y-auto translate-y-10 transition-transform duration-300 flex flex-col md:flex-row relative">
+    
+    <!-- Close button -->
+    <button id="vault-modal-close" class="absolute top-4 right-4 text-on-surface hover:text-primary material-symbols-outlined text-2xl z-10 cursor-pointer">close</button>
+    
+    <!-- Modal Left Column: Product Photo -->
+    <div class="md:w-1/2 aspect-square md:aspect-auto bg-surface-container overflow-hidden">
+      <img id="vault-modal-img" class="w-full h-full object-cover" src="" alt="Vault Item Image"/>
+    </div>
+
+    <!-- Modal Right Column: Details & Diagnostics -->
+    <div class="md:w-1/2 p-8 md:p-12 flex flex-col justify-between space-y-8">
+      <div class="space-y-6">
+        <div>
+          <span id="vault-modal-status" class="bg-primary/10 text-primary border border-primary/20 px-3 py-1 font-label-sm text-[10px] uppercase tracking-widest font-bold">Registriert</span>
+          <h3 id="vault-modal-name" class="font-headline-lg text-headline-lg text-on-surface mt-3 font-semibold">Monolith Ring</h3>
+          <p id="vault-modal-serial" class="text-xs font-mono text-on-surface-variant">Seriennummer 001-A</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 border-t border-b border-outline-variant/20 py-4 text-sm">
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Registrierte Legierung</span>
+            <span id="vault-modal-material" class="font-semibold text-on-surface">Reines 950 Platin</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Kollektion</span>
+            <span id="vault-modal-edition" class="font-semibold text-on-surface">Limitierte Kollektion 2023</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Beschreibung & Spezifikationen</span>
+          <p id="vault-modal-desc" class="text-sm text-on-surface-variant leading-relaxed">Diagnosedaten zum Tresorobjekt und Details zur Verlaufshistorie werden auf Anfrage dynamisch geladen.</p>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-outline-variant/10 flex justify-between items-center">
+        <div>
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider block">Letztes Gutachten</span>
+          <span id="vault-modal-valuation" class="text-headline-md text-primary font-bold">CHF 3'450.00</span>
+        </div>
+        <button id="modal-appraisal-btn" class="px-5 py-3 bg-on-surface text-surface hover:bg-primary hover:text-white transition-colors duration-300 font-label-sm text-[11px] uppercase tracking-widest font-bold">Wertgutachten anfordern</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // 1. Tab Switching Logic
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        
+        // Update tabs active state
+        tabButtons.forEach(b => {
+          b.classList.remove('text-primary', 'border-primary', 'font-bold');
+          b.classList.add('text-on-surface-variant', 'border-transparent');
+        });
+        btn.classList.add('text-primary', 'border-primary', 'font-bold');
+        btn.classList.remove('text-on-surface-variant', 'border-transparent');
+
+        // Toggle panels
+        tabPanels.forEach(p => p.classList.add('hidden'));
+        const activePanel = document.getElementById(targetId);
+        if (activePanel) {
+          activePanel.classList.remove('hidden');
+        }
+
+        // Restart/trigger animations if Impact Tab is selected
+        if (targetId === 'panel-impact') {
+          triggerImpactAnimations();
+        }
+      });
+    });
+
+    // 2. SVG Metrics Animations
+    function triggerImpactAnimations() {
+      const circle = document.getElementById('impact-progress-circle');
+      const chartLine = document.getElementById('timeline-chart-line');
+
+      if (circle) {
+        circle.style.strokeDashoffset = '263.89';
+        // Trigger layout reflow to restart animation transition
+        void circle.offsetWidth;
+        // Target offset for 82% carbon saving
+        circle.style.strokeDashoffset = '47.5';
+      }
+
+      if (chartLine) {
+        chartLine.classList.remove('animate-line-chart');
+        void chartLine.offsetWidth;
+        chartLine.classList.add('animate-line-chart');
+      }
+    }
+
+    // Trigger initially in case default active tab has animations
+    setTimeout(triggerImpactAnimations, 200);
+
+    // 3. Vault Details Modal Interaction
+    const vaultCards = document.querySelectorAll('.vault-card');
+    const vaultModal = document.getElementById('vault-modal');
+    const vaultModalClose = document.getElementById('vault-modal-close');
+
+    const modalImg = document.getElementById('vault-modal-img');
+    const modalName = document.getElementById('vault-modal-name');
+    const modalSerial = document.getElementById('vault-modal-serial');
+    const modalMaterial = document.getElementById('vault-modal-material');
+    const modalEdition = document.getElementById('vault-modal-edition');
+    const modalValuation = document.getElementById('vault-modal-valuation');
+    const modalDesc = document.getElementById('vault-modal-desc');
+    const modalStatus = document.getElementById('vault-modal-status');
+
+    vaultCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const img = card.getAttribute('data-img');
+        const name = card.getAttribute('data-name');
+        const serial = card.getAttribute('data-serial');
+        const material = card.getAttribute('data-material');
+        const edition = card.getAttribute('data-edition');
+        const valuation = card.getAttribute('data-valuation');
+        const desc = card.getAttribute('data-desc');
+        const statusBadge = card.querySelector('.absolute span');
+        const statusText = statusBadge ? statusBadge.textContent.trim() : 'Registered';
+
+        if (modalImg) modalImg.src = img;
+        if (modalName) modalName.textContent = name;
+        if (modalSerial) modalSerial.textContent = 'Serial No. ' + serial;
+        if (modalMaterial) modalMaterial.textContent = material;
+        if (modalEdition) modalEdition.textContent = edition;
+        if (modalValuation) modalValuation.textContent = valuation;
+        if (modalDesc) modalDesc.textContent = desc;
+        if (modalStatus) modalStatus.textContent = statusText;
+
+        if (vaultModal) {
+          vaultModal.classList.remove('pointer-events-none', 'opacity-0');
+          vaultModal.firstElementChild.classList.remove('translate-y-10');
+        }
+      });
+    });
+
+    function closeVaultModal() {
+      if (vaultModal) {
+        vaultModal.classList.add('pointer-events-none', 'opacity-0');
+        vaultModal.firstElementChild.classList.add('translate-y-10');
+      }
+    }
+
+    if (vaultModalClose) {
+      vaultModalClose.addEventListener('click', closeVaultModal);
+    }
+    if (vaultModal) {
+      vaultModal.addEventListener('click', (e) => {
+        if (e.target === vaultModal) closeVaultModal();
+      });
+    }
+
+    // 4. Valuation / Appraisal Submit button effect
+    const valBtn = document.getElementById('valuation-btn');
+    const appraisalBtn = document.getElementById('modal-appraisal-btn');
+
+    function handleRequestEffect(btn) {
+      if (!btn) return;
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = 'Wird gesendet...';
+      
+      setTimeout(() => {
+        btn.textContent = 'Anfrage gesendet';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+          alert('Eine zertifizierte Bewertungsanfrage wurde an das PBSTYLE-Gutachtergremium übermittelt.');
+          closeVaultModal();
+        }, 1200);
+      }, 1000);
+    }
+
+    if (valBtn) {
+      valBtn.addEventListener('click', () => handleRequestEffect(valBtn));
+    }
+    if (appraisalBtn) {
+      appraisalBtn.addEventListener('click', () => handleRequestEffect(appraisalBtn));
+    }
+
+  });
+</script>
+
+{% schema %}
+{
+  "name": "PBStyle Account Dashboard",
+  "settings": []
+}
+{% endschema %}

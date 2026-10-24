@@ -1,0 +1,159 @@
+{% comment %}
+  PBStyle Luxury Cart Section
+{% endcomment %}
+
+<div class="bg-background min-h-screen pt-32 pb-section-padding text-on-surface">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    
+    <!-- Title Area -->
+    <div class="mb-12 border-b border-outline-variant/10 pb-6">
+      <span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold block mb-2">Warenkorb</span>
+      <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Ihr Archiv</h1>
+    </div>
+
+    {% if cart.item_count > 0 %}
+      <form action="{{ routes.cart_url }}" method="post" novalidate id="cart-form" class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+        
+        <!-- Cart Items List -->
+        <div class="lg:col-span-8 space-y-8">
+          <!-- Table Header -->
+          <div class="hidden md:grid grid-cols-12 gap-6 pb-4 border-b border-outline-variant/30 font-label-md uppercase tracking-widest text-on-surface-variant">
+            <div class="col-span-6">Objektdetails</div>
+            <div class="col-span-3 text-center">Anzahl</div>
+            <div class="col-span-3 text-right">Gesamtwert</div>
+          </div>
+
+          <!-- Items loop -->
+          {% for item in cart.items %}
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center py-6 border-b border-outline-variant/20 relative group">
+              
+              <!-- Mobile Remove Button -->
+              <a href="{{ item.url_to_remove }}" class="absolute top-6 right-0 md:hidden text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+              </a>
+
+              <!-- Column 1: Image & Details -->
+              <div class="col-span-6 flex items-center gap-6">
+                <!-- Image -->
+                <a href="{{ item.url }}" class="w-24 h-32 bg-surface-container-low flex-shrink-0 relative overflow-hidden block border border-outline-variant/20 shadow-sm group-hover:shadow-md transition-all duration-300">
+                  {% if item.image %}
+                    <img src="{{ item.image | img_url: '300x' }}" alt="{{ item.title | escape }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-outline">diamond</span></div>
+                  {% endif %}
+                </a>
+                
+                <!-- Details -->
+                <div>
+                  <a href="{{ item.url }}" class="font-headline-md text-headline-md text-on-surface block mb-1 hover:text-primary transition-colors duration-300">{{ item.product.title }}</a>
+                  {% unless item.variant.title contains 'Default' %}
+                    <p class="font-body-sm text-on-surface-variant mb-2 text-xs uppercase tracking-wider">{{ item.variant.title }}</p>
+                  {% endunless %}
+                  <p class="font-body-md text-primary font-bold">{{ item.price | money }}</p>
+                </div>
+              </div>
+
+              <!-- Column 2: Quantity Stepper -->
+              <div class="col-span-3 flex md:justify-center mt-4 md:mt-0">
+                <div class="flex items-center border border-outline-variant">
+                  <a href="/cart/change?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors active:scale-90 select-none">
+                    <span class="material-symbols-outlined text-sm">remove</span>
+                  </a>
+                  <input type="number" 
+                         name="updates[]" 
+                         value="{{ item.quantity }}" 
+                         min="0" 
+                         data-line="{{ forloop.index }}"
+                         class="w-12 text-center font-body-md bg-transparent border-none focus:ring-0 appearance-none m-0 p-0 text-on-surface" 
+                         style="-moz-appearance: textfield;">
+                  <a href="/cart/change?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}" class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors active:scale-90 select-none">
+                    <span class="material-symbols-outlined text-sm">add</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Column 3: Total & Remove Link -->
+              <div class="col-span-3 text-right hidden md:block">
+                <span class="font-body-lg text-on-surface font-bold">{{ item.final_line_price | money }}</span>
+                <a href="{{ item.url_to_remove }}" class="block text-[10px] uppercase tracking-widest text-on-surface-variant mt-2 hover:text-primary transition-colors">Objekt entfernen</a>
+              </div>
+            </div>
+          {% endfor %}
+          
+          <div class="flex justify-between items-center pt-8">
+            <a href="{{ routes.all_products_collection_url }}" class="font-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary flex items-center gap-2 transition-colors duration-300">
+              <span class="material-symbols-outlined">arrow_left_alt</span> Weiter stöbern
+            </a>
+            <button type="submit" name="update" class="font-label-md uppercase tracking-widest px-8 py-3 border border-outline text-on-surface hover:bg-on-surface hover:text-surface transition-all duration-300 font-semibold active:scale-95">
+              Mengen aktualisieren
+            </button>
+          </div>
+        </div>
+
+        <!-- Order Summary (Sticky Sidebar) -->
+        <div class="lg:col-span-4">
+          <div class="bg-surface-container border border-outline-variant/30 p-8 lg:sticky lg:top-32 shadow-sm">
+            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-8 font-semibold">Zusammenfassung</h2>
+            
+            <div class="space-y-4 mb-8 font-body-md text-on-surface-variant text-sm">
+              <div class="flex justify-between border-b border-outline-variant/10 pb-4">
+                <span>Zwischensumme</span>
+                <span class="text-on-surface font-semibold">{{ cart.total_price | money }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Schweizer Zoll &amp; Versand</span>
+                <span class="text-xs uppercase tracking-wider">Wird an der Kasse berechnet</span>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center py-6 border-t border-outline-variant/20 mb-8 font-headline-md text-headline-md">
+              <span class="text-on-surface font-bold">Geschätzte Gesamtsumme</span>
+              <span class="text-primary font-bold">{{ cart.total_price | money }}</span>
+            </div>
+
+            <button type="submit" name="checkout" class="w-full bg-on-surface text-surface py-5 font-label-md uppercase tracking-[0.2em] hover:bg-primary hover:text-white hover:shadow-2xl transition-all duration-300 active:scale-[0.98]">
+              Zur Kasse gehen
+            </button>
+            
+            <p class="font-label-sm text-center text-on-surface-variant/60 mt-6 uppercase tracking-widest text-[9px]">
+              🔒 Sichere SSL-verschlüsselte Sitzung
+            </p>
+          </div>
+        </div>
+
+      </form>
+    {% else %}
+      <!-- Empty Bag State -->
+      <div class="text-center py-24 bg-surface-container border border-outline-variant/20 shadow-sm max-w-3xl mx-auto">
+        <span class="material-symbols-outlined text-5xl text-outline mb-6">work_outline</span>
+        <h2 class="font-headline-lg text-headline-lg text-on-surface mb-4">Ihr Archiv ist leer</h2>
+        <p class="font-body-md text-on-surface-variant max-w-md mx-auto mb-8 text-sm">Sie haben in Ihrer aktuellen Archivsitzung keine Objekte registriert. Beginnen Sie mit dem Erkunden unserer Kollektionen.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="inline-block bg-on-surface text-surface px-10 py-4 font-label-md uppercase tracking-widest hover:bg-primary hover:text-white transition-all font-semibold active:scale-95 shadow-md">
+          Objekte erkunden
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const qtyInputs = document.querySelectorAll('input[name="updates[]"]');
+    const form = document.getElementById('cart-form');
+
+    // Auto-update quantities when user finishes changing input manually
+    qtyInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        if (form) form.submit();
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "PBStyle Cart",
+  "settings": []
+}
+{% endschema %}

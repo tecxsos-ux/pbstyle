@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pbstyle-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: pbstyle
+      POSTGRES_PASSWORD: pbstyle_secret
+      POSTGRES_DB: pbstyle_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pbstyle -d pbstyle_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pbstyle-backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+asyncpg://pbstyle:pbstyle_secret@postgres:5432/pbstyle_db
+      CORS_ORIGINS: '["http://localhost:3000","http://localhost:3001","http://localhost:8080"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pbstyle-frontend
+    restart: always
+    environment:
+      INTERNAL_API_URL: http://backend:8000/api/v1
+    ports:
+      - "3001:3001"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

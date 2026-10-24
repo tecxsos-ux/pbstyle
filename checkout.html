@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html class="light" lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Checkout | PBSTYLE</title>
+<script>
+  (function() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400..900;1,400..900&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "var(--color-background)",
+                    "surface": "var(--color-surface)",
+                    "surface-container-lowest": "var(--color-surface-container-lowest)",
+                    "surface-container-low": "var(--color-surface-container-low)",
+                    "surface-container": "var(--color-surface-container)",
+                    "surface-container-high": "var(--color-surface-container-high)",
+                    "surface-container-highest": "var(--color-surface-container-highest)",
+                    "surface-bright": "var(--color-bright)",
+                    "surface-dim": "var(--color-dim)",
+                    "primary": "var(--color-primary)",
+                    "on-primary": "var(--color-on-primary)",
+                    "primary-container": "var(--color-primary-container)",
+                    "on-primary-container": "var(--color-on-primary-container)",
+                    "secondary": "var(--color-secondary)",
+                    "on-secondary": "var(--color-on-secondary)",
+                    "secondary-container": "var(--color-secondary-container)",
+                    "on-secondary-container": "var(--color-on-secondary-container)",
+                    "tertiary": "var(--color-tertiary)",
+                    "on-tertiary": "var(--color-on-tertiary)",
+                    "tertiary-container": "var(--color-tertiary-container)",
+                    "on-tertiary-container": "var(--color-on-tertiary-container)",
+                    "on-background": "var(--color-on-background)",
+                    "on-surface": "var(--color-on-surface)",
+                    "on-surface-variant": "var(--color-on-surface-variant)",
+                    "outline": "var(--color-outline)",
+                    "outline-variant": "var(--color-outline-variant)",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "var(--color-primary)",
+                    "inverse-surface": "var(--color-inverse-surface)",
+                    "inverse-on-surface": "var(--color-inverse-on-surface)",
+                    "inverse-primary": "var(--color-inverse-primary)"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1280px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "64px",
+                    "section-padding": "120px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Bodoni Moda"],
+                    "label-md": ["Hanken Grotesk"],
+                    "headline-lg": ["Bodoni Moda"],
+                    "headline-md": ["Bodoni Moda"],
+                    "display-lg": ["Bodoni Moda"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg-mobile": ["40px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.1em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "display-lg": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+  :root {
+    --color-background: #FAF6EF;
+    --color-surface: #FAF6EF;
+    --color-surface-container-lowest: #FFFFFF;
+    --color-surface-container-low: #FAF6EF;
+    --color-surface-container: #F5EBE1;
+    --color-surface-container-high: #EEDAC8;
+    --color-surface-container-highest: #E8B898;
+    --color-bright: #FFFFFF;
+    --color-dim: #E8B898;
+    --color-primary: #B07D62;
+    --color-on-primary: #FFFFFF;
+    --color-primary-container: #E8B898;
+    --color-on-primary-container: #1F1F1F;
+    --color-secondary: #8B5A45;
+    --color-on-secondary: #FFFFFF;
+    --color-secondary-container: #E8B898;
+    --color-on-secondary-container: #1F1F1F;
+    --color-tertiary: #1F1F1F;
+    --color-on-tertiary: #FFFFFF;
+    --color-tertiary-container: #8B5A45;
+    --color-on-tertiary-container: #FAF6EF;
+    --color-on-background: #1F1F1F;
+    --color-on-surface: #1F1F1F;
+    --color-on-surface-variant: #8B5A45;
+    --color-outline: #B07D62;
+    --color-outline-variant: #E8B898;
+    --color-inverse-surface: #1F1F1F;
+    --color-inverse-on-surface: #FAF6EF;
+    --color-inverse-primary: #E8B898;
+    
+    --color-glass-nav: rgba(250, 246, 239, 0.85);
+    --color-outline-variant-alpha: rgba(176, 125, 98, 0.3);
+  }
+
+  html.dark {
+    --color-background: #121212;
+    --color-surface: #121212;
+    --color-surface-container-lowest: #1E1E1E;
+    --color-surface-container-low: #181818;
+    --color-surface-container: #242424;
+    --color-surface-container-high: #2D2D2D;
+    --color-surface-container-highest: #383838;
+    --color-bright: #1C1C1C;
+    --color-dim: #101010;
+    --color-primary: #E8B898;
+    --color-on-primary: #121212;
+    --color-primary-container: #8B5A45;
+    --color-on-primary-container: #FAF6EF;
+    --color-secondary: #EEDAC8;
+    --color-on-secondary: #121212;
+    --color-secondary-container: #3E3E3E;
+    --color-on-secondary-container: #FAF6EF;
+    --color-tertiary: #FAF6EF;
+    --color-on-tertiary: #121212;
+    --color-tertiary-container: #E8B898;
+    --color-on-tertiary-container: #121212;
+    --color-on-background: #FAF6EF;
+    --color-on-surface: #FAF6EF;
+    --color-on-surface-variant: #EEDAC8;
+    --color-outline: #E8B898;
+    --color-outline-variant: #8B5A45;
+    --color-inverse-surface: #FAF6EF;
+    --color-inverse-on-surface: #121212;
+    --color-inverse-primary: #B07D62;
+
+    --color-glass-nav: rgba(18, 18, 18, 0.85);
+    --color-outline-variant-alpha: rgba(232, 184, 152, 0.3);
+  }
+
+  body, header, nav, main, footer, div, section, a, button, summary, details, input, select, textarea {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-nav {
+      background: var(--color-glass-nav);
+      backdrop-filter: blur(20px);
+  }
+  .brushed-steel-border {
+      border: 0.5px solid var(--color-outline-variant-alpha);
+  }
+  
+  /* 3D Card Flip Styles */
+  .card-container {
+    perspective: 1000px;
+  }
+  .card-inner {
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  .card-flipped {
+    transform: rotateY(180deg);
+  }
+  .card-front, .card-back {
+    backface-visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .card-back {
+    transform: rotateY(180deg);
+  }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 glass-nav border-b border-outline-variant/30">
+<div class="max-w-container-max mx-auto px-4 md:px-16 flex justify-between items-center h-20">
+<div class="flex items-center gap-6 md:gap-12">
+<button id="mobile-menu-trigger" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors md:hidden active:scale-95 cursor-pointer">menu</button>
+<a class="font-display-lg text-headline-md tracking-tighter text-on-surface" href="/">pbstyle</a>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Schmuck</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Beauty-Tools</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/catalog.html">Neuheiten</a>
+<a class="font-body-md text-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors py-1" href="/brand-story.html">Markenphilosophie</a>
+</div>
+</div>
+<div class="flex items-center gap-4 md:gap-6">
+<button id="theme-toggle" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">dark_mode</button>
+<a href="/catalog.html" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95 relative flex items-center">
+shopping_bag
+<span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-primary text-on-primary text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
+</a>
+<a href="/dashboard.html" class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95">person</a>
+</div>
+</div>
+</nav>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobile-drawer" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="absolute top-0 left-0 w-80 h-full bg-surface border-r border-outline-variant/30 p-6 flex flex-col justify-between -translate-x-full transition-transform duration-300 ease-out shadow-2xl">
+    <div>
+      <div class="flex justify-between items-center mb-8 border-b border-outline-variant/10 pb-4">
+        <span class="font-display-lg text-headline-md text-on-surface">pbstyle</span>
+        <button id="mobile-drawer-close" class="material-symbols-outlined text-on-surface hover:text-primary transition-colors active:scale-95 cursor-pointer">close</button>
+      </div>
+      
+      <div class="relative mb-8 border-b border-outline/30 pb-2">
+        <span class="material-symbols-outlined absolute left-0 top-2 text-on-surface-variant text-[20px]">search</span>
+        <input class="w-full bg-transparent border-none pl-8 py-2 text-label-sm placeholder:text-outline-variant outline-none" placeholder="Kollektionen durchsuchen..." type="text"/>
+      </div>
+
+      <nav class="flex flex-col gap-6">
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Schmuck</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Beauty-Tools</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/catalog.html">Neuheiten</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/brand-story.html">Markenphilosophie</a>
+        <a class="font-body-md text-body-lg uppercase tracking-widest text-on-surface hover:text-primary transition-colors border-b border-outline-variant/10 pb-2" href="/dashboard.html">Mitglieder-Dashboard</a>
+      </nav>
+    </div>
+    
+    <div class="border-t border-outline-variant/20 pt-6 space-y-4">
+      <div class="flex justify-between items-center">
+        <span class="font-label-sm text-on-surface-variant uppercase tracking-widest">Theme-Modus</span>
+        <button id="drawer-theme-toggle" class="flex items-center gap-2 border border-outline/30 px-4 py-2 font-label-sm uppercase tracking-widest text-on-surface hover:bg-surface-container-low transition-colors">
+          <span class="material-symbols-outlined text-[18px]">dark_mode</span>
+          <span>Dunkelmodus</span>
+        </button>
+      </div>
+      <p class="font-label-sm text-on-surface-variant/60 text-center uppercase tracking-widest pt-2">© 2026 PBSTYLE</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main Grid Structure -->
+<main class="pt-24 min-h-screen flex flex-col lg:flex-row">
+  <!-- Left Side: Interactive Step Checkout -->
+  <section class="flex-1 px-4 md:px-16 py-12 lg:py-16 border-r border-outline-variant/20 bg-surface">
+    <div class="max-w-xl mx-auto">
+      
+      <!-- Progress Bar Tracker -->
+      <div class="flex items-center gap-4 mb-12">
+        <div class="flex items-center gap-2" id="step-tab-1">
+          <span class="step-num w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-label-sm font-bold">1</span>
+          <span class="step-label font-label-md text-label-sm uppercase tracking-wider text-primary font-bold">Versand</span>
+        </div>
+        <div class="h-px flex-1 bg-outline-variant/40" id="step-line-1"></div>
+        <div class="flex items-center gap-2 opacity-40" id="step-tab-2">
+          <span class="step-num w-8 h-8 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center text-label-sm font-bold bg-surface">2</span>
+          <span class="step-label font-label-md text-label-sm uppercase tracking-wider text-on-surface-variant">Zahlung</span>
+        </div>
+        <div class="h-px flex-1 bg-outline-variant/40" id="step-line-2"></div>
+        <div class="flex items-center gap-2 opacity-40" id="step-tab-3">
+          <span class="step-num w-8 h-8 rounded-full border border-outline-variant text-on-surface-variant flex items-center justify-center text-label-sm font-bold bg-surface">3</span>
+          <span class="step-label font-label-md text-label-sm uppercase tracking-wider text-on-surface-variant">Prüfung</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Shipping Form Panel -->
+      <div id="step-panel-1" class="step-panel space-y-8">
+        <header>
+          <h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Versandadresse</h1>
+          <p class="text-on-surface-variant text-sm">Wohin sollen wir Ihre exklusiven Produkte liefern?</p>
+        </header>
+
+        <form id="shipping-form" class="space-y-6" novalidate>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Vorname *</label>
+              <input type="text" id="ship-first-name" name="firstName" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="z.B. Julian"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Vorname ist erforderlich</p>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Nachname *</label>
+              <input type="text" id="ship-last-name" name="lastName" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="Muster"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Nachname ist erforderlich</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">E-Mail *</label>
+              <input type="email" id="ship-email" name="email" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="julian@example.ch"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Bitte geben Sie eine gültige E-Mail-Adresse ein</p>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Telefon *</label>
+              <input type="tel" id="ship-phone" name="phone" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="+41 79 123 45 67"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Telefonnummer ist erforderlich</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Strasse &amp; Hausnummer *</label>
+            <input type="text" id="ship-address" name="address" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="Bahnhofstrasse 1"/>
+            <p class="error-msg text-xs text-error mt-1 hidden">Strasse ist erforderlich</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Ort *</label>
+              <input type="text" id="ship-city" name="city" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="Zürich"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Ort ist erforderlich</p>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Kanton *</label>
+              <input type="text" id="ship-state" name="state" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="ZH"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Kanton ist erforderlich</p>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">PLZ *</label>
+              <input type="text" id="ship-zip" name="zip" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="8001"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">PLZ ist erforderlich</p>
+            </div>
+          </div>
+
+          <div class="pt-6">
+            <button type="submit" class="w-full py-5 bg-[#1F1F1F] text-white dark:bg-[#FAF6EF] dark:text-[#121212] font-label-md text-label-md uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">
+              Weiter zur Zahlung
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 2: Payment & Credit Card Visualizer Panel -->
+      <div id="step-panel-2" class="step-panel space-y-8 hidden">
+        <header>
+          <h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Sichere Zahlung</h1>
+          <p class="text-on-surface-variant text-sm">Geben Sie Ihre Zahlungsdetails ein. Alle Transaktionen sind verschlüsselt.</p>
+        </header>
+
+        <!-- Dynamic Card Visualization -->
+        <div class="card-container w-full max-w-[400px] h-[240px] mx-auto mb-10">
+          <div id="payment-card" class="card-inner w-full h-full relative">
+            <!-- Front of Card -->
+            <div class="card-front w-full h-full bg-gradient-to-br from-[#B07D62] via-[#8B5A45] to-[#4A2D1F] p-6 rounded-xl flex flex-col justify-between text-white shadow-2xl border border-white/10">
+              <div class="flex justify-between items-start">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[32px] opacity-80">credit_card</span>
+                  <span class="font-display-lg text-headline-md tracking-widest text-[16px] text-white/95">pbstyle</span>
+                </div>
+                <!-- Chip -->
+                <div class="w-12 h-9 bg-yellow-200/80 rounded-md border border-yellow-300/40 relative overflow-hidden flex flex-col justify-center gap-1 p-1">
+                  <div class="h-px bg-yellow-700/30"></div>
+                  <div class="h-px bg-yellow-700/30"></div>
+                  <div class="h-px bg-yellow-700/30"></div>
+                </div>
+              </div>
+              
+              <!-- Card Number -->
+              <div id="visual-card-number" class="font-headline-md text-headline-md text-center text-[22px] tracking-[0.15em] py-2 text-white/90">
+                •••• •••• •••• ••••
+              </div>
+
+              <div class="flex justify-between items-end">
+                <div class="space-y-1">
+                  <span class="text-[9px] uppercase tracking-widest opacity-60 block">Inhaber</span>
+                  <span id="visual-card-name" class="font-label-md text-label-sm uppercase tracking-wider block text-white/95 truncate max-w-[180px]">Name des Inhabers</span>
+                </div>
+                <div class="space-y-1 text-right">
+                  <span class="text-[9px] uppercase tracking-widest opacity-60 block">Gültig bis</span>
+                  <span id="visual-card-expiry" class="font-label-md text-label-sm tracking-widest block text-white/95">MM/JJ</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Back of Card -->
+            <div class="card-back w-full h-full bg-gradient-to-br from-[#4A2D1F] to-[#1F1F1F] rounded-xl flex flex-col justify-between text-white shadow-2xl border border-white/10 py-6">
+              <div class="w-full h-12 bg-black/80 mt-2"></div>
+              
+              <div class="px-6 flex flex-col gap-2">
+                <span class="text-[9px] uppercase tracking-widest opacity-60 block text-right">CVV / Sicherheitscode</span>
+                <div class="w-full bg-white h-10 rounded-sm flex items-center justify-end px-3">
+                  <span id="visual-card-cvv" class="text-black font-body-md font-bold tracking-widest">•••</span>
+                </div>
+              </div>
+              
+              <div class="px-6 flex justify-between items-center text-[8px] opacity-50">
+                <span>Autorisierte Unterschrift</span>
+                <span>PBSTYLE Titanium Series</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form id="payment-form" class="space-y-6" novalidate>
+          <div>
+            <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Karteninhaber *</label>
+            <input type="text" id="pay-name" name="cardname" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="Julian Vance"/>
+            <p class="error-msg text-xs text-error mt-1 hidden">Karteninhaber ist erforderlich</p>
+          </div>
+
+          <div>
+            <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Kartennummer *</label>
+            <input type="text" id="pay-number" name="cardnumber" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="4111 2222 3333 4444" maxlength="19"/>
+            <p class="error-msg text-xs text-error mt-1 hidden">Geben Sie eine gültige 16-stellige Kartennummer ein</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">Gültig bis (MM/JJ) *</label>
+              <input type="text" id="pay-expiry" name="cardexpiry" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="12/29" maxlength="5"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Verwenden Sie das Format MM/JJ</p>
+            </div>
+            <div>
+              <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 font-semibold">CVV *</label>
+              <input type="text" id="pay-cvv" name="cardcvv" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-sm py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 focus:border-primary focus:ring-0 outline-none text-on-surface" placeholder="321" maxlength="4"/>
+              <p class="error-msg text-xs text-error mt-1 hidden">Geben Sie 3 oder 4 Ziffern ein</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 pt-6">
+            <button type="button" id="pay-back-btn" class="flex-1 py-5 border border-outline bg-transparent text-on-surface font-label-md text-label-md uppercase tracking-widest hover:bg-surface-container transition-all active:scale-[0.98]">
+              Zurück
+            </button>
+            <button type="submit" class="flex-1 py-5 bg-[#1F1F1F] text-white dark:bg-[#FAF6EF] dark:text-[#121212] font-label-md text-label-md uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all shadow-xl">
+              Weiter zur Prüfung
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Step 3: Review and Confirm Order Panel -->
+      <div id="step-panel-3" class="step-panel space-y-8 hidden">
+        <header>
+          <h1 class="font-headline-lg text-headline-lg text-on-surface mb-2">Bestellprüfung</h1>
+          <p class="text-on-surface-variant text-sm">Bitte überprüfen Sie Ihre Angaben und schliessen Sie die Bestellung ab.</p>
+        </header>
+
+        <div class="space-y-6">
+          <!-- Summary card -->
+          <div class="bg-surface-container-low p-6 rounded-sm border border-outline-variant/30 space-y-6">
+            <div class="flex justify-between items-start border-b border-outline-variant/20 pb-4">
+              <div>
+                <h3 class="font-label-md text-label-sm uppercase text-primary font-bold">Lieferadresse</h3>
+                <p id="review-shipping-name" class="font-body-md text-on-surface mt-1">Julian Vance</p>
+                <p id="review-shipping-address" class="font-body-md text-on-surface-variant text-sm mt-0.5">128 Industrial Avenue, Suite 400, New York, NY 10013</p>
+                <p id="review-shipping-phone" class="font-body-md text-on-surface-variant text-sm mt-0.5">(555) 000-0000</p>
+              </div>
+              <button onclick="goToStep(1)" class="text-xs text-primary font-bold uppercase tracking-wider hover:opacity-75">Bearbeiten</button>
+            </div>
+
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="font-label-md text-label-sm uppercase text-primary font-bold">Zahlungsmethode</h3>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="material-symbols-outlined text-[20px] text-on-surface-variant">credit_card</span>
+                  <p id="review-payment-detail" class="font-body-md text-on-surface">•••• •••• •••• 4444</p>
+                </div>
+              </div>
+              <button onclick="goToStep(2)" class="text-xs text-primary font-bold uppercase tracking-wider hover:opacity-75">Bearbeiten</button>
+            </div>
+          </div>
+
+          <div class="flex gap-4 pt-6">
+            <button type="button" id="review-back-btn" class="flex-1 py-5 border border-outline bg-transparent text-on-surface font-label-md text-label-md uppercase tracking-widest hover:bg-surface-container transition-all active:scale-[0.98]">
+              Zurück
+            </button>
+            <button type="button" id="place-order-btn" class="flex-1 py-5 bg-[#B07D62] text-white font-label-md text-label-md uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all shadow-xl flex items-center justify-center gap-2">
+              <span>Zahlungspflichtig bestellen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Secure checkout badges -->
+      <div class="mt-16 pt-8 border-t border-outline-variant/20 flex items-center justify-center gap-12 text-on-surface-variant/40">
+        <div class="flex flex-col items-center gap-1">
+          <span class="material-symbols-outlined text-[32px]">lock</span>
+          <span class="text-[9px] uppercase tracking-wider">SSL verschlüsselt</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+          <span class="material-symbols-outlined text-[32px]">verified</span>
+          <span class="text-[9px] uppercase tracking-wider">Original-Design</span>
+        </div>
+        <div class="flex flex-col items-center gap-1">
+          <span class="material-symbols-outlined text-[32px]">local_shipping</span>
+          <span class="text-[9px] uppercase tracking-wider">Sicherer Versand</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Right Side: Interactive Order Summary -->
+  <aside class="w-full lg:w-[450px] bg-surface-container-low px-4 md:px-16 py-12 lg:py-16 sticky top-0 h-fit lg:h-screen overflow-y-auto custom-scrollbar border-l border-outline-variant/10">
+    <h2 class="font-headline-md text-headline-md text-on-surface mb-8">Bestellübersicht</h2>
+    
+    <!-- Dynamic Cart Summary items -->
+    <div id="summary-items" class="space-y-6 mb-10">
+      <!-- Lade Artikel... -->
+    </div>
+
+    <!-- Calculations -->
+    <div class="space-y-4 pt-8 border-t border-outline-variant/30">
+      <div class="flex justify-between text-sm text-on-surface-variant">
+        <span>Zwischensumme</span>
+        <span id="summary-subtotal" class="font-medium text-on-surface">CHF 0.00</span>
+      </div>
+      <div class="flex justify-between text-sm text-on-surface-variant">
+        <span>Versand (Standard)</span>
+        <span class="uppercase tracking-widest text-[11px] font-bold text-primary">Kostenlos</span>
+      </div>
+      <div class="flex justify-between text-sm text-on-surface-variant">
+        <span>Geschätzte MwSt.</span>
+        <span id="summary-tax" class="font-medium text-on-surface">CHF 0.00</span>
+      </div>
+      <div class="flex justify-between font-headline-md text-headline-md text-on-surface pt-4 border-t border-outline-variant/10">
+        <span>Gesamtsumme</span>
+        <span id="summary-total" class="font-bold text-primary">CHF 0.00</span>
+      </div>
+    </div>
+
+    <!-- Promo code -->
+    <div class="mt-10 group">
+      <label class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-3 font-semibold">Gutscheincode</label>
+      <div class="flex border border-outline-variant/60 rounded-sm bg-surface overflow-hidden focus-within:border-primary transition-all">
+        <input type="text" id="promo-input" class="flex-grow bg-transparent border-none py-3 px-4 font-body-md placeholder:text-on-surface-variant/40 outline-none text-on-surface focus:ring-0" placeholder="CODE EINGEBEN"/>
+        <button id="promo-apply-btn" class="font-label-md text-label-sm uppercase text-primary px-6 hover:bg-primary hover:text-on-primary transition-colors border-l border-outline-variant/40 font-bold active:scale-95">Einlösen</button>
+      </div>
+      <p id="promo-message" class="text-xs text-primary mt-2 hidden font-semibold"></p>
+    </div>
+  </aside>
+</main>
+
+<!-- Success Confirmed Overlay Modal -->
+<div id="success-overlay" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+  <div class="bg-surface max-w-lg w-full p-8 md:p-12 border border-outline-variant/30 text-center shadow-2xl relative translate-y-10 transition-transform duration-500 rounded-sm">
+    <div class="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
+      <span class="material-symbols-outlined text-[48px]">check_circle</span>
+    </div>
+    
+    <h2 class="font-display-lg text-headline-lg md:text-headline-md mb-4 text-on-surface">Bestellung bestätigt</h2>
+    <p class="font-body-md text-on-surface-variant leading-relaxed max-w-md mx-auto mb-8">
+      Vielen Dank für Ihren Einkauf bei PBSTYLE. Ihre Transaktion wurde erfolgreich verarbeitet. Eine Bestätigungs-E-Mail mit der Sendungsverfolgung wurde an Sie gesendet.
+    </p>
+
+    <!-- Details block -->
+    <div class="bg-surface-container-low p-6 border border-outline-variant/20 mb-8 text-left space-y-3">
+      <div class="flex justify-between text-xs text-on-surface-variant">
+        <span class="font-semibold uppercase tracking-wider">Bestellnummer</span>
+        <span id="order-id" class="font-bold text-on-surface">#PB-8947-1903</span>
+      </div>
+      <div class="flex justify-between text-xs text-on-surface-variant">
+        <span class="font-semibold uppercase tracking-wider">Voraussichtliche Lieferung</span>
+        <span id="order-delivery" class="font-bold text-primary">In 3 Werktagen</span>
+      </div>
+      <div class="flex justify-between text-xs text-on-surface-variant pt-2 border-t border-outline-variant/10">
+        <span class="font-semibold uppercase tracking-wider">Gesamtbetrag</span>
+        <span id="order-total" class="font-bold text-on-surface">CHF 0.00</span>
+      </div>
+    </div>
+
+    <button id="success-home-btn" class="w-full py-4 bg-primary text-on-primary font-label-md uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-lg">
+      Zurück zu den Kollektionen
+    </button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Theme toggle logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const drawerThemeToggleBtn = document.getElementById('drawer-theme-toggle');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'light_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'light_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Light Mode';
+        }
+      } else {
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        if (themeToggleBtn) themeToggleBtn.textContent = 'dark_mode';
+        if (drawerThemeToggleBtn) {
+          drawerThemeToggleBtn.querySelector('span').textContent = 'dark_mode';
+          drawerThemeToggleBtn.querySelector('span + span').textContent = 'Dark Mode';
+        }
+      }
+    }
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(currentTheme);
+
+    function toggleTheme() {
+      const activeTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+      localStorage.setItem('theme', activeTheme);
+      applyTheme(activeTheme);
+    }
+
+    if (themeToggleBtn) themeToggleBtn.addEventListener('click', toggleTheme);
+    if (drawerThemeToggleBtn) drawerThemeToggleBtn.addEventListener('click', toggleTheme);
+
+    // 2. Mobile drawer navigation logic
+    const drawer = document.getElementById('mobile-drawer');
+    const drawerContent = drawer ? drawer.firstElementChild : null;
+    const trigger = document.getElementById('mobile-menu-trigger');
+    const closeBtn = document.getElementById('mobile-drawer-close');
+
+    function openDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawerContent.classList.remove('-translate-x-full');
+      }
+    }
+
+    function closeDrawer() {
+      if (drawer && drawerContent) {
+        drawer.classList.add('pointer-events-none', 'opacity-0');
+        drawerContent.classList.add('-translate-x-full');
+      }
+    }
+
+    if (trigger) trigger.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        if (e.target === drawer) closeDrawer();
+      });
+    }
+
+    // 3. Dynamic Order Summary calculations & Cart fetch
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let promoDiscount = 0; // percentage discount
+
+    function renderSummary() {
+      const summaryItems = document.getElementById('summary-items');
+      const summarySubtotal = document.getElementById('summary-subtotal');
+      const summaryTax = document.getElementById('summary-tax');
+      const summaryTotal = document.getElementById('summary-total');
+
+      if (!summaryItems) return;
+
+      if (cart.length === 0) {
+        summaryItems.innerHTML = `
+          <div class="text-center py-12 text-on-surface-variant/50">
+            <span class="material-symbols-outlined text-[40px] mb-2">shopping_bag</span>
+            <p class="text-xs uppercase tracking-wider font-semibold">Ihr Warenkorb ist leer</p>
+          </div>
+        `;
+        if (summarySubtotal) summarySubtotal.textContent = 'CHF 0.00';
+        if (summaryTax) summaryTax.textContent = 'CHF 0.00';
+        if (summaryTotal) summaryTotal.textContent = 'CHF 0.00';
+        return;
+      }
+
+      let subtotal = 0;
+      let html = '';
+
+      cart.forEach(item => {
+        const itemPrice = parseFloat(item.price);
+        const itemTotal = itemPrice * item.quantity;
+        subtotal += itemTotal;
+
+        html += `
+          <div class="flex gap-4 border-b border-outline-variant/10 pb-4">
+            <div class="w-16 h-20 bg-surface border border-outline-variant/20 overflow-hidden flex-shrink-0">
+              <img src="${item.img}" class="w-full h-full object-cover"/>
+            </div>
+            <div class="flex-grow flex flex-col justify-between py-0.5">
+              <div>
+                <div class="flex justify-between items-start">
+                  <h4 class="font-label-md text-xs uppercase tracking-wide max-w-[180px] truncate">${item.name}</h4>
+                  <span class="font-label-sm text-primary font-bold text-xs">CHF ${(itemPrice * item.quantity).toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+                ${item.size ? `<p class="text-[10px] text-on-surface-variant/70 mt-0.5">Grösse: ${item.size} | Anzahl: ${item.quantity}</p>` : `<p class="text-[10px] text-on-surface-variant/70 mt-0.5">Anzahl: ${item.quantity}</p>`}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      summaryItems.innerHTML = html;
+
+      // Calculate promotional discount if applied
+      const discountedSubtotal = subtotal * (1 - promoDiscount);
+      
+      const taxRate = 0.08;
+      const estimatedTax = discountedSubtotal * taxRate;
+      const grandTotal = discountedSubtotal + estimatedTax;
+
+      if (summarySubtotal) {
+        if (promoDiscount > 0) {
+          summarySubtotal.innerHTML = `<span class="line-through text-xs text-on-surface-variant/60 mr-2">CHF ${subtotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>CHF ${discountedSubtotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        } else {
+          summarySubtotal.textContent = 'CHF ' + subtotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+      }
+
+      if (summaryTax) {
+        summaryTax.textContent = 'CHF ' + estimatedTax.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+
+      if (summaryTotal) {
+        summaryTotal.textContent = 'CHF ' + grandTotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+
+      // Sync total to success modal
+      const successTotal = document.getElementById('order-total');
+      if (successTotal) {
+        successTotal.textContent = 'CHF ' + grandTotal.toLocaleString('de-CH', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      }
+    }
+
+    renderSummary();
+
+    // Promo code apply
+    const promoInput = document.getElementById('promo-input');
+    const promoApplyBtn = document.getElementById('promo-apply-btn');
+    const promoMsg = document.getElementById('promo-message');
+
+    if (promoApplyBtn && promoInput) {
+      promoApplyBtn.addEventListener('click', () => {
+        const code = promoInput.value.trim().toUpperCase();
+        if (code === 'PBSTYLE20' || code === 'WELCOME20') {
+          promoDiscount = 0.2; // 20% off
+          promoMsg.textContent = 'GUTSCHEINCODE ANGEWENDET: 20% RABATT';
+          promoMsg.classList.remove('hidden', 'text-error');
+          promoMsg.classList.add('text-primary');
+          renderSummary();
+        } else if (code === '') {
+          promoDiscount = 0;
+          promoMsg.classList.add('hidden');
+          renderSummary();
+        } else {
+          promoMsg.textContent = 'UNGÜLTIGER GUTSCHEINCODE';
+          promoMsg.classList.remove('hidden', 'text-primary');
+          promoMsg.classList.add('text-error');
+        }
+      });
+    }
+
+    // 4. Split checkout panel logic
+    let currentStep = 1;
+    const shippingForm = document.getElementById('shipping-form');
+    const paymentForm = document.getElementById('payment-form');
+    
+    const payBackBtn = document.getElementById('pay-back-btn');
+    const reviewBackBtn = document.getElementById('review-back-btn');
+    const placeOrderBtn = document.getElementById('place-order-btn');
+
+    // Global step navigation
+    window.goToStep = function(step) {
+      if (step === 2 && currentStep === 1) {
+        if (!validateForm(shippingForm)) return;
+      }
+      if (step === 3 && currentStep === 2) {
+        if (!validateForm(paymentForm)) return;
+      }
+
+      currentStep = step;
+      
+      // Update panels visibility
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('step-panel-' + step).classList.remove('hidden');
+
+      // Update tracker styling
+      for (let i = 1; i <= 3; i++) {
+        const tab = document.getElementById('step-tab-' + i);
+        const line = document.getElementById('step-line-' + i);
+        const num = tab.querySelector('.step-num');
+        const label = tab.querySelector('.step-label');
+
+        if (i < step) {
+          // Completed
+          tab.classList.remove('opacity-40');
+          num.classList.remove('border', 'border-outline-variant', 'bg-surface', 'text-on-surface-variant');
+          num.classList.add('bg-primary', 'text-on-primary');
+          num.innerHTML = 'check'; // Checkmark
+          label.classList.add('text-primary', 'font-bold');
+        } else if (i === step) {
+          // Current active
+          tab.classList.remove('opacity-40');
+          num.classList.remove('border', 'border-outline-variant', 'bg-surface', 'text-on-surface-variant');
+          num.classList.add('bg-primary', 'text-on-primary');
+          num.innerHTML = i;
+          label.classList.add('text-primary', 'font-bold');
+        } else {
+          // Future steps
+          tab.classList.add('opacity-40');
+          num.classList.add('border', 'border-outline-variant', 'bg-surface', 'text-on-surface-variant');
+          num.classList.remove('bg-primary', 'text-on-primary');
+          num.innerHTML = i;
+          label.classList.remove('text-primary', 'font-bold');
+        }
+      }
+
+      // Sync summary review texts if entering step 3
+      if (step === 3) {
+        const fname = document.getElementById('ship-first-name').value;
+        const lname = document.getElementById('ship-last-name').value;
+        const addr = document.getElementById('ship-address').value;
+        const city = document.getElementById('ship-city').value;
+        const state = document.getElementById('ship-state').value;
+        const zip = document.getElementById('ship-zip').value;
+        const phone = document.getElementById('ship-phone').value;
+
+        const cardNum = document.getElementById('pay-number').value;
+
+        document.getElementById('review-shipping-name').textContent = fname + ' ' + lname;
+        document.getElementById('review-shipping-address').textContent = addr + ', ' + city + ', ' + state + ' ' + zip;
+        document.getElementById('review-shipping-phone').textContent = phone;
+        document.getElementById('review-payment-detail').textContent = '•••• •••• •••• ' + cardNum.slice(-4);
+      }
+    };
+
+    // Form validation
+    function validateForm(form) {
+      let isValid = true;
+      const inputs = form.querySelectorAll('input[required]');
+      
+      inputs.forEach(input => {
+        let fieldValid = true;
+        const errorMsg = input.nextElementSibling;
+
+        if (!input.value.trim()) {
+          fieldValid = false;
+        } else if (input.type === 'email') {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(input.value.trim())) {
+            fieldValid = false;
+          }
+        } else if (input.id === 'pay-number') {
+          const cleaned = input.value.replace(/\s/g, '');
+          if (cleaned.length < 15) {
+            fieldValid = false;
+          }
+        } else if (input.id === 'pay-expiry') {
+          if (!/^\d{2}\/\d{2}$/.test(input.value.trim())) {
+            fieldValid = false;
+          }
+        } else if (input.id === 'pay-cvv') {
+          if (input.value.trim().length < 3) {
+            fieldValid = false;
+          }
+        }
+
+        if (!fieldValid) {
+          input.classList.add('border-error');
+          input.classList.remove('border-outline-variant/60');
+          if (errorMsg && errorMsg.classList.contains('error-msg')) {
+            errorMsg.classList.remove('hidden');
+          }
+          isValid = false;
+        } else {
+          input.classList.remove('border-error');
+          input.classList.add('border-outline-variant/60');
+          if (errorMsg && errorMsg.classList.contains('error-msg')) {
+            errorMsg.classList.add('hidden');
+          }
+        }
+      });
+
+      return isValid;
+    }
+
+    // Input event listeners to remove error on typing
+    const allRequiredInputs = document.querySelectorAll('input[required]');
+    allRequiredInputs.forEach(input => {
+      input.addEventListener('input', () => {
+        input.classList.remove('border-error');
+        input.classList.add('border-outline-variant/60');
+        const errorMsg = input.nextElementSibling;
+        if (errorMsg && errorMsg.classList.contains('error-msg')) {
+          errorMsg.classList.add('hidden');
+        }
+      });
+    });
+
+    // Form submits
+    shippingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      goToStep(2);
+    });
+
+    paymentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      goToStep(3);
+    });
+
+    if (payBackBtn) payBackBtn.addEventListener('click', () => goToStep(1));
+    if (reviewBackBtn) reviewBackBtn.addEventListener('click', () => goToStep(2));
+
+    // 5. Credit Card Live Visualization & 3D Flips
+    const payCard = document.getElementById('payment-card');
+    const payName = document.getElementById('pay-name');
+    const payNum = document.getElementById('pay-number');
+    const payExpiry = document.getElementById('pay-expiry');
+    const payCvv = document.getElementById('pay-cvv');
+
+    const visualName = document.getElementById('visual-card-name');
+    const visualNum = document.getElementById('visual-card-number');
+    const visualExpiry = document.getElementById('visual-card-expiry');
+    const visualCvv = document.getElementById('visual-card-cvv');
+
+    // Live card holder name
+    if (payName && visualName) {
+      payName.addEventListener('input', () => {
+        visualName.textContent = payName.value.trim().toUpperCase() || 'Name des Inhabers';
+      });
+    }
+
+    // Live card number auto-space
+    if (payNum && visualNum) {
+      payNum.addEventListener('input', (e) => {
+        let value = payNum.value.replace(/\D/g, '');
+        let formatted = '';
+        for (let i = 0; i < value.length; i++) {
+          if (i > 0 && i % 4 === 0) formatted += ' ';
+          formatted += value[i];
+        }
+        payNum.value = formatted;
+
+        // Sync visual card number
+        let visualVal = formatted;
+        while (visualVal.length < 19) {
+          let nextCharIdx = visualVal.length;
+          if (nextCharIdx === 4 || nextCharIdx === 9 || nextCharIdx === 14) {
+            visualVal += ' ';
+          } else {
+            visualVal += '•';
+          }
+        }
+        visualNum.textContent = visualVal;
+      });
+    }
+
+    // Live card expiry auto-slash
+    if (payExpiry && visualExpiry) {
+      payExpiry.addEventListener('input', (e) => {
+        let val = payExpiry.value.replace(/\D/g, '');
+        if (val.length > 2) {
+          val = val.slice(0, 2) + '/' + val.slice(2, 4);
+        }
+        payExpiry.value = val;
+        visualExpiry.textContent = val || 'MM/JJ';
+      });
+    }
+
+    // Live CVV
+    if (payCvv && visualCvv) {
+      payCvv.addEventListener('input', () => {
+        let val = payCvv.value.replace(/\D/g, '');
+        payCvv.value = val;
+        
+        let visualVal = '';
+        for (let i = 0; i < val.length; i++) {
+          visualVal += '•';
+        }
+        visualCvv.textContent = visualVal || '•••';
+      });
+
+      // Flip card to back on focus
+      payCvv.addEventListener('focus', () => {
+        if (payCard) payCard.classList.add('card-flipped');
+      });
+
+      // Flip card to front on blur
+      payCvv.addEventListener('blur', () => {
+        if (payCard) payCard.classList.remove('card-flipped');
+      });
+    }
+
+    // 6. Place Order Confirmed Success Overlay
+    const successOverlay = document.getElementById('success-overlay');
+    const successHomeBtn = document.getElementById('success-home-btn');
+    
+    if (placeOrderBtn && successOverlay) {
+      placeOrderBtn.addEventListener('click', () => {
+        // Change text state to placing...
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.innerHTML = `
+          <svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Bestellung wird gesendet...</span>
+        `;
+
+        setTimeout(() => {
+          // Generate mock order details
+          const orderNum = 'PB-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.floor(1000 + Math.random() * 9000);
+          document.getElementById('order-id').textContent = orderNum;
+
+          // Clear cart
+          localStorage.removeItem('cart');
+
+          // Reveal success overlay
+          successOverlay.classList.remove('pointer-events-none', 'opacity-0');
+          successOverlay.firstElementChild.classList.remove('translate-y-10');
+        }, 1500);
+      });
+    }
+
+    if (successHomeBtn) {
+      successHomeBtn.addEventListener('click', () => {
+        window.location.href = '/catalog.html';
+      });
+    }
+
+  });
+</script>
+</body>
+</html>

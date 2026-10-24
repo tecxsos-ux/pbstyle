@@ -1,0 +1,148 @@
+{% comment %}
+  PBStyle Customer Order Detail Page
+{% endcomment %}
+
+<main class="pt-32 pb-section-padding bg-background text-on-surface">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop space-y-12">
+    
+    <!-- Breadcrumbs / Back button -->
+    <div>
+      <a href="{{ routes.account_url }}" class="font-label-md uppercase tracking-widest text-on-surface-variant hover:text-primary flex items-center gap-2 transition-colors duration-300">
+        <span class="material-symbols-outlined text-sm">arrow_left_alt</span> Zurück zum Dashboard
+      </a>
+    </div>
+
+    <!-- Order Title -->
+    <div class="border-b border-outline-variant/30 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-2">Bestellarchiv</p>
+        <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface font-semibold">Bestellung {{ order.name }}</h1>
+        <p class="font-body-md text-on-surface-variant mt-2">Bestellt am {{ order.created_at | date: "%d. %B %Y um %H:%M Uhr" }}</p>
+      </div>
+      
+      <div class="flex gap-4">
+        <div class="bg-surface-container-low border border-outline-variant/20 px-6 py-4">
+          <p class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Lieferstatus</p>
+          <p class="font-headline-md text-headline-md text-on-surface font-semibold">{{ order.fulfillment_status_label | upcase }}</p>
+        </div>
+        <div class="bg-surface-container-low border border-outline-variant/20 px-6 py-4">
+          <p class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-widest">Zahlung</p>
+          <p class="font-headline-md text-headline-md text-on-surface font-semibold">{{ order.financial_status_label | upcase }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Content Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <!-- Order Items -->
+      <div class="lg:col-span-2 space-y-8">
+        <h2 class="font-headline-lg text-headline-lg text-on-surface">Erworbene Objekte</h2>
+        
+        <div class="divide-y divide-outline-variant/20 border-t border-b border-outline-variant/20">
+          {% for line_item in order.line_items %}
+            <div class="py-6 flex gap-6 items-center">
+              <!-- Product Image -->
+              <div class="w-20 h-24 bg-surface-container-low flex-shrink-0 relative overflow-hidden border border-outline-variant/10">
+                {% if line_item.image %}
+                  <img src="{{ line_item.image | img_url: '200x' }}" alt="{{ line_item.title | escape }}" class="w-full h-full object-cover">
+                {% else %}
+                  <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-outline">diamond</span></div>
+                {% endif %}
+              </div>
+              
+              <!-- Details -->
+              <div class="flex-grow">
+                <h3 class="font-headline-md text-headline-md text-on-surface font-semibold mb-1">{{ line_item.product.title | default: line_item.title }}</h3>
+                {% unless line_item.variant.title contains 'Default' %}
+                  <p class="font-body-sm text-on-surface-variant mb-1">{{ line_item.variant.title }}</p>
+                {% endunless %}
+                <p class="font-body-md text-on-surface-variant text-sm">Anzahl: {{ line_item.quantity }}</p>
+              </div>
+              
+              <!-- Price -->
+              <div class="text-right">
+                <p class="font-body-lg text-primary font-bold">{{ line_item.final_line_price | money }}</p>
+                {% if line_item.original_line_price > line_item.final_line_price %}
+                  <p class="font-body-sm text-on-surface-variant line-through text-xs">{{ line_item.original_line_price | money }}</p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Total Calculation -->
+        <div class="bg-surface-container-lowest p-6 border border-outline-variant/20 space-y-4 max-w-md ml-auto">
+          <div class="flex justify-between font-body-md text-on-surface-variant">
+            <span>Zwischensumme</span>
+            <span class="text-on-surface font-semibold">{{ order.line_items_subtotal_price | money }}</span>
+          </div>
+          
+          {% for discount_application in order.discount_applications %}
+            <div class="flex justify-between font-body-md text-primary font-semibold">
+              <span>Rabatt ({{ discount_application.title }})</span>
+              <span>-{{ discount_application.total_allocated_amount | money }}</span>
+            </div>
+          {% endfor %}
+
+          {% for shipping_method in order.shipping_methods %}
+            <div class="flex justify-between font-body-md text-on-surface-variant">
+              <span>Versand ({{ shipping_method.title }})</span>
+              <span class="text-on-surface font-semibold">{{ shipping_method.price | money }}</span>
+            </div>
+          {% endfor %}
+
+          {% for tax_line in order.tax_lines %}
+            <div class="flex justify-between font-body-md text-on-surface-variant">
+              <span>Steuer ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)</span>
+              <span class="text-on-surface font-semibold">{{ tax_line.price | money }}</span>
+            </div>
+          {% endfor %}
+
+          <div class="flex justify-between font-headline-md text-headline-md pt-4 border-t border-outline-variant/20 text-on-surface font-bold">
+            <span>Gesamtwert</span>
+            <span class="text-primary">{{ order.total_price | money }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping & Billing Details -->
+      <div class="space-y-6">
+        <!-- Shipping Address -->
+        <div class="bg-surface-container-lowest p-6 border border-outline-variant/20">
+          <h3 class="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-2 font-semibold">
+            <span class="material-symbols-outlined text-primary text-xl">local_shipping</span> Lieferadresse
+          </h3>
+          <div class="font-body-md text-on-surface-variant space-y-2 leading-relaxed text-sm">
+            <p class="font-semibold text-on-surface">{{ order.shipping_address.name }}</p>
+            {% if order.shipping_address.company %}<p>{{ order.shipping_address.company }}</p>{% endif %}
+            <p>{{ order.shipping_address.street }}</p>
+            <p>{{ order.shipping_address.city }}, {% if order.shipping_address.province %}{{ order.shipping_address.province }}, {% endif %}{{ order.shipping_address.zip }}</p>
+            <p>{{ order.shipping_address.country }}</p>
+            {% if order.shipping_address.phone %}<p class="mt-4"><span class="font-semibold text-on-surface">Telefon:</span> {{ order.shipping_address.phone }}</p>{% endif %}
+          </div>
+        </div>
+
+        <!-- Billing Address -->
+        <div class="bg-surface-container-lowest p-6 border border-outline-variant/20">
+          <h3 class="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-2 font-semibold">
+            <span class="material-symbols-outlined text-primary text-xl">receipt</span> Rechnungsadresse
+          </h3>
+          <div class="font-body-md text-on-surface-variant space-y-2 leading-relaxed text-sm">
+            <p class="font-semibold text-on-surface">{{ order.billing_address.name }}</p>
+            {% if order.billing_address.company %}<p>{{ order.billing_address.company }}</p>{% endif %}
+            <p>{{ order.billing_address.street }}</p>
+            <p>{{ order.billing_address.city }}, {% if order.billing_address.province %}{{ order.billing_address.province }}, {% endif %}{{ order.billing_address.zip }}</p>
+            <p>{{ order.billing_address.country }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% schema %}
+{
+  "name": "PBStyle Order Details",
+  "settings": []
+}
+{% endschema %}

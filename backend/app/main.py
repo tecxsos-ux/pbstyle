@@ -1,0 +1,43 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from app.core.config import settings
+from app.core.database import engine, Base
+from app.api.v1.router import api_router
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB schemas on startup
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Shutdown
+    await engine.dispose()
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="High-performance backend for PBSTYLE Luxury E-Commerce platform with SEO, AIO and GIO integrations.",
+    lifespan=lifespan
+)
+
+# CORS setup
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Allow all origins for dev flexibility
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include v1 router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "database": "PostgreSQL (Connected)",
+        "version": settings.VERSION
+    }

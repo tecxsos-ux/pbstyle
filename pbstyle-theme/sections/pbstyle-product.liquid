@@ -1,0 +1,380 @@
+{% comment %}
+  PBStyle Luxury Product Details Section
+{% endcomment %}
+
+<main class="pt-28 pb-section-padding bg-background text-on-surface">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+    
+    <!-- Breadcrumbs / Back Link -->
+    <div class="mb-10">
+      <a href="{{ routes.all_products_collection_url }}" class="font-label-md uppercase tracking-widest text-on-surface-variant/80 hover:text-primary flex items-center gap-2 transition-colors duration-300">
+        <span class="material-symbols-outlined text-sm">arrow_left_alt</span> Zurück zum Katalog
+      </a>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+      
+      <!-- Asymmetric Editorial Gallery (Left 7 Cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-6">
+        <!-- Main Image -->
+        <div class="aspect-[4/5] bg-surface-container-low overflow-hidden relative group border border-outline-variant/10 shadow-lg">
+          <img id="main-image" 
+               alt="{{ product.title | escape }}" 
+               class="w-full h-full object-cover transition-all duration-500" 
+               src="{{ product.featured_image | img_url: '1200x' }}"/>
+          
+          <div id="image-zoom-btn" class="absolute bottom-6 right-6 p-4 glass-nav border border-outline-variant/20 rounded-full cursor-zoom-in shadow-xl hover:bg-surface-container-high transition-colors duration-300">
+            <span class="material-symbols-outlined text-on-surface text-xl">zoom_in</span>
+          </div>
+        </div>
+
+        <!-- Alternate Images Grid -->
+        {% if product.images.size > 1 %}
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-4">
+            <!-- First thumb is featured image -->
+            <div class="aspect-square bg-surface-container-low border border-primary cursor-pointer overflow-hidden relative active:scale-95 transition-transform duration-200">
+              <img alt="{{ product.title | escape }} View 0" 
+                   class="gallery-thumb w-full h-full object-cover" 
+                   src="{{ product.featured_image | img_url: '400x' }}"
+                   data-large-url="{{ product.featured_image | img_url: '1200x' }}"/>
+            </div>
+            {% for image in product.images %}
+              {% if image.id != product.featured_image.id %}
+                <div class="aspect-square bg-surface-container-low border border-outline-variant/20 cursor-pointer overflow-hidden relative active:scale-95 transition-transform duration-200">
+                  <img alt="{{ product.title | escape }} View {{ forloop.index }}" 
+                       class="gallery-thumb w-full h-full object-cover filter brightness-95" 
+                       src="{{ image | img_url: '400x' }}"
+                       data-large-url="{{ image | img_url: '1200x' }}"/>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Product Information (Right 5 Cols - Sticky on Desktop) -->
+      <div class="lg:col-span-5 lg:sticky lg:top-32 space-y-10">
+        <header class="space-y-4 border-b border-outline-variant/20 pb-8">
+          <div class="flex items-center gap-2">
+            <span class="font-label-sm text-label-sm uppercase text-primary tracking-[0.2em] font-medium">Präzisionsgefertigt</span>
+            {% if product.tags contains 'Limited Edition' %}
+              <span class="bg-primary/10 border border-primary/20 py-1 px-3 text-[10px] uppercase tracking-widest text-primary font-semibold">Limitierte Edition</span>
+            {% endif %}
+          </div>
+          <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg leading-tight text-on-surface">{{ product.title }}</h1>
+          <p class="font-headline-lg text-headline-lg text-primary font-light tracking-wider">{{ product.price | money }}</p>
+        </header>
+
+        <!-- Product Description -->
+        <div class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+          {{ product.description }}
+        </div>
+
+        <!-- Add to Bag Form -->
+        {% form 'product', product, id: 'product-add-form', class: 'space-y-8' %}
+          <input type="hidden" name="id" id="selected-variant-id" value="{{ product.selected_or_first_available_variant.id }}">
+          
+          <!-- Variant Sizing Selector -->
+          {% if product.variants.size > 1 %}
+            <div class="space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="font-label-md text-label-md uppercase tracking-wider text-primary">Größe auswählen</span>
+                <span id="selected-variant-label" class="text-label-sm text-on-surface-variant font-medium">Größe: {{ product.selected_or_first_available_variant.title }}</span>
+              </div>
+              <div class="grid grid-cols-4 sm:grid-cols-6 gap-2" id="variant-selector-container">
+                {% for variant in product.variants %}
+                  <button type="button" 
+                          class="variant-btn py-3 border {% if variant.id == product.selected_or_first_available_variant.id %}border-primary bg-primary/10 text-primary font-bold{% else %}border-outline-variant text-on-surface-variant{% endif %} text-label-sm uppercase tracking-wider hover:border-primary active:scale-95 transition-all text-center bg-transparent" 
+                          data-variant-id="{{ variant.id }}" 
+                          data-variant-title="{{ variant.title }}"
+                          {% unless variant.available %}disabled style="opacity: 0.4; cursor: not-allowed;"{% endunless %}>
+                    {{ variant.title }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Quantity Stepper -->
+          <div class="space-y-3">
+            <span class="font-label-md text-label-md uppercase tracking-wider text-primary block">Anzahl</span>
+            <div class="flex items-center w-32 border border-outline-variant">
+              <button type="button" id="qty-minus" class="w-10 h-10 flex items-center justify-center hover:bg-surface-container active:scale-90 transition-all font-bold cursor-pointer">-</button>
+              <input type="number" name="quantity" id="qty-input" value="1" min="1" class="w-12 text-center bg-transparent border-none focus:ring-0 appearance-none m-0 p-0 text-on-surface" style="-moz-appearance: textfield;">
+              <button type="button" id="qty-plus" class="w-10 h-10 flex items-center justify-center hover:bg-surface-container active:scale-90 transition-all font-bold cursor-pointer">+</button>
+            </div>
+          </div>
+
+          <div class="space-y-4 pt-4 border-t border-outline-variant/20">
+            <!-- Add to Bag Button -->
+            <button type="submit" 
+                    id="add-to-bag-btn"
+                    class="w-full py-5 bg-on-surface text-surface font-label-md text-label-md uppercase tracking-[0.2em] hover:bg-primary hover:text-white hover:shadow-2xl transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-3">
+              {% if product.available %}Objekt erwerben{% else %}Ausverkauft{% endif %}
+            </button>
+
+            <!-- Save to Archive / Wishlist -->
+            <button type="button" 
+                    id="wishlist-btn"
+                    class="w-full py-5 border border-outline/30 bg-transparent text-on-surface font-label-md text-label-md uppercase tracking-[0.2em] hover:bg-surface-container-low transition-all duration-300 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[20px]" id="wishlist-icon">favorite_border</span>
+              <span id="wishlist-text">Im Archiv sichern</span>
+            </button>
+          </div>
+        {% endform %}
+
+        <!-- Luxury Product Details Accordion -->
+        <div class="divide-y divide-outline-variant/20 border-t border-b border-outline-variant/20">
+          
+          <!-- Shipping Details -->
+          <details class="group py-4">
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+              <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface group-hover:text-primary transition-colors">Versand & Rückgabe</span>
+              <span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180 text-outline-variant">expand_more</span>
+            </summary>
+            <div class="pt-4 pb-2 font-body-md text-body-md text-on-surface-variant leading-relaxed space-y-2">
+              <p>Wir bieten einen sicheren, voll versicherten Kurierdienst über Nacht für alle Bestellungen innerhalb der Schweiz an.</p>
+              <p>Rücksendungen werden innerhalb von 30 Tagen nach Zustellung akzeptiert, sofern das Sicherheitssiegel unbeschädigt ist.</p>
+            </div>
+          </details>
+
+          <!-- Specifications -->
+          <details class="group py-4">
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+              <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface group-hover:text-primary transition-colors">Spezifikationen</span>
+              <span class="material-symbols-outlined transition-transform duration-300 group-open:rotate-180 text-outline-variant">expand_more</span>
+            </summary>
+            <div class="pt-4 pb-2 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              <ul class="space-y-2">
+                <li><span class="font-semibold text-on-surface">Material:</span> 950 Platin / Medizinischer Edelstahl 316L</li>
+                <li><span class="font-semibold text-on-surface">Oberfläche:</span> Präzise satiniert gebürstet</li>
+                <li><span class="font-semibold text-on-surface">Abmessungen:</span> Standardproportionen, angepasst für Komfort</li>
+                <li><span class="font-semibold text-on-surface">Herkunft:</span> Hergestellt im Genfer Atelier</li>
+              </ul>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Complete the Look / Recommended Products -->
+    <section class="mt-32 pt-16 border-t border-outline-variant/20">
+      <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+        <div class="space-y-4">
+          <span class="font-label-sm text-label-sm uppercase text-primary tracking-[0.2em]">Kuratierte Kombinationen</span>
+          <h2 class="font-display-lg text-headline-lg text-on-surface">Vervollständigen Sie den Look</h2>
+        </div>
+        <a class="font-label-md text-label-md uppercase tracking-widest text-primary border-b border-primary/20 hover:border-primary transition-all pb-1 duration-300" 
+           href="{{ routes.all_products_collection_url }}">
+          Alle Objekte ansehen
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% assign count = 0 %}
+        {% for recommended_product in collections.all.products %}
+          {% if recommended_product.id != product.id %}
+            <a href="{{ recommended_product.url }}" class="group cursor-pointer block">
+              <div class="aspect-[4/5] bg-surface-container-low mb-6 overflow-hidden relative border border-outline-variant/10 shadow-sm group-hover:shadow-lg transition-all duration-75">
+                <img alt="{{ recommended_product.title | escape }}" 
+                     class="w-full h-full object-cover transition-transform duration-[1000ms] group-hover:scale-105" 
+                     src="{{ recommended_product.featured_image | img_url: '600x' }}"/>
+                
+                <div class="absolute inset-0 bg-black/5 opacity-100 transition-opacity"></div>
+              </div>
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-headline-md text-headline-md text-on-surface group-hover:text-primary transition-colors duration-300">{{ recommended_product.title }}</h4>
+                  <p class="font-body-md text-on-surface-variant font-light">{{ recommended_product.vendor }}</p>
+                </div>
+                <p class="font-body-md text-primary tracking-widest font-light">{{ recommended_product.price | money }}</p>
+              </div>
+            </a>
+            
+            {% assign count = count | plus: 1 %}
+            {% if count == 3 %}{% break %}{% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- Zoom Modal Overlay -->
+<div id="zoom-modal" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center p-4">
+  <button id="zoom-modal-close" class="absolute top-6 right-6 text-white hover:text-primary material-symbols-outlined text-3xl cursor-pointer">close</button>
+  <img id="zoom-modal-img" class="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl" src="" alt="Zoomed view"/>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Thumbnail Switcher
+    const mainImg = document.getElementById('main-image');
+    const thumbs = document.querySelectorAll('.gallery-thumb');
+
+    thumbs.forEach(thumb => {
+      // Switch image on click/hover
+      const handleSwitch = () => {
+        const largeUrl = thumb.getAttribute('data-large-url');
+        if (mainImg && largeUrl) {
+          mainImg.src = largeUrl;
+        }
+        thumbs.forEach(t => t.parentElement.classList.remove('border-primary'));
+        thumbs.forEach(t => t.parentElement.classList.add('border-outline-variant/20'));
+        thumb.parentElement.classList.remove('border-outline-variant/20');
+        thumb.parentElement.classList.add('border-primary');
+      };
+
+      thumb.addEventListener('click', handleSwitch);
+      thumb.addEventListener('mouseenter', handleSwitch);
+    });
+
+    // 2. Zoom Modal
+    const zoomModal = document.getElementById('zoom-modal');
+    const zoomBtn = document.getElementById('image-zoom-btn');
+    const zoomClose = document.getElementById('zoom-modal-close');
+    const zoomImg = document.getElementById('zoom-modal-img');
+
+    if (zoomBtn && zoomModal && zoomImg) {
+      zoomBtn.addEventListener('click', () => {
+        if (mainImg) {
+          zoomImg.src = mainImg.src;
+          zoomModal.classList.remove('pointer-events-none', 'opacity-0');
+        }
+      });
+    }
+
+    if (zoomClose && zoomModal) {
+      zoomClose.addEventListener('click', () => {
+        zoomModal.classList.add('pointer-events-none', 'opacity-0');
+      });
+      zoomModal.addEventListener('click', (e) => {
+        if (e.target === zoomModal) {
+          zoomModal.classList.add('pointer-events-none', 'opacity-0');
+        }
+      });
+    }
+
+    // 3. Variant Selector Buttons
+    const variantBtns = document.querySelectorAll('.variant-btn');
+    const selectedVariantInput = document.getElementById('selected-variant-id');
+    const selectedVariantLabel = document.getElementById('selected-variant-label');
+
+    variantBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const variantId = btn.getAttribute('data-variant-id');
+        const variantTitle = btn.getAttribute('data-variant-title');
+
+        if (selectedVariantInput) selectedVariantInput.value = variantId;
+        if (selectedVariantLabel) selectedVariantLabel.textContent = 'Größe: ' + variantTitle;
+
+        variantBtns.forEach(b => {
+          b.classList.remove('border-primary', 'bg-primary/10', 'text-primary', 'font-bold');
+          b.classList.add('border-outline-variant', 'text-on-surface-variant');
+        });
+
+        btn.classList.add('border-primary', 'bg-primary/10', 'text-primary', 'font-bold');
+        btn.classList.remove('border-outline-variant', 'text-on-surface-variant');
+      });
+    });
+
+    // 4. Quantity Stepper
+    const qtyInput = document.getElementById('qty-input');
+    const qtyMinus = document.getElementById('qty-minus');
+    const qtyPlus = document.getElementById('qty-plus');
+
+    if (qtyInput) {
+      if (qtyMinus) {
+        qtyMinus.addEventListener('click', () => {
+          let val = parseInt(qtyInput.value) || 1;
+          if (val > 1) qtyInput.value = val - 1;
+        });
+      }
+      if (qtyPlus) {
+        qtyPlus.addEventListener('click', () => {
+          let val = parseInt(qtyInput.value) || 1;
+          qtyInput.value = val + 1;
+        });
+      }
+    }
+
+    // 5. AJAX Add to Bag & Button Loading
+    const form = document.getElementById('product-add-form');
+    const addToBagBtn = document.getElementById('add-to-bag-btn');
+    const cartBadge = document.getElementById('cart-badge');
+
+    if (form && addToBagBtn) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Button loading state
+        addToBagBtn.disabled = true;
+        const originalHtml = addToBagBtn.innerHTML;
+        addToBagBtn.innerHTML = `
+          <svg class="animate-spin h-5 w-5 text-current" fill="none" viewBox="0 0 24 24" style="border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; width: 1.25rem; height: 1.25rem;"></svg>
+          <span>Dem Archiv hinzufügen...</span>
+        `;
+
+        // AJAX Shopify add request
+        const formData = new FormData(form);
+        fetch('/cart/add.js', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Success
+          addToBagBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[20px]">done</span>
+            <span>Erworben!</span>
+          `;
+          
+          // Fetch updated cart to show correct count
+          return fetch('/cart.js');
+        })
+        .then(response => response.json())
+        .then(cart => {
+          if (cartBadge) {
+            cartBadge.textContent = cart.item_count;
+            cartBadge.classList.remove('hidden');
+          }
+          
+          setTimeout(() => {
+            addToBagBtn.innerHTML = originalHtml;
+            addToBagBtn.disabled = false;
+          }, 1500);
+        })
+        .catch(err => {
+          console.error(err);
+          addToBagBtn.innerHTML = `<span>Fehler beim Hinzufügen</span>`;
+          setTimeout(() => {
+            addToBagBtn.innerHTML = originalHtml;
+            addToBagBtn.disabled = false;
+          }, 1500);
+        });
+      });
+    }
+
+    // 6. Wishlist / Save to Archive Mock Action
+    const wishlistBtn = document.getElementById('wishlist-btn');
+    const wishlistIcon = document.getElementById('wishlist-icon');
+    const wishlistText = document.getElementById('wishlist-text');
+
+    if (wishlistBtn && wishlistIcon && wishlistText) {
+      wishlistBtn.addEventListener('click', () => {
+        if (wishlistIcon.innerText === 'favorite_border') {
+          wishlistIcon.innerText = 'favorite';
+          wishlistIcon.style.fontVariationSettings = "'FILL' 1";
+          wishlistText.innerText = 'Im Archiv gesichert';
+        } else {
+          wishlistIcon.innerText = 'favorite_border';
+          wishlistIcon.style.fontVariationSettings = "'FILL' 0";
+          wishlistText.innerText = 'Im Archiv sichern';
+        }
+      });
+    }
+  });
+</script>

@@ -1,0 +1,11 @@
+{
+  "sections": {
+    "main": {
+      "type": "pbstyle-account",
+      "settings": {}
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

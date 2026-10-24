@@ -1,0 +1,217 @@
+{% comment %}
+  PBStyle Premium Brand Story & Heritage Page Template
+{% endcomment %}
+
+<main class="text-on-surface bg-background">
+  
+  <!-- Hero Section -->
+  <header class="relative pt-32 pb-section-padding min-h-screen flex items-center overflow-hidden">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop grid grid-cols-1 md:grid-cols-12 gap-gutter items-center w-full">
+      
+      <!-- Left Hero Text -->
+      <div class="md:col-span-5 z-10 space-y-8">
+        <div>
+          <span class="font-label-sm text-label-sm uppercase text-primary mb-6 block tracking-[0.3em] font-semibold">Gegründet 2024</span>
+          <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface leading-tight font-bold">
+            Industrielle Eleganz.<br/>
+            <span class="italic font-normal">Zeitlose Schönheit.</span>
+          </h1>
+        </div>
+        <p class="font-body-lg text-body-lg text-on-surface-variant max-w-md leading-relaxed">
+          Wo Präzisionstechnik auf die Kunst der Verzierung trifft. Entdecken Sie unsere kuratierte Kollektion an Platinschmuck und chirurgischen Beauty-Tools.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-6 pt-4">
+          <a href="{{ routes.all_products_collection_url }}" class="bg-on-surface text-surface text-center px-10 py-5 font-label-md uppercase tracking-widest hover:bg-primary hover:text-white transition-all active:scale-95 font-bold shadow-md">
+            Kollektion ansehen
+          </a>
+          <a href="#heritage" class="border border-outline text-center px-10 py-5 font-label-md uppercase tracking-widest hover:bg-surface-container transition-all active:scale-95 font-bold">
+            Die Geschichte
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Overlapping Images Composition -->
+      <div class="md:col-span-7 relative h-[500px] md:h-[700px] mt-12 md:mt-0 w-full">
+        <div class="absolute inset-0">
+          <!-- Main Large Image -->
+          <div class="absolute top-0 right-0 w-[85%] h-[75%] overflow-hidden border border-outline-variant/20 shadow-lg group">
+            <img alt="Platinum Jewelry Showcase" 
+                 class="w-full h-full object-cover grayscale transition-transform duration-1000 hover:scale-105" 
+                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwNQ1qvT8pN4BHlHMAnesDlNwFzWVc5C4MCgMKvjG6Dgi0wINdiMz6xIKg0pghaC970is5ojjKQBwOXo-XPzDwD5pM_u1CCdycEwwLT5D9oQasqR_VtBLpo7hKvEGdUPmTXLS_p7L_7hW6syTQ8B0FWOLJARlFNI--4EtFtRScQzSf_rYSG6do9C_qxEgjjpMv6sTxgn7gPepLNq6P5fQ6SexplAfCcLoaBp2UAmEMEaseVIG_orJ9PrUEsJ3f5hP3So0oi8KJXd0"/>
+          </div>
+          <!-- Overlapping Small Image -->
+          <div class="absolute bottom-10 left-0 w-[55%] h-[45%] p-2 bg-background border border-outline-variant/20 shadow-xl">
+            <img alt="Precision Beauty Tool" 
+                 class="w-full h-full object-cover grayscale brightness-110" 
+                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTnOF-EQ40OwuZ0ZU27tQmsN-13iuaRYLileGEV_ZUsvB__23n3zRDNNf-qHgdweB6KRm6ck0uGD6SRIwI3pR_ulHsVdfgqC8VkKhdotEjeZA_4G_Bwe0pKZRiEbBlgCu87izJN5spl_cyDJMfoKSHHM9A9dbolPqfVZTKXbByG5tn7TX4vIH0Dj24KCecbPFtwHIOQB1Mz13-2GFR0sZCkLkoEkPPu3DiDsl7LWoCWhe2TQ9OcjK1GIRHtNB47a2wytHhKmvD5gA"/>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Decorative subtle gradient background decoration -->
+    <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-br from-surface-container/30 to-transparent -z-10"></div>
+  </header>
+
+  <!-- Heritage Section -->
+  <section id="heritage" class="py-section-padding bg-surface-container border-t border-b border-outline-variant/10">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+        
+        <!-- Heritage Text -->
+        <div class="md:col-span-6 space-y-8">
+          <div>
+            <span class="font-label-md text-label-md uppercase text-primary mb-4 block tracking-[0.2em] font-semibold">Das Erbe von pbstyle</span>
+            <h2 class="font-display-lg text-headline-lg md:text-display-lg text-on-surface leading-tight font-bold">In Präzision geschmiedet.</h2>
+          </div>
+          <div class="font-body-lg text-body-lg text-on-surface-variant max-w-xl leading-relaxed space-y-4">
+            {% if page.content != blank %}
+              {{ page.content }}
+            {% else %}
+              <p>Entstanden aus den strengen Standards industrieller Handwerkskunst und der feinen Kunst des erlesenen Schmucks, wurde pbstyle gegründet, um die Lücke zwischen Nutzen und Verzierung zu schließen. Wir glauben, dass die Werkzeuge, die wir verwenden, und die Stücke, die wir tragen, dieselbe kompromisslose Qualität teilen sollten: 950er Platin und Chirurgenstahl, entworfen, um Generationen zu überdauern.</p>
+            {% endif %}
+          </div>
+          <div class="pt-4">
+            <a href="{{ routes.all_products_collection_url }}" class="font-label-md uppercase tracking-widest inline-flex items-center gap-2 border-b border-primary/30 pb-1 hover:border-primary transition-all font-bold group">
+              Unsere Philosophie <span class="material-symbols-outlined transition-transform duration-300 group-hover:translate-x-1">arrow_right_alt</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Heritage Image -->
+        <div class="md:col-span-6 relative aspect-square md:aspect-auto md:h-[600px] overflow-hidden border border-outline-variant/20 shadow-sm mt-12 md:mt-0">
+          <img alt="Industrial Craftsmanship" 
+               class="w-full h-full object-cover grayscale hover:scale-105 transition-transform duration-[1200ms]" 
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHmZ8b-Y8Y1wO0Z-R0v1_4J8V8D8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8Z8X8"/>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Curated Categories -->
+  <section class="py-section-padding bg-background">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+      
+      <!-- Section Header -->
+      <div class="flex justify-between items-end mb-16 border-b border-outline-variant/10 pb-6">
+        <div>
+          <h2 class="font-headline-lg text-headline-lg text-on-surface font-semibold">Kuratierte Kategorien</h2>
+          <div class="h-1 w-20 bg-primary mt-4"></div>
+        </div>
+        <a href="{{ routes.all_products_collection_url }}" class="font-body-md italic text-primary hover:text-secondary border-b border-primary/30 hover:border-primary transition-all pb-1 font-semibold">Alle Editionen ansehen</a>
+      </div>
+
+      <!-- Categories Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        <!-- Collection Card 1 -->
+        <a href="{{ routes.all_products_collection_url }}" class="group relative overflow-hidden border border-outline-variant/20 bg-surface-container-low aspect-[4/5] block shadow-sm hover:shadow-xl transition-all duration-500">
+          <img alt="The Platinum Collection" 
+               class="w-full h-full object-cover transition-transform duration-[1000ms] group-hover:scale-105" 
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCON9DsDsXav2y1gi8sCwxtvHnoXgCVD8ImN8b5CRAvrOkw80w2TweMhrpOK6zGq0CyBe-UX307xua5jBFiEd0Y9TxlvFLmkfGfzmI-WBItM__917CMV0o9XbkgB9DziTOv5zPmgYh6VMwb1O-77uRU4XascsDBwWXcazeZWAPsQ-l-xlR1dLaNvS2XC7rxAPN8Bi7iKIz4GHFsFS24I58rnlDAJcgnIZCirG4xFLFyCmQAL-M-fwCdrmAcfTcEmNYxutUQI0hnXw0"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-12 text-white">
+            <span class="font-label-sm uppercase tracking-[0.2em] mb-2 opacity-80 font-bold">Edition 01</span>
+            <h3 class="font-headline-lg text-headline-lg mb-6 font-semibold">Die Platin-Kollektion</h3>
+            <span class="font-label-md uppercase tracking-widest inline-flex items-center gap-2 group-hover:gap-4 transition-all font-bold">
+              Produkte entdecken <span class="material-symbols-outlined">arrow_right_alt</span>
+            </span>
+          </div>
+        </a>
+
+        <!-- Collection Card 2 -->
+        <a href="{{ routes.all_products_collection_url }}" class="group relative overflow-hidden border border-outline-variant/20 bg-surface-container-low aspect-[4/5] block shadow-sm hover:shadow-xl transition-all duration-500">
+          <img alt="Precision Tools" 
+               class="w-full h-full object-cover transition-transform duration-[1000ms] group-hover:scale-105 grayscale" 
+               src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHoDdT0t5TuqZswh4WqU1kskQCjvcm24IrS0P-fSyV_s_0psbHRiFC-6HZhbDGKinfYSEEY3OO1JjMcfUv-6rN_NLe0EERRR3aa16_asZe2n3uEEFepkn4CMp4LCx1oNitu5PCFDZ9tMFE6VRJCpfgeS6A3fcjutdbazGO96fR7UVECxq-ItKLGpxJLxX8SMyJjjw2nPFr8N6lzMwk9MItrnUJRr05OBu5yBPkVqLkyZX3v-JMVMqCD80sgzYIJeQcFJnnVEEjUYk"/>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-12 text-white">
+            <span class="font-label-sm uppercase tracking-[0.2em] mb-2 opacity-80 font-bold">Pro-Serie</span>
+            <h3 class="font-headline-lg text-headline-lg mb-6 font-semibold">Präzisionswerkzeuge</h3>
+            <span class="font-label-md uppercase tracking-widest inline-flex items-center gap-2 group-hover:gap-4 transition-all font-bold">
+              Tools ansehen <span class="material-symbols-outlined">arrow_right_alt</span>
+            </span>
+          </div>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Brand Values -->
+  <section class="py-section-padding bg-surface-container border-t border-b border-outline-variant/10">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-gutter">
+        
+        <!-- Value 1 -->
+        <div class="text-center md:text-left space-y-6">
+          <div class="w-16 h-16 bg-background border border-outline-variant/20 rounded-full flex items-center justify-center mb-8 mx-auto md:mx-0 shadow-sm">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">diamond</span>
+          </div>
+          <h4 class="font-headline-md text-headline-md text-on-surface font-semibold">Beständige Materialien</h4>
+          <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
+            Wir beziehen ausschließlich 950er Platin und chirurgischen Edelstahl, um sicherzustellen, dass Ihre Stücke Generationen überdauern.
+          </p>
+        </div>
+
+        <!-- Value 2 -->
+        <div class="text-center md:text-left space-y-6">
+          <div class="w-16 h-16 bg-background border border-outline-variant/20 rounded-full flex items-center justify-center mb-8 mx-auto md:mx-0 shadow-sm">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">architecture</span>
+          </div>
+          <h4 class="font-headline-md text-headline-md text-on-surface font-semibold">Ergonomisches Design</h4>
+          <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
+            Jede Kurve und Gewichtsverteilung wird berechnet, um ultimativen Komfort und professionelle Leistung zu bieten.
+          </p>
+        </div>
+
+        <!-- Value 3 -->
+        <div class="text-center md:text-left space-y-6">
+          <div class="w-16 h-16 bg-background border border-outline-variant/20 rounded-full flex items-center justify-center mb-8 mx-auto md:mx-0 shadow-sm">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+          </div>
+          <h4 class="font-headline-md text-headline-md text-on-surface font-semibold">Nachhaltiges Handwerk</h4>
+          <p class="font-body-md text-sm text-on-surface-variant leading-relaxed">
+            Unser abfallfreier Herstellungsprozess in unserem klimaneutralen Studio spiegelt unser Engagement für den Planeten wider.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter Section -->
+  <section class="py-section-padding bg-background">
+    <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center">
+      <div class="max-w-2xl mx-auto space-y-8">
+        <h2 class="font-display-lg text-headline-lg md:text-display-lg text-on-surface font-bold">Werden Sie Teil des Kollektivs</h2>
+        <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+          Erhalten Sie exklusiven Zugang zu neuen limitierten Editionen und Einblicke in unsere Handwerkskunst.
+        </p>
+        
+        {% form 'customer', class: 'flex flex-col md:flex-row gap-4 pt-4' %}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <input class="flex-grow bg-transparent border-b border-outline-variant focus:border-primary focus:ring-0 font-body-md py-4 transition-all outline-none text-on-surface uppercase tracking-widest placeholder:text-outline-variant/60" 
+                 placeholder="IHRE E-MAIL-ADRESSE" 
+                 type="email"
+                 name="contact[email]"
+                 required/>
+          <button class="bg-on-surface text-surface px-12 py-4 font-label-md uppercase tracking-widest hover:bg-primary hover:text-white transition-all font-bold active:scale-95" 
+                  type="submit">
+            Abonnieren
+          </button>
+        {% endform %}
+        
+        <p class="font-label-sm text-xs text-on-surface-variant opacity-60">
+          Mit Ihrer Anmeldung stimmen Sie unserer Datenschutzerklärung und unseren Nutzungsbedingungen zu.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+{% schema %}
+{
+  "name": "Brand Story",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,62 @@
+<main class="pt-32 pb-section-padding bg-surface min-h-screen">
+  <div class="max-w-container-max mx-auto px-margin-desktop grid grid-cols-1 md:grid-cols-2 gap-gutter">
+    <div class="space-y-8 pr-12">
+      <h1 class="font-display-lg text-display-lg text-on-surface">{{ page.title | default: 'Kontakt' }}</h1>
+      <div class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+        {{ page.content }}
+      </div>
+      <div class="space-y-4 pt-8 mt-8 border-t border-outline-variant/30">
+        <h3 class="font-label-md uppercase tracking-widest text-primary">Kundenservice</h3>
+        <p class="font-body-md text-on-surface-variant">E-Mail: info@pbstyle.ch</p>
+        <p class="font-body-md text-on-surface-variant">Öffnungszeiten: Mo-Fr, 09:00 - 18:00 Uhr (CET)</p>
+      </div>
+    </div>
+    
+    <div class="bg-surface-container-low p-8 md:p-12 ghost-border">
+      {% form 'contact', class: 'space-y-8' %}
+        {% if form.posted_successfully? %}
+          <div class="p-4 bg-primary/10 border-l-4 border-primary text-primary font-body-md">
+            Vielen Dank für Ihre Anfrage! Wir melden uns so schnell wie möglich bei Ihnen.
+          </div>
+        {% elsif form.errors %}
+          <div class="p-4 bg-error-container text-on-error-container border-l-4 border-error font-body-md">
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
+
+        <div class="space-y-6">
+          <div class="group">
+            <label for="ContactFormName" class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 group-focus-within:text-primary transition-colors">Name</label>
+            <input type="text" id="ContactFormName" name="contact[name]" class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 font-body-md placeholder:text-outline-variant/50 transition-all focus:border-primary focus:ring-0 outline-none" placeholder="Ihr Name" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+          </div>
+
+          <div class="group">
+            <label for="ContactFormEmail" class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 group-focus-within:text-primary transition-colors">E-Mail <span class="text-error">*</span></label>
+            <input type="email" id="ContactFormEmail" name="contact[email]" autocorrect="off" autocapitalize="off" class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 font-body-md placeholder:text-outline-variant/50 transition-all focus:border-primary focus:ring-0 outline-none" placeholder="Ihre E-Mail-Adresse" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" required>
+          </div>
+
+          <div class="group">
+            <label for="ContactFormPhone" class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 group-focus-within:text-primary transition-colors">Telefonnummer</label>
+            <input type="tel" id="ContactFormPhone" name="contact[phone]" pattern="[0-9\-]*" class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 font-body-md placeholder:text-outline-variant/50 transition-all focus:border-primary focus:ring-0 outline-none" placeholder="Ihre Telefonnummer" value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}">
+          </div>
+
+          <div class="group">
+            <label for="ContactFormMessage" class="block font-label-md text-label-sm uppercase text-on-surface-variant mb-2 group-focus-within:text-primary transition-colors">Nachricht <span class="text-error">*</span></label>
+            <textarea rows="5" id="ContactFormMessage" name="contact[body]" class="w-full bg-transparent border-0 border-b border-outline-variant py-3 px-0 font-body-md placeholder:text-outline-variant/50 transition-all focus:border-primary focus:ring-0 outline-none resize-none custom-scrollbar" placeholder="Wie können wir Ihnen helfen?" required>{% if form.body %}{{ form.body }}{% endif %}</textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-5 bg-on-surface text-surface font-label-md text-label-md uppercase tracking-widest hover:bg-primary transition-all duration-300 active:scale-[0.98]">
+          Anfrage senden
+        </button>
+      {% endform %}
+    </div>
+  </div>
+</main>
+
+{% schema %}
+{
+  "name": "PBStyle Contact Form",
+  "settings": []
+}
+{% endschema %}

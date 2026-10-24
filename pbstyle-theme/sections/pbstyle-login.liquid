@@ -1,0 +1,50 @@
+<div class="min-h-screen pb-section-padding bg-surface flex items-center justify-center pt-12">
+<div class="max-w-md w-full mx-auto px-margin-mobile">
+    <div class="text-center mb-12">
+        <h1 class="font-display-lg text-display-lg-mobile text-on-surface mb-4">Mitglieder-Portal</h1>
+        <p class="font-body-md text-on-surface-variant">Greifen Sie auf Ihren Tresor und exklusive Kollektionen zu.</p>
+    </div>
+
+    <div class="bg-surface-container-lowest p-8 md:p-12 ghost-border steel-lift shadow-2xl">
+        {% form 'customer_login', class: 'space-y-6' %}
+            {% if form.errors %}
+                <div class="bg-error-container text-on-error-container p-4 font-body-sm mb-6">
+                    {{ form.errors | default_errors }}
+                </div>
+            {% endif %}
+
+            <div class="space-y-2">
+                <label for="CustomerEmail" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">E-Mail-Adresse</label>
+                <input type="email" name="customer[email]" id="CustomerEmail" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="email" autocorrect="off" autocapitalize="off" required>
+            </div>
+
+            {% if form.password_needed %}
+                <div class="space-y-2 relative">
+                    <div class="flex justify-between items-end">
+                        <label for="CustomerPassword" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Passwort</label>
+                        <a href="#recover" class="font-label-sm text-primary hover:opacity-70 transition-opacity">Vergessen?</a>
+                    </div>
+                    <input type="password" value="" name="customer[password]" id="CustomerPassword" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="current-password" required>
+                </div>
+            {% endif %}
+
+            <button type="submit" class="w-full mt-8 bg-inverse-surface text-inverse-on-surface py-4 font-label-md uppercase tracking-widest hover:opacity-90 transition-opacity">
+                Anmelden
+            </button>
+
+            <div class="pt-8 mt-8 border-t border-outline-variant/30 text-center">
+                <p class="font-body-md text-on-surface-variant">
+                    Noch kein Mitglied? <a href="{{ routes.account_register_url }}" class="text-primary hover:border-b hover:border-primary pb-1 transition-all">Konto erstellen</a>
+                </p>
+            </div>
+        {% endform %}
+    </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "PBStyle Login",
+  "settings": []
+}
+{% endschema %}

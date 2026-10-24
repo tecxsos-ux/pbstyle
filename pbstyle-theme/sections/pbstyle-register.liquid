@@ -1,0 +1,56 @@
+<div class="min-h-screen pb-section-padding bg-surface flex items-center justify-center pt-12">
+<div class="max-w-md w-full mx-auto px-margin-mobile">
+    <div class="text-center mb-12">
+        <h1 class="font-display-lg text-display-lg-mobile text-on-surface mb-4">Zugang anfordern</h1>
+        <p class="font-body-md text-on-surface-variant">Treten Sie dem Kollektiv bei für exklusiven Zugriff auf Archive.</p>
+    </div>
+
+    <div class="bg-surface-container-lowest p-8 md:p-12 ghost-border steel-lift shadow-2xl">
+        {% form 'create_customer', class: 'space-y-6' %}
+            {% if form.errors %}
+                <div class="bg-error-container text-on-error-container p-4 font-body-sm mb-6">
+                    {{ form.errors | default_errors }}
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label for="RegisterForm-FirstName" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Vorname</label>
+                    <input type="text" name="customer[first_name]" id="RegisterForm-FirstName" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="given-name" required>
+                </div>
+                <div class="space-y-2">
+                    <label for="RegisterForm-LastName" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Nachname</label>
+                    <input type="text" name="customer[last_name]" id="RegisterForm-LastName" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="family-name" required>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="RegisterForm-email" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">E-Mail-Adresse</label>
+                <input type="email" name="customer[email]" id="RegisterForm-email" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="email" autocorrect="off" autocapitalize="off" required>
+            </div>
+
+            <div class="space-y-2">
+                <label for="RegisterForm-password" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Passwort</label>
+                <input type="password" name="customer[password]" id="RegisterForm-password" class="w-full bg-transparent border-b border-outline-variant py-3 focus:border-primary focus:ring-0 outline-none font-body-md transition-colors" autocomplete="new-password" required>
+            </div>
+
+            <button type="submit" class="w-full mt-8 bg-inverse-surface text-inverse-on-surface py-4 font-label-md uppercase tracking-widest hover:opacity-90 transition-opacity">
+                Antrag absenden
+            </button>
+
+            <div class="pt-8 mt-8 border-t border-outline-variant/30 text-center">
+                <p class="font-body-md text-on-surface-variant">
+                    Bereits registriert? <a href="{{ routes.account_login_url }}" class="text-primary hover:border-b hover:border-primary pb-1 transition-all">Anmelden</a>
+                </p>
+            </div>
+        {% endform %}
+    </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "PBStyle Register",
+  "settings": []
+}
+{% endschema %}

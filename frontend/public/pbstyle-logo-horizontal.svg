@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120" width="500" height="120">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&amp;family=Hanken+Grotesk:wght@300;400;500;600&amp;display=swap');
+      .logo-mark { font-family: 'Bodoni Moda', serif; fill: #1F1F1F; }
+      .logo-text { font-family: 'Bodoni Moda', serif; fill: #1F1F1F; letter-spacing: 0.12em; }
+      .logo-frame { fill: none; stroke: #B07D62; stroke-width: 1.5; }
+    </style>
+  </defs>
+
+  <!-- Circular Emblem -->
+  <circle cx="60" cy="60" r="50" class="logo-frame" />
+  <circle cx="60" cy="60" r="44" class="logo-frame" stroke-width="0.5" />
+  
+  <text x="48" y="88" class="logo-mark" font-size="80" font-weight="400" text-anchor="middle">P</text>
+  <text x="75" y="88" class="logo-mark" font-size="80" font-weight="400" text-anchor="middle">B</text>
+
+  <!-- Brand Name -->
+  <text x="140" y="80" class="logo-text" font-size="52" font-weight="400" text-anchor="start">PBSTYLE</text>
+</svg>
