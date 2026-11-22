@@ -3,26 +3,71 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  AlertTriangle,
+  Camera,
+  CheckCircle2,
+  ExternalLink,
+  Heart,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  MessageCircle,
+  Minus,
+  Package,
+  Pencil,
+  Plus,
+  Printer,
+  Receipt,
+  RefreshCw,
+  Search,
+  Send,
+  ShoppingBag,
+  Store,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Select } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+
+type AdminTab = 'overview' | 'crm' | 'inventory' | 'invoices' | 'instagram';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
 
-  // Navigation tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'crm' | 'inventory' | 'invoices' | 'instagram'>('overview');
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [adminUser, setAdminUser] = useState<any>(null);
-  const [token, setToken] = useState<string>('');
+  const [toast, setToast] = useState<string>('');
 
-  // Overview data
+  // Overview
   const [overview, setOverview] = useState<any>(null);
 
-  // CRM data
+  // CRM
   const [customers, setCustomers] = useState<any[]>([]);
   const [crmSearch, setCrmSearch] = useState('');
   const [crmTierFilter, setCrmTierFilter] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-  const [crmSuccessMessage, setCrmSuccessMessage] = useState('');
 
-  // Inventory data
+  // Inventory
   const [inventory, setInventory] = useState<any[]>([]);
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
@@ -34,26 +79,27 @@ export default function AdminDashboardPage() {
   const [newProdMaterial, setNewProdMaterial] = useState('platinum');
   const [newProdCategory, setNewProdCategory] = useState(1);
   const [newProdDesc, setNewProdDesc] = useState('');
-  const [inventorySuccessMessage, setInventorySuccessMessage] = useState('');
 
-  // Invoices & Mail dispatch
+  // Invoices
   const [invoicesOrderList, setInvoicesOrderList] = useState<any[]>([]);
   const [dispatchModalOrder, setDispatchModalOrder] = useState<any>(null);
   const [dispatchRecipientEmail, setDispatchRecipientEmail] = useState('');
   const [dispatchSubject, setDispatchSubject] = useState('');
   const [dispatchMessage, setDispatchMessage] = useState('');
   const [isDispatching, setIsDispatching] = useState(false);
-  const [dispatchSuccessToast, setDispatchSuccessToast] = useState('');
 
-  // Instagram Connector data
+  // Instagram
   const [instagramSettings, setInstagramSettings] = useState<any>(null);
   const [instagramPosts, setInstagramPosts] = useState<any[]>([]);
   const [isInstagramPublishing, setIsInstagramPublishing] = useState<boolean>(false);
   const [instagramModalProduct, setInstagramModalProduct] = useState<any>(null);
   const [customInstagramCaption, setCustomInstagramCaption] = useState<string>('');
-  const [instagramSuccessToast, setInstagramSuccessToast] = useState<string>('');
 
-  // Auth check & load data
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 4000);
+  };
+
   useEffect(() => {
     const storedToken = localStorage.getItem('pbstyle_admin_token');
     const storedUser = localStorage.getItem('pbstyle_admin_user');
@@ -61,11 +107,11 @@ export default function AdminDashboardPage() {
       router.push('/admin/login');
       return;
     }
-    setToken(storedToken);
     if (storedUser) {
-      try { setAdminUser(JSON.parse(storedUser)); } catch (e) {}
+      try {
+        setAdminUser(JSON.parse(storedUser));
+      } catch {}
     }
-
     loadOverview();
     loadCustomers();
     loadInventory();
@@ -85,15 +131,15 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const loadCustomers = async () => {
+  const loadCustomers = async (searchOverride?: string, tierOverride?: string) => {
     try {
       const query = new URLSearchParams();
-      if (crmSearch) query.append('search', crmSearch);
-      if (crmTierFilter) query.append('tier', crmTierFilter);
+      const s = searchOverride !== undefined ? searchOverride : crmSearch;
+      const t = tierOverride !== undefined ? tierOverride : crmTierFilter;
+      if (s) query.append('search', s);
+      if (t) query.append('tier', t);
       const res = await fetch(`/api/v1/admin/crm/customers?${query.toString()}`);
-      if (res.ok) {
-        setCustomers(await res.json());
-      }
+      if (res.ok) setCustomers(await res.json());
     } catch (e) {
       console.error(e);
     }
@@ -102,9 +148,7 @@ export default function AdminDashboardPage() {
   const loadInventory = async () => {
     try {
       const res = await fetch('/api/v1/admin/inventory/products');
-      if (res.ok) {
-        setInventory(await res.json());
-      }
+      if (res.ok) setInventory(await res.json());
     } catch (e) {
       console.error(e);
     }
@@ -114,12 +158,12 @@ export default function AdminDashboardPage() {
     try {
       const [settingsRes, postsRes] = await Promise.all([
         fetch('/api/v1/instagram/settings'),
-        fetch('/api/v1/instagram/posts')
+        fetch('/api/v1/instagram/posts'),
       ]);
       if (settingsRes.ok) setInstagramSettings(await settingsRes.json());
       if (postsRes.ok) setInstagramPosts(await postsRes.json());
     } catch (e) {
-      console.error('Failed to load instagram data', e);
+      console.error(e);
     }
   };
 
@@ -128,13 +172,11 @@ export default function AdminDashboardPage() {
       const res = await fetch('/api/v1/instagram/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ auto_post_enabled: enabled })
+        body: JSON.stringify({ auto_post_enabled: enabled }),
       });
       if (res.ok) {
-        const updated = await res.json();
-        setInstagramSettings(updated);
-        setInstagramSuccessToast(`Instagram Auto-Post wurde ${enabled ? 'aktiviert' : 'deaktiviert'}.`);
-        setTimeout(() => setInstagramSuccessToast(''), 4000);
+        setInstagramSettings(await res.json());
+        showToast(`Instagram Auto-Post ${enabled ? 'aktiviert' : 'deaktiviert'}.`);
       }
     } catch (e) {
       console.error(e);
@@ -147,12 +189,11 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/v1/instagram/publish/${productId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ custom_caption: customCaption })
+        body: JSON.stringify({ custom_caption: customCaption }),
       });
       if (res.ok) {
         const result = await res.json();
-        setInstagramSuccessToast(result.message || 'Erfolgreich auf Instagram (@pbstyle.ch) veröffentlicht!');
-        setTimeout(() => setInstagramSuccessToast(''), 4500);
+        showToast(result.message || 'Erfolgreich auf Instagram (@pbstyle.ch) veröffentlicht!');
         setInstagramModalProduct(null);
         await loadInstagramData();
       }
@@ -171,10 +212,12 @@ export default function AdminDashboardPage() {
         const preview = await res.json();
         setCustomInstagramCaption(preview.caption);
       } else {
-        setCustomInstagramCaption(`✨ Neu im Zürcher Atelier: ${product.title}\n\nPreis: CHF ${product.base_price}\n\n#pbstyle #swissjewelry #950platin`);
+        setCustomInstagramCaption(
+          `Neu im Zürcher Atelier: ${product.title}\n\nPreis: CHF ${product.base_price}\n\n#pbstyle #swissjewelry #950platin`
+        );
       }
-    } catch (e) {
-      setCustomInstagramCaption(`✨ Neu im Zürcher Atelier: ${product.title}\n\n#pbstyle #swissjewelry`);
+    } catch {
+      setCustomInstagramCaption(`Neu im Zürcher Atelier: ${product.title}\n\n#pbstyle #swissjewelry`);
     }
   };
 
@@ -184,18 +227,17 @@ export default function AdminDashboardPage() {
     router.push('/admin/login');
   };
 
-  // Quick stock adjust
   const handleStockAdjust = async (product: any, delta: number) => {
     const newStock = Math.max(0, product.stock + delta);
     try {
       const res = await fetch(`/api/v1/admin/inventory/products/${product.id}/stock`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stock: newStock })
+        body: JSON.stringify({ stock: newStock }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setInventory(prev => prev.map(p => p.id === updated.id ? updated : p));
+        setInventory((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
         loadOverview();
       }
     } catch (e) {
@@ -203,11 +245,9 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Save edited inventory item
   const handleSaveInventoryItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
-
     try {
       const res = await fetch(`/api/v1/admin/inventory/products/${editingItem.id}/stock`, {
         method: 'PUT',
@@ -217,15 +257,14 @@ export default function AdminDashboardPage() {
           low_stock_threshold: editingItem.low_stock_threshold,
           base_price: editingItem.base_price,
           cost_price: editingItem.cost_price,
-          status: editingItem.status
-        })
+          status: editingItem.status,
+        }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setInventory(prev => prev.map(p => p.id === updated.id ? updated : p));
+        setInventory((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
         setEditingItem(null);
-        setInventorySuccessMessage(`Objekt "${updated.title}" erfolgreich aktualisiert.`);
-        setTimeout(() => setInventorySuccessMessage(''), 3000);
+        showToast(`Objekt "${updated.title}" aktualisiert.`);
         loadOverview();
       }
     } catch (e) {
@@ -233,7 +272,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Create new product
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -252,8 +290,8 @@ export default function AdminDashboardPage() {
           stock: Number(newProdStock),
           low_stock_threshold: 5,
           sku_prefix: 'PB',
-          status: 'Aktiv'
-        })
+          status: 'Aktiv',
+        }),
       });
       if (res.ok) {
         const created = await res.json();
@@ -262,8 +300,7 @@ export default function AdminDashboardPage() {
         setNewProdTitle('');
         setNewProdHandle('');
         setNewProdDesc('');
-        setInventorySuccessMessage(`Neues Objekt "${created.title}" zum Katalog hinzugefügt & automatisch auf Instagram (@pbstyle.ch) gepostet! ✨`);
-        setTimeout(() => setInventorySuccessMessage(''), 5000);
+        showToast(`Neues Objekt "${created.title}" angelegt & auf Instagram synchronisiert.`);
         loadOverview();
         loadInstagramData();
       }
@@ -272,11 +309,9 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Save CRM Customer edits
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomer) return;
-
     try {
       const res = await fetch(`/api/v1/admin/crm/customers/${selectedCustomer.id}`, {
         method: 'PUT',
@@ -288,35 +323,33 @@ export default function AdminDashboardPage() {
           tier: selectedCustomer.tier,
           status: selectedCustomer.status,
           crm_notes: selectedCustomer.crm_notes,
-          loyalty_points: selectedCustomer.loyalty_points
-        })
+          loyalty_points: selectedCustomer.loyalty_points,
+        }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setCustomers(prev => prev.map(c => c.id === updated.id ? updated : c));
+        setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
         setSelectedCustomer(null);
-        setCrmSuccessMessage(`Klientenprofil für "${updated.full_name}" erfolgreich gespeichert.`);
-        setTimeout(() => setCrmSuccessMessage(''), 3000);
+        showToast(`Klientenprofil "${updated.full_name}" gespeichert.`);
       }
     } catch (e) {
       console.error(e);
     }
   };
 
-  // Open Invoice Dispatch Modal
   const openDispatchModal = (order: any) => {
     setDispatchModalOrder(order);
     setDispatchRecipientEmail(order.customer_email);
-    setDispatchSubject(`Ihre offizielle PBSTYLE Rechnung & Schweizer Zertifikat (${order.order_number})`);
-    setDispatchMessage(`Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie Ihre offizielle PBSTYLE Rechnung mit ausgewiesener Schweizer Mehrwertsteuer sowie Ihr nummeriertes Ursprungszertifikat.\n\nMit vorzüglicher Hochachtung,\nPBSTYLE Atelier Zürich`);
+    setDispatchSubject(`Ihre offizielle PBSTYLE Rechnung & Zertifikat (${order.order_number})`);
+    setDispatchMessage(
+      `Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie Ihre offizielle PBSTYLE Rechnung mit ausgewiesener Schweizer Mehrwertsteuer sowie Ihr nummeriertes Ursprungszertifikat.\n\nMit vorzüglicher Hochachtung,\nPBSTYLE Atelier Zürich`
+    );
   };
 
-  // Send Invoice by Mail
   const handleSendInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dispatchModalOrder) return;
     setIsDispatching(true);
-
     try {
       const res = await fetch(`/api/v1/admin/invoices/${dispatchModalOrder.id}/send`, {
         method: 'POST',
@@ -325,14 +358,12 @@ export default function AdminDashboardPage() {
           order_id: dispatchModalOrder.id,
           recipient_email: dispatchRecipientEmail,
           subject: dispatchSubject,
-          custom_message: dispatchMessage
-        })
+          custom_message: dispatchMessage,
+        }),
       });
-
       if (res.ok) {
         const data = await res.json();
-        setDispatchSuccessToast(data.message);
-        setTimeout(() => setDispatchSuccessToast(''), 4500);
+        showToast(data.message || 'Rechnung erfolgreich versandt.');
         setDispatchModalOrder(null);
         loadOverview();
       }
@@ -343,1337 +374,1110 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const navItems: { id: AdminTab; label: string; icon: React.ElementType; badge?: number }[] = [
+    { id: 'overview', label: 'Übersicht', icon: LayoutDashboard },
+    { id: 'crm', label: 'Client CRM', icon: Users, badge: overview?.active_clients_count },
+    {
+      id: 'inventory',
+      label: 'Inventar & Lager',
+      icon: Package,
+      badge: overview?.low_stock_items_count > 0 ? overview.low_stock_items_count : undefined,
+    },
+    { id: 'invoices', label: 'Rechnungen & Mail', icon: Receipt, badge: invoicesOrderList.length || undefined },
+    { id: 'instagram', label: 'Instagram Auto-Post', icon: Camera },
+  ];
+
   return (
-    <div className="min-h-screen bg-background text-on-surface font-sans flex flex-col">
-      
-      {/* Admin Top Navigation Bar */}
-      <header className="bg-surface-container-low border-b border-outline-variant/30 sticky top-0 z-30 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="font-serif text-2xl tracking-tighter text-on-surface">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Admin Topbar */}
+      <header className="sticky top-0 z-30 h-16 border-b border-border bg-card/90 backdrop-blur-md px-4 md:px-6 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="font-serif text-2xl tracking-tight text-foreground">
             pbstyle
           </Link>
-          <span className="hidden sm:inline-block px-2.5 py-0.5 bg-primary/10 border border-primary text-primary font-mono text-[10px] uppercase tracking-widest">
-            Atelier Command Center
-          </span>
+          <Separator orientation="vertical" className="h-5" />
+          <Badge variant="bronze" className="hidden sm:inline-flex">
+            Command Center
+          </Badge>
         </div>
 
-        <div className="flex items-center gap-6 text-xs">
-          <div className="hidden md:flex flex-col text-right">
-            <span className="font-medium text-on-surface">{adminUser?.full_name || 'Philippe Bernasconi'}</span>
-            <span className="text-[10px] text-primary uppercase tracking-widest">{adminUser?.role || 'superadmin'}</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:flex flex-col text-right mr-2">
+            <span className="text-xs font-medium text-foreground">
+              {adminUser?.full_name || 'Philippe Bernasconi'}
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-bronze">
+              {adminUser?.role || 'superadmin'}
+            </span>
           </div>
 
-          <Link
-            href="/"
-            className="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-[16px]">storefront</span>
-            <span className="hidden sm:inline uppercase tracking-widest text-[11px]">Storefront</span>
-          </Link>
+          <ThemeToggle />
 
-          <button
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/">
+              <Store className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Storefront</span>
+            </Link>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={handleLogout}
-            className="text-on-surface-variant hover:text-red-500 transition-colors flex items-center gap-1.5"
+            className="text-muted-foreground hover:text-destructive"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
-            <span className="hidden sm:inline uppercase tracking-widest text-[11px]">Abmelden</span>
-          </button>
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Abmelden</span>
+          </Button>
         </div>
       </header>
 
-      {/* Main Admin Layout with Sidebar */}
       <div className="flex-1 flex flex-col md:flex-row">
-        
-        {/* Navigation Sidebar */}
-        <aside className="w-full md:w-64 bg-surface border-r border-outline-variant/20 p-4 md:p-6 flex-shrink-0 space-y-8">
-          <div>
-            <span className="text-[10px] uppercase tracking-[0.25em] text-on-surface-variant/70 block mb-3 font-semibold">
-              Verwaltungsmodule
+        {/* Sidebar */}
+        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-border bg-card/50 p-3 md:p-5 flex flex-col justify-between shrink-0">
+          <div className="space-y-4">
+            <span className="hidden md:block px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Atelier Module
             </span>
-            <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-widest flex items-center gap-3 transition-colors ${
-                  activeTab === 'overview'
-                    ? 'bg-primary text-on-primary font-semibold shadow-md'
-                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">dashboard</span>
-                <span>Übersicht</span>
-              </button>
-
-              <button
-                onClick={() => { setActiveTab('crm'); loadCustomers(); }}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-widest flex items-center gap-3 transition-colors ${
-                  activeTab === 'crm'
-                    ? 'bg-primary text-on-primary font-semibold shadow-md'
-                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">groups</span>
-                <span>Client CRM</span>
-              </button>
-
-              <button
-                onClick={() => { setActiveTab('inventory'); loadInventory(); }}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-widest flex items-center gap-3 transition-colors ${
-                  activeTab === 'inventory'
-                    ? 'bg-primary text-on-primary font-semibold shadow-md'
-                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">inventory</span>
-                <span>Inventar & Lager</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('invoices')}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-widest flex items-center gap-3 transition-colors ${
-                  activeTab === 'invoices'
-                    ? 'bg-primary text-on-primary font-semibold shadow-md'
-                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                <span>Rechnungen & Mail</span>
-              </button>
-
-              <button
-                onClick={() => { setActiveTab('instagram'); loadInstagramData(); }}
-                className={`w-full text-left px-4 py-3 text-xs uppercase tracking-widest flex items-center gap-3 transition-colors ${
-                  activeTab === 'instagram'
-                    ? 'bg-primary text-on-primary font-semibold shadow-md'
-                    : 'text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-                <span>Instagram Auto-Post</span>
-              </button>
+            <nav className="flex flex-row md:flex-col gap-1 overflow-x-auto pb-1 md:pb-0">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const active = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      if (item.id === 'crm') loadCustomers();
+                      if (item.id === 'inventory') loadInventory();
+                      if (item.id === 'instagram') loadInstagramData();
+                    }}
+                    className={`flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
+                      active
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span>{item.label}</span>
+                    </span>
+                    {item.badge !== undefined && (
+                      <span
+                        className={`font-mono text-[10px] px-1.5 py-0.5 rounded-sm ${
+                          active
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </nav>
           </div>
 
-          {/* Quick Stats sidebar widget */}
-          <div className="hidden md:block p-4 bg-surface-container-low border border-outline-variant/15 text-xs space-y-2">
-            <span className="text-[10px] uppercase tracking-widest text-primary font-semibold">Atelier Status</span>
-            <div className="flex justify-between text-on-surface-variant">
-              <span>Lagerbestand Warnungen:</span>
-              <span className={`font-mono font-bold ${overview?.low_stock_items_count > 0 ? 'text-red-500' : 'text-primary'}`}>
-                {overview?.low_stock_items_count || 0}
-              </span>
-            </div>
-            <div className="flex justify-between text-on-surface-variant">
-              <span>Registrierte VIPs:</span>
-              <span className="font-mono font-bold text-on-surface">{overview?.active_clients_count || 4}</span>
-            </div>
-          </div>
+          {/* Sidebar Status Card */}
+          <Card className="hidden md:block mt-6 bg-background/60">
+            <CardContent className="p-4 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-bronze font-semibold">
+                  Systemstatus
+                </span>
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <Separator />
+              <div className="flex justify-between text-muted-foreground">
+                <span>Lager-Warnungen</span>
+                <span
+                  className={`font-mono font-semibold ${
+                    overview?.low_stock_items_count > 0 ? 'text-destructive' : 'text-foreground'
+                  }`}
+                >
+                  {overview?.low_stock_items_count || 0}
+                </span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Aktive VIPs</span>
+                <span className="font-mono font-semibold text-foreground">
+                  {overview?.active_clients_count || 0}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </aside>
 
-        {/* Content Area */}
-        <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
-          
-          {/* Global Notification Toasts */}
-          {dispatchSuccessToast && (
-            <div className="p-4 bg-primary text-on-primary text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl animate-fade-in border border-outline-variant/30">
-              <span className="material-symbols-outlined text-[18px]">mark_email_read</span>
-              <span>{dispatchSuccessToast}</span>
+        {/* Main Workspace */}
+        <main className="flex-1 p-5 md:p-8 lg:p-10 space-y-8 overflow-y-auto max-w-[1400px]">
+          {/* Toast Banner */}
+          {toast && (
+            <div className="p-3.5 rounded-md bg-bronze/10 border border-bronze/40 text-foreground text-xs flex items-center gap-2.5 animate-in fade-in">
+              <CheckCircle2 className="h-4 w-4 text-bronze shrink-0" />
+              <span>{toast}</span>
             </div>
           )}
 
-          {inventorySuccessMessage && (
-            <div className="p-4 bg-primary text-on-primary text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl animate-fade-in">
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              <span>{inventorySuccessMessage}</span>
-            </div>
-          )}
-
-          {crmSuccessMessage && (
-            <div className="p-4 bg-primary text-on-primary text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl animate-fade-in">
-              <span className="material-symbols-outlined text-[18px]">verified</span>
-              <span>{crmSuccessMessage}</span>
-            </div>
-          )}
-
-          {instagramSuccessToast && (
-            <div className="p-4 bg-primary text-on-primary text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl animate-fade-in border border-outline-variant/30">
-              <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-              <span>{instagramSuccessToast}</span>
-            </div>
-          )}
-
-          {/* 1. TAB: OVERVIEW */}
+          {/* 1. OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
               <div>
-                <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-1">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze block mb-1">
                   Performance & Kennzahlen
                 </span>
-                <h2 className="font-serif text-3xl text-on-surface">Atelier-Übersicht</h2>
+                <h1 className="font-serif text-3xl text-foreground">Atelier-Übersicht</h1>
               </div>
 
-              {/* KPI Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-2">
-                  <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">Gesamtumsatz</span>
-                  <div className="font-serif text-3xl text-primary font-semibold">
-                    CHF {overview?.total_revenue_chf?.toLocaleString('de-CH', { minimumFractionDigits: 2 }) || '5\'490.00'}
-                  </div>
-                  <span className="text-[10px] text-primary flex items-center gap-1 font-mono">
-                    <span className="material-symbols-outlined text-[14px]">trending_up</span> +18.4% ggü. Vormonat
-                  </span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                <Card>
+                  <CardContent className="p-5 space-y-2">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-[11px] uppercase tracking-widest">Gesamtumsatz</span>
+                      <TrendingUp className="h-4 w-4 text-bronze" />
+                    </div>
+                    <div className="font-mono text-2xl font-semibold text-foreground">
+                      CHF{' '}
+                      {overview?.total_revenue_chf?.toLocaleString('de-CH', {
+                        minimumFractionDigits: 2,
+                      }) || "5'490.00"}
+                    </div>
+                    <Badge variant="success" className="font-mono">
+                      +18.4% ggü. Vormonat
+                    </Badge>
+                  </CardContent>
+                </Card>
 
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-2">
-                  <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">Abgeschlossene Bestellungen</span>
-                  <div className="font-serif text-3xl text-on-surface font-semibold">
-                    {overview?.total_orders_count || 2}
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant font-mono">Alle mit Schweizer Zertifikat</span>
-                </div>
+                <Card>
+                  <CardContent className="p-5 space-y-2">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-[11px] uppercase tracking-widest">Bestellungen</span>
+                      <ShoppingBag className="h-4 w-4 text-bronze" />
+                    </div>
+                    <div className="font-mono text-2xl font-semibold text-foreground">
+                      {overview?.total_orders_count || 0}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Mit Schweizer Zertifikat
+                    </p>
+                  </CardContent>
+                </Card>
 
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-2">
-                  <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">Aktive Klienten (CRM)</span>
-                  <div className="font-serif text-3xl text-on-surface font-semibold">
-                    {overview?.active_clients_count || 4}
-                  </div>
-                  <span className="text-[10px] text-primary font-mono">100% verifizierte Sammler</span>
-                </div>
+                <Card>
+                  <CardContent className="p-5 space-y-2">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-[11px] uppercase tracking-widest">Aktive Klienten</span>
+                      <Users className="h-4 w-4 text-bronze" />
+                    </div>
+                    <div className="font-mono text-2xl font-semibold text-foreground">
+                      {overview?.active_clients_count || 0}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Verifizierte Sammler</p>
+                  </CardContent>
+                </Card>
 
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-2">
-                  <span className="text-[10px] uppercase tracking-widest text-on-surface-variant">Lager-Warnungen</span>
-                  <div className={`font-serif text-3xl font-semibold ${overview?.low_stock_items_count > 0 ? 'text-red-500' : 'text-primary'}`}>
-                    {overview?.low_stock_items_count || 0} Objekte
-                  </div>
-                  <span className="text-[10px] text-on-surface-variant font-mono">Bestand unter Mindestgrenze (5)</span>
-                </div>
+                <Card>
+                  <CardContent className="p-5 space-y-2">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-[11px] uppercase tracking-widest">Lager-Warnungen</span>
+                      <AlertTriangle
+                        className={`h-4 w-4 ${
+                          overview?.low_stock_items_count > 0 ? 'text-destructive' : 'text-bronze'
+                        }`}
+                      />
+                    </div>
+                    <div
+                      className={`font-mono text-2xl font-semibold ${
+                        overview?.low_stock_items_count > 0 ? 'text-destructive' : 'text-foreground'
+                      }`}
+                    >
+                      {overview?.low_stock_items_count || 0} Objekte
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Unter Mindestbestand</p>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Material share */}
-              <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-4">
-                <h3 className="font-serif text-lg">Umsatzverteilung nach Edelmetall</h3>
-                <div className="space-y-3 text-xs">
+              {/* Material Distribution */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Umsatzverteilung nach Werkstoff</CardTitle>
+                  <CardDescription>Anteil am Gesamtvolumen nach Edelmetall-Kategorie</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { name: '950 Platin (Pt 950)', value: 58 },
+                    { name: 'Chirurgenstahl 316L (V4A)', value: 27 },
+                    { name: 'Titan Grade 5 (Ti-6Al-4V)', value: 15 },
+                  ].map((m) => (
+                    <div key={m.name} className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium">{m.name}</span>
+                        <span className="font-mono text-bronze font-semibold">{m.value}%</span>
+                      </div>
+                      <Progress value={m.value} />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Recent Orders */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <div className="flex justify-between mb-1">
-                      <span>950 Platin (Pt 950)</span>
-                      <span className="font-mono font-semibold text-primary">58%</span>
-                    </div>
-                    <div className="w-full bg-outline-variant/20 h-2">
-                      <div className="bg-[#E8B898] h-full" style={{ width: '58%' }} />
-                    </div>
+                    <CardTitle>Letzte Transaktionen</CardTitle>
+                    <CardDescription>Aktuelle Bestellungen & Rechnungsstatus</CardDescription>
                   </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span>Chirurgenstahl 316L (V4A)</span>
-                      <span className="font-mono font-semibold text-primary">27%</span>
-                    </div>
-                    <div className="w-full bg-outline-variant/20 h-2">
-                      <div className="bg-[#B07D62] h-full" style={{ width: '27%' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span>Titan Grade 5 (Ti-6Al-4V)</span>
-                      <span className="font-mono font-semibold text-primary">15%</span>
-                    </div>
-                    <div className="w-full bg-outline-variant/20 h-2">
-                      <div className="bg-[#8B5A45] h-full" style={{ width: '15%' }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Orders quick actions */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-serif text-xl">Letzte Transaktionen & Rechnungen</h3>
-                  <button
-                    onClick={() => setActiveTab('invoices')}
-                    className="text-xs uppercase tracking-widest text-primary hover:underline"
-                  >
-                    Alle Rechnungen ansehen →
-                  </button>
-                </div>
-
-                <div className="bg-surface-container-low border border-outline-variant/20 overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-surface border-b border-outline-variant/20 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                      <tr>
-                        <th className="p-4">Bestellnummer</th>
-                        <th className="p-4">Klient</th>
-                        <th className="p-4">Betrag</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 text-right">Aktionen</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/10">
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab('invoices')}>
+                    Alle Rechnungen
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Bestellnr.</TableHead>
+                        <TableHead>Klient</TableHead>
+                        <TableHead>Betrag</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Aktionen</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="text-xs">
                       {overview?.recent_orders?.map((ord: any) => (
-                        <tr key={ord.id} className="hover:bg-surface/50 transition-colors">
-                          <td className="p-4 font-mono font-semibold text-primary">{ord.order_number}</td>
-                          <td className="p-4">{ord.customer_name}</td>
-                          <td className="p-4 font-serif text-sm">CHF {ord.total_amount?.toFixed(2)}</td>
-                          <td className="p-4">
-                            <span className="px-2 py-0.5 border border-outline-variant/30 text-[10px] uppercase">
-                              {ord.status}
-                            </span>
-                          </td>
-                          <td className="p-4 text-right space-x-2">
-                            <a
-                              href={`/api/v1/admin/invoices/${ord.id}/html`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-3 py-1 bg-surface border border-outline-variant/30 hover:border-primary text-xs uppercase tracking-wider inline-block"
-                            >
-                              Rechnung
-                            </a>
-                            <button
+                        <TableRow key={ord.id}>
+                          <TableCell className="font-mono font-semibold text-bronze">
+                            {ord.order_number}
+                          </TableCell>
+                          <TableCell className="font-medium">{ord.customer_name}</TableCell>
+                          <TableCell className="font-mono">
+                            CHF {ord.total_amount?.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{ord.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <a
+                                href={`/api/v1/admin/invoices/${ord.id}/html`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                                Rechnung
+                              </a>
+                            </Button>
+                            <Button
+                              variant="bronze"
+                              size="sm"
                               onClick={() => openDispatchModal(ord)}
-                              className="px-3 py-1 bg-primary text-on-primary text-xs uppercase tracking-wider inline-block hover:opacity-90"
                             >
-                              Per Mail senden
-                            </button>
-                          </td>
-                        </tr>
+                              <Mail className="h-3.5 w-3.5" />
+                              Senden
+                            </Button>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* 2. TAB: CLIENT CRM MANAGEMENT */}
+          {/* 2. CRM */}
           {activeTab === 'crm' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
-                  <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-1">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze block mb-1">
                     Klienten-Beziehungsmanagement
                   </span>
-                  <h2 className="font-serif text-3xl text-on-surface">Client CRM</h2>
+                  <h1 className="font-serif text-3xl">Client CRM</h1>
                 </div>
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <input
-                    type="text"
-                    value={crmSearch}
-                    onChange={(e) => setCrmSearch(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') loadCustomers(); }}
-                    placeholder="Klient oder Stadt suchen..."
-                    className="bg-surface border border-outline-variant/30 p-2.5 text-xs outline-none focus:border-primary text-on-surface w-full sm:w-64"
-                  />
-                  <button
-                    onClick={loadCustomers}
-                    className="px-4 py-2.5 bg-primary text-on-primary text-xs uppercase tracking-widest hover:opacity-90"
+                <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-60">
+                    <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Input
+                      value={crmSearch}
+                      onChange={(e) => setCrmSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') loadCustomers();
+                      }}
+                      placeholder="Name, E-Mail oder Stadt..."
+                      className="pl-9 text-xs h-9"
+                    />
+                  </div>
+                  <Select
+                    value={crmTierFilter}
+                    onChange={(e) => {
+                      setCrmTierFilter(e.target.value);
+                      loadCustomers(crmSearch, e.target.value);
+                    }}
+                    className="w-40 h-9 text-xs"
                   >
+                    <option value="">Alle Stufen</option>
+                    <option value="Titanium Elite">Titanium Elite</option>
+                    <option value="Platinum Member">Platinum Member</option>
+                    <option value="Gold Atelier">Gold Atelier</option>
+                    <option value="Gast">Gast</option>
+                  </Select>
+                  <Button size="sm" className="h-9" onClick={() => loadCustomers()}>
                     Suchen
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              {/* Customer CRM Table */}
-              <div className="bg-surface-container-low border border-outline-variant/20 overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-surface border-b border-outline-variant/20 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    <tr>
-                      <th className="p-4">Klient & Unternehmen</th>
-                      <th className="p-4">Kontakt & Wohnort</th>
-                      <th className="p-4">Mitglieds-Tier</th>
-                      <th className="p-4 text-right">Umsatz (CHF)</th>
-                      <th className="p-4 text-center">Bestellungen</th>
-                      <th className="p-4 text-right">Aktionen</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10">
-                    {customers.map((c) => (
-                      <tr key={c.id} className="hover:bg-surface/50 transition-colors">
-                        <td className="p-4">
-                          <div className="font-serif text-sm font-semibold">{c.full_name}</div>
-                          {c.company && <div className="text-[11px] text-on-surface-variant">{c.company}</div>}
-                        </td>
-                        <td className="p-4 space-y-0.5">
-                          <div className="font-mono text-on-surface-variant">{c.email}</div>
-                          <div className="text-[11px]">{c.phone || '+41 --'} • {c.city || 'Schweiz'}</div>
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 text-[10px] uppercase tracking-widest border ${
-                            c.tier === 'Titanium Elite'
-                              ? 'bg-primary/10 border-primary text-primary font-bold'
-                              : 'bg-surface border-outline-variant/30 text-on-surface'
-                          }`}>
-                            {c.tier}
-                          </span>
-                        </td>
-                        <td className="p-4 text-right font-serif text-sm text-primary font-medium">
-                          CHF {c.total_spent?.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="p-4 text-center font-mono">
-                          {c.orders_count}
-                        </td>
-                        <td className="p-4 text-right">
-                          <button
-                            onClick={() => setSelectedCustomer(c)}
-                            className="px-3 py-1.5 bg-surface border border-outline-variant/30 hover:border-primary text-xs uppercase tracking-wider"
-                          >
-                            Concierge Profil
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Klient & Unternehmen</TableHead>
+                        <TableHead>Kontakt & Ort</TableHead>
+                        <TableHead>Mitgliedsstufe</TableHead>
+                        <TableHead className="text-right">Umsatz</TableHead>
+                        <TableHead className="text-center">Bestellungen</TableHead>
+                        <TableHead className="text-right">Aktion</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="text-xs">
+                      {customers.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell>
+                            <div className="font-serif text-sm font-medium text-foreground">
+                              {c.full_name}
+                            </div>
+                            {c.company && (
+                              <div className="text-[11px] text-muted-foreground">{c.company}</div>
+                            )}
+                          </TableCell>
+                          <TableCell className="space-y-0.5">
+                            <div className="font-mono text-muted-foreground">{c.email}</div>
+                            <div className="text-[11px]">
+                              {c.phone || '+41 --'} • {c.city || 'Schweiz'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={c.tier === 'Titanium Elite' ? 'bronze' : 'secondary'}>
+                              {c.tier}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-medium text-foreground">
+                            CHF {c.total_spent?.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-center font-mono">{c.orders_count}</TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedCustomer({ ...c })}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Profil
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* 3. TAB: INVENTORY MANAGEMENT */}
+          {/* 3. INVENTORY */}
           {activeTab === 'inventory' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
-                  <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-1">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze block mb-1">
                     Lagerverwaltung & Chargenkontrolle
                   </span>
-                  <h2 className="font-serif text-3xl text-on-surface">Inventar Management</h2>
+                  <h1 className="font-serif text-3xl">Inventar Management</h1>
                 </div>
-                <button
-                  onClick={() => setIsNewProductModalOpen(true)}
-                  className="px-6 py-3 bg-primary text-on-primary text-xs uppercase tracking-widest font-sans hover:opacity-90 flex items-center gap-2 shadow-lg"
-                >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  <span>Neues Objekt anlegen</span>
-                </button>
+                <Button variant="bronze" onClick={() => setIsNewProductModalOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Neues Objekt anlegen
+                </Button>
               </div>
 
-              {/* Inventory Table */}
-              <div className="bg-surface-container-low border border-outline-variant/20 overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-surface border-b border-outline-variant/20 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    <tr>
-                      <th className="p-4">Objekt & SKU</th>
-                      <th className="p-4">Material</th>
-                      <th className="p-4 text-center">Aktueller Bestand</th>
-                      <th className="p-4 text-right">Verkaufspreis</th>
-                      <th className="p-4 text-right">Gestehungskosten</th>
-                      <th className="p-4 text-center">Marge</th>
-                      <th className="p-4 text-right">Aktionen</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10">
-                    {inventory.map((item) => {
-                      const isLow = item.stock <= item.low_stock_threshold;
-                      const margin = item.base_price > 0 
-                        ? Math.round(((item.base_price - item.cost_price) / item.base_price) * 100) 
-                        : 0;
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Objekt & SKU</TableHead>
+                        <TableHead>Material</TableHead>
+                        <TableHead className="text-center">Bestand</TableHead>
+                        <TableHead className="text-right">Verkaufspreis</TableHead>
+                        <TableHead className="text-right">Kosten</TableHead>
+                        <TableHead className="text-center">Marge</TableHead>
+                        <TableHead className="text-right">Aktionen</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="text-xs">
+                      {inventory.map((item) => {
+                        const isLow = item.stock <= item.low_stock_threshold;
+                        const margin =
+                          item.base_price > 0
+                            ? Math.round(((item.base_price - item.cost_price) / item.base_price) * 100)
+                            : 0;
 
-                      return (
-                        <tr key={item.id} className="hover:bg-surface/50 transition-colors">
-                          <td className="p-4">
-                            <div className="font-serif text-sm font-semibold">{item.title}</div>
-                            <div className="text-[10px] font-mono text-on-surface-variant">
-                              SKU: {item.sku_prefix}-{String(item.id).padStart(3, '0')}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="uppercase text-[10px] tracking-wider text-on-surface-variant">
-                              {item.material}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => handleStockAdjust(item, -1)}
-                                className="w-6 h-6 border border-outline-variant/30 hover:border-primary flex items-center justify-center font-bold"
-                              >
-                                -
-                              </button>
-                              <span className={`font-mono text-sm px-2 font-bold ${isLow ? 'text-red-500' : 'text-primary'}`}>
-                                {item.stock}
-                              </span>
-                              <button
-                                onClick={() => handleStockAdjust(item, 1)}
-                                className="w-6 h-6 border border-outline-variant/30 hover:border-primary flex items-center justify-center font-bold"
-                              >
-                                +
-                              </button>
-                            </div>
-                            {isLow && (
-                              <span className="text-[9px] uppercase tracking-widest text-red-500 block mt-1 font-semibold">
-                                Niedriger Bestand
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-4 text-right font-serif text-sm">
-                            CHF {item.base_price.toLocaleString('de-CH')}
-                          </td>
-                          <td className="p-4 text-right font-mono text-on-surface-variant">
-                            CHF {item.cost_price.toLocaleString('de-CH')}
-                          </td>
-                          <td className="p-4 text-center font-mono font-semibold text-primary">
-                            {margin}%
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleOpenInstagramModal(item)}
-                                title="Auf Instagram (@pbstyle.ch) teilen"
-                                className="px-2.5 py-1.5 bg-primary/10 border border-primary/30 hover:bg-primary hover:text-on-primary text-primary text-xs uppercase tracking-wider transition-colors flex items-center gap-1"
-                              >
-                                <span className="material-symbols-outlined text-[14px]">photo_camera</span>
-                                <span>Post</span>
-                              </button>
-                              <button
-                                onClick={() => setEditingItem({ ...item })}
-                                className="px-3 py-1.5 bg-surface border border-outline-variant/30 hover:border-primary text-xs uppercase tracking-wider"
-                              >
-                                Bearbeiten
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <div className="font-serif text-sm font-medium">{item.title}</div>
+                              <div className="font-mono text-[10px] text-muted-foreground">
+                                {item.sku_prefix}-{String(item.id).padStart(3, '0')}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{item.material}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="inline-flex items-center gap-1.5">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => handleStockAdjust(item, -1)}
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                                <span
+                                  className={`font-mono text-sm font-semibold w-8 text-center ${
+                                    isLow ? 'text-destructive' : 'text-foreground'
+                                  }`}
+                                >
+                                  {item.stock}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => handleStockAdjust(item, 1)}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              {isLow && (
+                                <div className="mt-1">
+                                  <Badge variant="destructive">Niedrig</Badge>
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              CHF {item.base_price.toLocaleString('de-CH')}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-muted-foreground">
+                              CHF {item.cost_price.toLocaleString('de-CH')}
+                            </TableCell>
+                            <TableCell className="text-center font-mono font-semibold text-bronze">
+                              {margin}%
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="inline-flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenInstagramModal(item)}
+                                >
+                                  <Camera className="h-3.5 w-3.5 text-bronze" />
+                                  Post
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => setEditingItem({ ...item })}
+                                >
+                                  Bearbeiten
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* 4. TAB: INVOICES & SEND BY MAIL */}
+          {/* 4. INVOICES */}
           {activeTab === 'invoices' && (
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div>
-                <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-1">
+                <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze block mb-1">
                   Offizielle Schweizer Abrechnungen & Zertifikate
                 </span>
-                <h2 className="font-serif text-3xl text-on-surface">Rechnungen & E-Mail-Versand</h2>
+                <h1 className="font-serif text-3xl">Rechnungen & E-Mail-Versand</h1>
               </div>
 
-              {/* Invoices List */}
-              <div className="bg-surface-container-low border border-outline-variant/20 overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-surface border-b border-outline-variant/20 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                    <tr>
-                      <th className="p-4">Rechnungs-Nr.</th>
-                      <th className="p-4">Bestellung</th>
-                      <th className="p-4">Empfänger</th>
-                      <th className="p-4 text-right">Betrag (inkl. MWST)</th>
-                      <th className="p-4 text-center">Status Mail</th>
-                      <th className="p-4 text-right">Aktionen</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/10">
-                    {invoicesOrderList.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-surface/50 transition-colors">
-                        <td className="p-4 font-mono font-semibold text-primary">
-                          {ord.invoice_number || `INV-2026-${String(ord.id).padStart(4, '0')}`}
-                        </td>
-                        <td className="p-4 font-mono text-on-surface-variant">
-                          {ord.order_number}
-                        </td>
-                        <td className="p-4">
-                          <div className="font-medium text-on-surface">{ord.customer_name}</div>
-                          <div className="text-[11px] font-mono text-on-surface-variant">{ord.customer_email}</div>
-                        </td>
-                        <td className="p-4 text-right font-serif text-sm">
-                          CHF {ord.total_amount?.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="p-4 text-center">
-                          {ord.invoice_sent ? (
-                            <span className="px-2.5 py-0.5 bg-primary/10 border border-primary text-primary text-[10px] uppercase tracking-wider font-semibold">
-                              Versandt ✓
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-0.5 bg-yellow-500/10 border border-yellow-500 text-yellow-600 text-[10px] uppercase tracking-wider">
-                              Bereit zum Versand
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 text-right space-x-2">
-                          <a
-                            href={`/api/v1/admin/invoices/${ord.id}/html`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-1.5 bg-surface border border-outline-variant/30 hover:border-primary text-xs uppercase tracking-wider inline-flex items-center gap-1"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">print</span>
-                            <span>Ansehen</span>
-                          </a>
-                          <button
-                            onClick={() => openDispatchModal(ord)}
-                            className="px-3 py-1.5 bg-primary text-on-primary text-xs uppercase tracking-wider hover:opacity-90 inline-flex items-center gap-1 shadow-md"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">send</span>
-                            <span>Per Mail senden</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rechnungs-Nr.</TableHead>
+                        <TableHead>Bestellung</TableHead>
+                        <TableHead>Empfänger</TableHead>
+                        <TableHead className="text-right">Betrag (inkl. MWST)</TableHead>
+                        <TableHead className="text-center">Versandstatus</TableHead>
+                        <TableHead className="text-right">Aktionen</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="text-xs">
+                      {invoicesOrderList.map((ord) => (
+                        <TableRow key={ord.id}>
+                          <TableCell className="font-mono font-semibold text-bronze">
+                            {ord.invoice_number || `INV-2026-${String(ord.id).padStart(4, '0')}`}
+                          </TableCell>
+                          <TableCell className="font-mono text-muted-foreground">
+                            {ord.order_number}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">{ord.customer_name}</div>
+                            <div className="font-mono text-[11px] text-muted-foreground">
+                              {ord.customer_email}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-medium">
+                            CHF {ord.total_amount?.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {ord.invoice_sent ? (
+                              <Badge variant="success">Versandt</Badge>
+                            ) : (
+                              <Badge variant="warning">Bereit</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <a
+                                href={`/api/v1/admin/invoices/${ord.id}/html`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <Printer className="h-3.5 w-3.5" />
+                                Ansehen
+                              </a>
+                            </Button>
+                            <Button
+                              variant="bronze"
+                              size="sm"
+                              onClick={() => openDispatchModal(ord)}
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              Per Mail senden
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* 5. TAB: INSTAGRAM CONNECTOR & AUTO-POST */}
+          {/* 5. INSTAGRAM */}
           {activeTab === 'instagram' && (
             <div className="space-y-8">
-              {/* Header */}
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant/15 pb-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-border pb-6">
                 <div>
-                  <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-1">
-                    Meta Graph API v19.0 • Haute Joaillerie Social Dispatcher
+                  <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze block mb-1">
+                    Meta Graph API v19.0 • Social Dispatcher
                   </span>
-                  <h2 className="font-serif text-3xl text-on-surface">Instagram Connector & Auto-Post</h2>
+                  <h1 className="font-serif text-3xl">Instagram Connector & Auto-Post</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 text-xs text-primary font-mono">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                    <span>{instagramSettings?.account_username || '@pbstyle.ch'} (Verbunden)</span>
-                  </div>
-                  <button
-                    onClick={() => loadInstagramData()}
-                    className="p-2 border border-outline-variant/30 hover:border-primary text-on-surface-variant hover:text-primary transition-colors"
-                    title="Aktualisieren"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">refresh</span>
-                  </button>
+                <div className="flex items-center gap-2.5">
+                  <Badge variant="success" className="font-mono py-1 px-3">
+                    {instagramSettings?.account_username || '@pbstyle.ch'} • Verbunden
+                  </Badge>
+                  <Button variant="outline" size="icon" onClick={loadInstagramData}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Automation Control Panel Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Card 1: Auto-Post Toggle */}
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">
-                      Auto-Post Automatisierung
-                    </span>
-                    <span className="material-symbols-outlined text-primary text-[20px]">bolt</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-base font-serif font-semibold block text-on-surface">
-                        Bei neuem Produkt
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                        Auto-Post
                       </span>
-                      <p className="text-[11px] text-on-surface-variant">
-                        Automatische Veröffentlichung im Feed
-                      </p>
+                      <Zap className="h-4 w-4 text-bronze" />
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-serif text-lg">Bei neuem Produkt</p>
+                        <p className="text-xs text-muted-foreground">Sofortige Feed-Synchronisation</p>
+                      </div>
+                      <Switch
                         checked={instagramSettings?.auto_post_enabled ?? true}
-                        onChange={(e) => handleToggleAutoPost(e.target.checked)}
-                        className="sr-only peer"
+                        onCheckedChange={handleToggleAutoPost}
                       />
-                      <div className="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                  <div className="pt-2 border-t border-outline-variant/10 text-[10px] text-on-surface-variant flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px] text-primary">check_circle</span>
-                    <span>Status: {instagramSettings?.auto_post_enabled ? 'Aktiviert (Sofort-Post)' : 'Pausiert'}</span>
-                  </div>
-                </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                {/* Card 2: Account Insights */}
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">
-                      Instagram Business Profil
-                    </span>
-                    <span className="material-symbols-outlined text-primary text-[20px]">photo_camera</span>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="font-serif text-2xl text-on-surface font-light block">
-                      {instagramSettings?.followers_count?.toLocaleString('de-CH') || '24\'800'}
-                    </span>
-                    <span className="text-[11px] text-on-surface-variant uppercase tracking-wider block">
-                      Verifizierte Abonnenten
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-outline-variant/10 flex justify-between text-[11px] font-mono text-on-surface-variant">
-                    <span>Beiträge im Atelier:</span>
-                    <span className="text-primary font-bold">{instagramPosts.length} veröffentlicht</span>
-                  </div>
-                </div>
+                <Card>
+                  <CardContent className="p-6 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                        Abonnenten
+                      </span>
+                      <Camera className="h-4 w-4 text-bronze" />
+                    </div>
+                    <div className="font-mono text-2xl font-semibold">
+                      {instagramSettings?.followers_count?.toLocaleString('de-CH') || "24'800"}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {instagramPosts.length} veröffentlichte Atelier-Beiträge
+                    </p>
+                  </CardContent>
+                </Card>
 
-                {/* Card 3: Hashtag & Brand Tags */}
-                <div className="p-6 bg-surface-container-low border border-outline-variant/20 space-y-4">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">
+                <Card>
+                  <CardContent className="p-6 space-y-2">
+                    <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold block">
                       Standard Hashtags
                     </span>
-                    <span className="material-symbols-outlined text-primary text-[20px]">tag</span>
-                  </div>
-                  <p className="text-xs font-mono text-on-surface-variant line-clamp-2 leading-relaxed">
-                    {instagramSettings?.auto_hashtags || '#pbstyle #swissjewelry #950platin #hautejoaillerie'}
-                  </p>
-                  <div className="pt-2 border-t border-outline-variant/10 text-[10px] text-on-surface-variant flex items-center justify-between">
-                    <span>Toleranz-Ausweisung:</span>
-                    <span className="text-primary font-mono font-semibold">±0.01 mm</span>
-                  </div>
-                </div>
+                    <p className="font-mono text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                      {instagramSettings?.auto_hashtags || '#pbstyle #swissjewelry #950platin #hautejoaillerie'}
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
 
-              {/* Live Instagram Luxury Feed Grid */}
-              <div className="space-y-4 pt-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                      Feed-Vorschau ({instagramSettings?.account_username || '@pbstyle.ch'})
-                    </span>
-                    <h3 className="font-serif text-2xl text-on-surface">Veröffentlichte Atelier-Beiträge</h3>
-                  </div>
-                  <span className="text-xs text-on-surface-variant font-sans">
-                    Echtzeit-Synchronisiert mit Meta Graph API
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Posts Grid */}
+              <div className="space-y-4">
+                <h2 className="font-serif text-2xl">Veröffentlichte Beiträge</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {instagramPosts.map((post) => (
-                    <div
-                      key={post.id}
-                      className="bg-surface-container-low border border-outline-variant/20 overflow-hidden flex flex-col justify-between group hover:border-primary/50 transition-colors shadow-lg"
-                    >
-                      {/* Media Image */}
-                      <div className="relative aspect-square bg-surface overflow-hidden">
+                    <Card key={post.id} className="overflow-hidden group flex flex-col justify-between">
+                      <div className="relative aspect-square bg-muted overflow-hidden">
                         <img
                           src={post.image_url}
                           alt={post.product_title || 'Instagram Post'}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
-                        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 text-[9px] font-mono text-white rounded">
-                          {post.status === 'published' ? 'Veröffentlicht ✓' : post.status}
-                        </div>
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white text-xs font-mono">
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px]">favorite</span>
-                            {post.likes_count}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px]">chat_bubble</span>
-                            {post.comments_count}
-                          </span>
-                        </div>
+                        <Badge
+                          variant="secondary"
+                          className="absolute top-2.5 right-2.5 bg-background/85 backdrop-blur-md"
+                        >
+                          {post.status}
+                        </Badge>
                       </div>
-
-                      {/* Content details */}
-                      <div className="p-4 space-y-3 font-sans text-xs">
-                        <div className="flex justify-between items-start">
-                          <span className="font-serif text-sm font-semibold text-on-surface line-clamp-1">
+                      <CardContent className="p-4 space-y-3 text-xs">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-serif text-sm font-medium line-clamp-1">
                             {post.product_title || 'Atelier Neuheit'}
                           </span>
-                          <span className="text-[10px] text-on-surface-variant font-mono">
-                            {new Date(post.created_at).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' })}
+                          <span className="font-mono text-[10px] text-muted-foreground shrink-0">
+                            {new Date(post.created_at).toLocaleDateString('de-CH')}
                           </span>
                         </div>
-                        <p className="text-[11px] text-on-surface-variant line-clamp-3 leading-relaxed whitespace-pre-line">
+                        <p className="text-[11px] text-muted-foreground line-clamp-3 whitespace-pre-line">
                           {post.caption}
                         </p>
-                        <div className="pt-2 border-t border-outline-variant/10 flex justify-between items-center text-[10px]">
-                          <span className="font-mono text-on-surface-variant/70">ID: {post.instagram_media_id?.slice(0, 12)}...</span>
+                        <Separator />
+                        <div className="flex justify-between items-center text-[11px]">
+                          <span className="flex items-center gap-3 font-mono text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Heart className="h-3 w-3 text-bronze" />
+                              {post.likes_count}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="h-3 w-3 text-bronze" />
+                              {post.comments_count}
+                            </span>
+                          </span>
                           <a
-                            href={post.permalink || `https://www.instagram.com/pbstyle.ch`}
+                            href={post.permalink || 'https://instagram.com/pbstyle.ch'}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-primary hover:underline font-semibold flex items-center gap-0.5 uppercase tracking-wider"
+                            className="text-bronze hover:underline inline-flex items-center gap-1"
                           >
-                            <span>Öffnen</span>
-                            <span className="material-symbols-outlined text-[12px]">open_in_new</span>
+                            Öffnen
+                            <ExternalLink className="h-3 w-3" />
                           </a>
                         </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
-                </div>
-              </div>
-
-              {/* Detailed Post History Table */}
-              <div className="space-y-4 pt-6">
-                <h4 className="font-serif text-xl text-on-surface">Auto-Post Protokoll & Historie</h4>
-                <div className="bg-surface-container-low border border-outline-variant/20 overflow-x-auto">
-                  <table className="w-full text-left text-xs font-sans">
-                    <thead className="bg-surface border-b border-outline-variant/20 text-[10px] uppercase tracking-widest text-on-surface-variant">
-                      <tr>
-                        <th className="p-4">Post-ID</th>
-                        <th className="p-4">Produkt</th>
-                        <th className="p-4">Status</th>
-                        <th className="p-4 text-center">Interaktionen</th>
-                        <th className="p-4">Datum & Uhrzeit</th>
-                        <th className="p-4 text-right">Aktion</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/10">
-                      {instagramPosts.map((p) => (
-                        <tr key={p.id} className="hover:bg-surface/50 transition-colors">
-                          <td className="p-4 font-mono font-semibold text-primary">{p.instagram_media_id}</td>
-                          <td className="p-4 font-medium text-on-surface">{p.product_title || 'Unikat'}</td>
-                          <td className="p-4">
-                            <span className="px-2 py-0.5 bg-primary/10 border border-primary text-primary text-[10px] uppercase tracking-wider font-semibold">
-                              {p.status} ✓
-                            </span>
-                          </td>
-                          <td className="p-4 text-center font-mono text-on-surface-variant">
-                            ❤️ {p.likes_count} • 💬 {p.comments_count}
-                          </td>
-                          <td className="p-4 font-mono text-on-surface-variant text-[11px]">
-                            {new Date(p.created_at).toLocaleString('de-CH')}
-                          </td>
-                          <td className="p-4 text-right">
-                            <a
-                              href={p.permalink || 'https://instagram.com/pbstyle.ch'}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="px-3 py-1 bg-surface border border-outline-variant/30 hover:border-primary text-[11px] uppercase tracking-wider inline-flex items-center gap-1"
-                            >
-                              <span>Beitrag</span>
-                              <span className="material-symbols-outlined text-[13px]">north_east</span>
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
           )}
-
         </main>
       </div>
 
-      {/* MODAL 1: CONCIERGE CRM PROFILE DRAWER */}
-      {selectedCustomer && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-surface border border-outline-variant/30 p-8 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                  Concierge CRM Profil
-                </span>
-                <h3 className="font-serif text-2xl">{selectedCustomer.full_name}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className="material-symbols-outlined text-on-surface-variant hover:text-primary"
-              >
-                close
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCustomer} className="space-y-4 text-xs font-sans">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Klienten-Name
-                  </label>
-                  <input
-                    type="text"
+      {/* DIALOG 1: CRM PROFILE */}
+      <Dialog open={!!selectedCustomer} onOpenChange={(open) => !open && setSelectedCustomer(null)}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{selectedCustomer?.full_name}</DialogTitle>
+            <DialogDescription>Concierge CRM Profil & VIP-Stufe verwalten</DialogDescription>
+          </DialogHeader>
+          {selectedCustomer && (
+            <form onSubmit={handleSaveCustomer} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Klienten-Name</Label>
+                  <Input
                     value={selectedCustomer.full_name}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, full_name: e.target.value })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+                    onChange={(e) =>
+                      setSelectedCustomer({ ...selectedCustomer, full_name: e.target.value })
+                    }
                   />
                 </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Telefonnummer
-                  </label>
-                  <input
-                    type="text"
+                <div className="space-y-1.5">
+                  <Label>Telefonnummer</Label>
+                  <Input
                     value={selectedCustomer.phone || ''}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, phone: e.target.value })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+                    onChange={(e) =>
+                      setSelectedCustomer({ ...selectedCustomer, phone: e.target.value })
+                    }
                   />
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Unternehmen / Kanzlei
-                  </label>
-                  <input
-                    type="text"
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Unternehmen</Label>
+                  <Input
                     value={selectedCustomer.company || ''}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, company: e.target.value })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+                    onChange={(e) =>
+                      setSelectedCustomer({ ...selectedCustomer, company: e.target.value })
+                    }
                   />
                 </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    VIP-Mitgliedsstufe
-                  </label>
-                  <select
+                <div className="space-y-1.5">
+                  <Label>VIP-Stufe</Label>
+                  <Select
                     value={selectedCustomer.tier}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, tier: e.target.value })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+                    onChange={(e) =>
+                      setSelectedCustomer({ ...selectedCustomer, tier: e.target.value })
+                    }
                   >
                     <option value="Titanium Elite">Titanium Elite</option>
                     <option value="Platinum Member">Platinum Member</option>
                     <option value="Gold Atelier">Gold Atelier</option>
                     <option value="Gast">Gast</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
-
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Concierge-Notizen & Individuelle Präferenzen
-                </label>
-                <textarea
+              <div className="space-y-1.5">
+                <Label>Concierge-Notizen</Label>
+                <Textarea
                   rows={4}
                   value={selectedCustomer.crm_notes || ''}
-                  onChange={(e) => setSelectedCustomer({ ...selectedCustomer, crm_notes: e.target.value })}
-                  placeholder="Ringgrößen, bevorzugte Platingravuren, Übergabewünsche..."
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface"
+                  onChange={(e) =>
+                    setSelectedCustomer({ ...selectedCustomer, crm_notes: e.target.value })
+                  }
+                  placeholder="Ringgrößen, Gravurwünsche, Präferenzen..."
                 />
               </div>
-
-              <div className="flex justify-between items-center pt-4 border-t border-outline-variant/15">
-                <div className="text-on-surface-variant">
-                  Gesamtumsatz: <span className="font-serif font-bold text-primary">CHF {selectedCustomer.total_spent?.toLocaleString('de-CH')}</span>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCustomer(null)}
-                    className="px-4 py-2 border border-outline-variant/30 uppercase tracking-widest text-xs"
-                  >
-                    Abbrechen
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-primary text-on-primary uppercase tracking-widest text-xs font-semibold shadow-md"
-                  >
-                    Speichern
-                  </button>
-                </div>
-              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setSelectedCustomer(null)}>
+                  Abbrechen
+                </Button>
+                <Button type="submit" variant="bronze">
+                  Speichern
+                </Button>
+              </DialogFooter>
             </form>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* MODAL 2: EDIT INVENTORY ITEM */}
-      {editingItem && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-surface border border-outline-variant/30 p-8 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                  Lagerbestand anpassen
-                </span>
-                <h3 className="font-serif text-2xl">{editingItem.title}</h3>
-              </div>
-              <button onClick={() => setEditingItem(null)} className="material-symbols-outlined">
-                close
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveInventoryItem} className="space-y-4 text-xs font-sans">
+      {/* DIALOG 2: EDIT INVENTORY */}
+      <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingItem?.title}</DialogTitle>
+            <DialogDescription>Lagerbestand, Preise und Warnschwelle anpassen</DialogDescription>
+          </DialogHeader>
+          {editingItem && (
+            <form onSubmit={handleSaveInventoryItem} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Aktueller Lagerbestand (Stück)
-                  </label>
-                  <input
+                <div className="space-y-1.5">
+                  <Label>Lagerbestand</Label>
+                  <Input
                     type="number"
                     min="0"
                     value={editingItem.stock}
-                    onChange={(e) => setEditingItem({ ...editingItem, stock: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, stock: Number(e.target.value) })
+                    }
+                    className="font-mono"
                   />
                 </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Warnschwelle (Mindestbestand)
-                  </label>
-                  <input
+                <div className="space-y-1.5">
+                  <Label>Warnschwelle</Label>
+                  <Input
                     type="number"
                     min="1"
                     value={editingItem.low_stock_threshold}
-                    onChange={(e) => setEditingItem({ ...editingItem, low_stock_threshold: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        low_stock_threshold: Number(e.target.value),
+                      })
+                    }
+                    className="font-mono"
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Verkaufspreis (CHF)
-                  </label>
-                  <input
+                <div className="space-y-1.5">
+                  <Label>Verkaufspreis (CHF)</Label>
+                  <Input
                     type="number"
                     step="0.01"
                     value={editingItem.base_price}
-                    onChange={(e) => setEditingItem({ ...editingItem, base_price: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, base_price: Number(e.target.value) })
+                    }
+                    className="font-mono"
                   />
                 </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Gestehungskosten (CHF)
-                  </label>
-                  <input
+                <div className="space-y-1.5">
+                  <Label>Gestehungskosten (CHF)</Label>
+                  <Input
                     type="number"
                     step="0.01"
                     value={editingItem.cost_price}
-                    onChange={(e) => setEditingItem({ ...editingItem, cost_price: Number(e.target.value) })}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, cost_price: Number(e.target.value) })
+                    }
+                    className="font-mono"
                   />
                 </div>
               </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/15">
-                <button
-                  type="button"
-                  onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 border border-outline-variant/30 uppercase tracking-widest text-xs"
-                >
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditingItem(null)}>
                   Abbrechen
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary text-on-primary uppercase tracking-widest text-xs font-semibold shadow-md"
-                >
+                </Button>
+                <Button type="submit" variant="bronze">
                   Aktualisieren
-                </button>
-              </div>
+                </Button>
+              </DialogFooter>
             </form>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* MODAL 3: CREATE NEW PRODUCT */}
-      {isNewProductModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-surface border border-outline-variant/30 p-8 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                  Neues Meisterwerk erfassen
-                </span>
-                <h3 className="font-serif text-2xl">Objekt im Katalog anlegen</h3>
-              </div>
-              <button onClick={() => setIsNewProductModalOpen(false)} className="material-symbols-outlined">
-                close
-              </button>
+      {/* DIALOG 3: CREATE NEW PRODUCT */}
+      <Dialog open={isNewProductModalOpen} onOpenChange={setIsNewProductModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Neues Objekt anlegen</DialogTitle>
+            <DialogDescription>
+              Erfasst ein neues Produkt im Katalog und synchronisiert optional mit Instagram.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateProduct} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Titel des Objekts</Label>
+              <Input
+                required
+                value={newProdTitle}
+                onChange={(e) => {
+                  setNewProdTitle(e.target.value);
+                  setNewProdHandle(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                }}
+                placeholder="z.B. Chronos Platin Cuff"
+              />
             </div>
-
-            <form onSubmit={handleCreateProduct} className="space-y-4 text-xs font-sans">
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Titel des Objekts
-                </label>
-                <input
-                  type="text"
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Kategorie</Label>
+                <Select
+                  value={newProdCategory}
+                  onChange={(e) => setNewProdCategory(Number(e.target.value))}
+                >
+                  <option value={1}>Schmuck</option>
+                  <option value={2}>Beauty-Tools</option>
+                  <option value={3}>Neuheiten</option>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Material</Label>
+                <Select
+                  value={newProdMaterial}
+                  onChange={(e) => setNewProdMaterial(e.target.value)}
+                >
+                  <option value="platinum">950 Platin</option>
+                  <option value="brushed steel">Chirurgenstahl 316L</option>
+                  <option value="titanium">Titan Grade 5</option>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label>Preis (CHF)</Label>
+                <Input
+                  type="number"
                   required
-                  value={newProdTitle}
-                  onChange={(e) => {
-                    setNewProdTitle(e.target.value);
-                    setNewProdHandle(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-                  }}
-                  placeholder="z.B. Chronos Platin Cuff"
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+                  value={newProdPrice}
+                  onChange={(e) => setNewProdPrice(Number(e.target.value))}
+                  className="font-mono"
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Kategorie
-                  </label>
-                  <select
-                    value={newProdCategory}
-                    onChange={(e) => setNewProdCategory(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
-                  >
-                    <option value={1}>Schmuck (1)</option>
-                    <option value={2}>Beauty-Tools (2)</option>
-                    <option value={3}>Neuheiten (3)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Edelmetall / Material
-                  </label>
-                  <select
-                    value={newProdMaterial}
-                    onChange={(e) => setNewProdMaterial(e.target.value)}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
-                  >
-                    <option value="platinum">950 Platin</option>
-                    <option value="brushed steel">Chirurgenstahl 316L</option>
-                    <option value="titanium">Titan Grade 5</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Preis (CHF)
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={newProdPrice}
-                    onChange={(e) => setNewProdPrice(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Kosten (CHF)
-                  </label>
-                  <input
-                    type="number"
-                    value={newProdCost}
-                    onChange={(e) => setNewProdCost(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                    Anfangsbestand
-                  </label>
-                  <input
-                    type="number"
-                    value={newProdStock}
-                    onChange={(e) => setNewProdStock(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Beschreibung
-                </label>
-                <textarea
-                  rows={3}
-                  value={newProdDesc}
-                  onChange={(e) => setNewProdDesc(e.target.value)}
-                  placeholder="Metallurgische Eigenschaften, Haptik, Schweizer Ursprung..."
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
+              <div className="space-y-1.5">
+                <Label>Kosten</Label>
+                <Input
+                  type="number"
+                  value={newProdCost}
+                  onChange={(e) => setNewProdCost(Number(e.target.value))}
+                  className="font-mono"
                 />
               </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/15">
-                <button
-                  type="button"
-                  onClick={() => setIsNewProductModalOpen(false)}
-                  className="px-4 py-2 border border-outline-variant/30 uppercase tracking-widest text-xs"
-                >
-                  Abbrechen
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary text-on-primary uppercase tracking-widest text-xs font-semibold shadow-md"
-                >
-                  Objekt erstellen
-                </button>
+              <div className="space-y-1.5">
+                <Label>Bestand</Label>
+                <Input
+                  type="number"
+                  value={newProdStock}
+                  onChange={(e) => setNewProdStock(Number(e.target.value))}
+                  className="font-mono"
+                />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL 4: SEND INVOICE BY MAIL DISPATCH MODAL */}
-      {dispatchModalOrder && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-xl bg-surface border border-outline-variant/30 p-8 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                  Rechnungsversand per E-Mail
-                </span>
-                <h3 className="font-serif text-2xl">
-                  Rechnung {dispatchModalOrder.invoice_number || dispatchModalOrder.order_number}
-                </h3>
-              </div>
-              <button onClick={() => setDispatchModalOrder(null)} className="material-symbols-outlined">
-                close
-              </button>
             </div>
+            <div className="space-y-1.5">
+              <Label>Beschreibung</Label>
+              <Textarea
+                rows={3}
+                value={newProdDesc}
+                onChange={(e) => setNewProdDesc(e.target.value)}
+                placeholder="Metallurgische Eigenschaften & Haptik..."
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsNewProductModalOpen(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button type="submit" variant="bronze">
+                Objekt erstellen
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-            <form onSubmit={handleSendInvoice} className="space-y-4 text-xs font-sans">
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Empfänger E-Mail
-                </label>
-                <input
+      {/* DIALOG 4: SEND INVOICE */}
+      <Dialog
+        open={!!dispatchModalOrder}
+        onOpenChange={(open) => !open && setDispatchModalOrder(null)}
+      >
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              Rechnung {dispatchModalOrder?.invoice_number || dispatchModalOrder?.order_number}
+            </DialogTitle>
+            <DialogDescription>
+              Offizielle Schweizer Rechnung mit QR-Referenz per E-Mail versenden.
+            </DialogDescription>
+          </DialogHeader>
+          {dispatchModalOrder && (
+            <form onSubmit={handleSendInvoice} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Empfänger E-Mail</Label>
+                <Input
                   type="email"
                   required
                   value={dispatchRecipientEmail}
                   onChange={(e) => setDispatchRecipientEmail(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface font-mono"
+                  className="font-mono"
                 />
               </div>
-
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Betreff
-                </label>
-                <input
-                  type="text"
+              <div className="space-y-1.5">
+                <Label>Betreff</Label>
+                <Input
                   required
                   value={dispatchSubject}
                   onChange={(e) => setDispatchSubject(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-2.5 outline-none focus:border-primary text-on-surface"
                 />
               </div>
-
-              <div>
-                <label className="block uppercase tracking-widest text-on-surface-variant mb-1 font-semibold">
-                  Persönliche Concierge-Nachricht
-                </label>
-                <textarea
+              <div className="space-y-1.5">
+                <Label>Persönliche Concierge-Nachricht</Label>
+                <Textarea
                   rows={5}
                   value={dispatchMessage}
                   onChange={(e) => setDispatchMessage(e.target.value)}
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface leading-relaxed"
                 />
               </div>
-
-              <div className="p-3 bg-surface-container-low border border-outline-variant/20 text-[11px] text-on-surface-variant flex items-center justify-between">
-                <span>Enthält: <strong>Offizielles Schweizer PDF/HTML Rechnungsdokument</strong></span>
-                <a
-                  href={`/api/v1/admin/invoices/${dispatchModalOrder.id}/html`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary underline uppercase tracking-wider text-[10px]"
-                >
-                  Vorschau öffnen ↗
-                </a>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/15">
-                <button
+              <DialogFooter>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setDispatchModalOrder(null)}
-                  className="px-4 py-2 border border-outline-variant/30 uppercase tracking-widest text-xs"
                 >
                   Abbrechen
-                </button>
-                <button
-                  type="submit"
-                  disabled={isDispatching}
-                  className="px-6 py-2.5 bg-primary text-on-primary uppercase tracking-widest text-xs font-semibold shadow-lg hover:opacity-90 flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[16px]">send</span>
-                  <span>{isDispatching ? 'Wird gesendet...' : 'Rechnung Jetzt Versenden'}</span>
-                </button>
-              </div>
+                </Button>
+                <Button type="submit" variant="bronze" disabled={isDispatching}>
+                  <Send className="h-3.5 w-3.5" />
+                  {isDispatching ? 'Wird gesendet...' : 'Rechnung senden'}
+                </Button>
+              </DialogFooter>
             </form>
-          </div>
-        </div>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
 
-      {/* MODAL 5: INSTAGRAM POST COMPOSER */}
-      {instagramModalProduct && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-xl bg-surface border border-outline-variant/30 p-8 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <div>
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary block">
-                  Meta Graph API v19.0 Publisher
-                </span>
-                <h3 className="font-serif text-2xl">Auf @pbstyle.ch veröffentlichen</h3>
-              </div>
-              <button
-                onClick={() => setInstagramModalProduct(null)}
-                className="material-symbols-outlined text-on-surface-variant hover:text-primary"
-              >
-                close
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-sans">
-              {/* Product preview card */}
-              <div className="flex items-center gap-4 p-4 bg-surface-container-low border border-outline-variant/20">
-                <div className="w-16 h-16 bg-surface-container-high border border-outline-variant/30 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {instagramModalProduct.images?.[0]?.url ? (
-                    <img
-                      src={instagramModalProduct.images[0].url}
-                      alt={instagramModalProduct.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="material-symbols-outlined text-primary text-2xl">diamond</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-serif text-sm font-semibold truncate text-on-surface">
-                    {instagramModalProduct.title}
-                  </h4>
-                  <p className="text-[11px] text-on-surface-variant uppercase tracking-wider">
-                    {instagramModalProduct.subtitle || 'Atelier Edition'}
-                  </p>
-                  <span className="text-xs font-mono text-primary font-bold">
-                    CHF {instagramModalProduct.base_price?.toLocaleString('de-CH')}
-                  </span>
-                </div>
-                <span className="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-mono text-[9px] uppercase tracking-widest">
-                  ±0.01 mm Zertifikat
-                </span>
-              </div>
-
-              {/* Caption Editor */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block uppercase tracking-widest text-on-surface-variant font-semibold">
-                    Instagram Bildunterschrift (Caption & Hashtags)
-                  </label>
-                  <span className="text-[10px] font-mono text-on-surface-variant">
-                    {customInstagramCaption.length} Zeichen
-                  </span>
-                </div>
-                <textarea
+      {/* DIALOG 5: INSTAGRAM PUBLISH */}
+      <Dialog
+        open={!!instagramModalProduct}
+        onOpenChange={(open) => !open && setInstagramModalProduct(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Auf Instagram teilen</DialogTitle>
+            <DialogDescription>
+              Veröffentlicht {instagramModalProduct?.title} direkt auf @pbstyle.ch.
+            </DialogDescription>
+          </DialogHeader>
+          {instagramModalProduct && (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Beitrags-Text (Caption)</Label>
+                <Textarea
                   rows={6}
                   value={customInstagramCaption}
                   onChange={(e) => setCustomInstagramCaption(e.target.value)}
-                  placeholder="Caption für den Feed-Post eingeben..."
-                  className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface leading-relaxed font-sans text-xs"
+                  className="text-xs leading-relaxed"
                 />
               </div>
-
-              <div className="p-3 bg-surface-container-low border border-outline-variant/20 text-[11px] text-on-surface-variant flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px] text-primary">verified</span>
-                  <span>Zielkanal: <strong>Instagram Feed (@pbstyle.ch)</strong></span>
-                </div>
-                <span className="text-[10px] font-mono text-primary">Graph API Container</span>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/15">
-                <button
+              <DialogFooter>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setInstagramModalProduct(null)}
-                  className="px-4 py-2 border border-outline-variant/30 uppercase tracking-widest text-xs"
                 >
                   Abbrechen
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="bronze"
                   disabled={isInstagramPublishing}
-                  onClick={() => handleManualInstagramPublish(instagramModalProduct.id, customInstagramCaption)}
-                  className="px-6 py-2.5 bg-primary text-on-primary uppercase tracking-widest text-xs font-semibold shadow-lg hover:opacity-90 flex items-center gap-2"
+                  onClick={() =>
+                    handleManualInstagramPublish(instagramModalProduct.id, customInstagramCaption)
+                  }
                 >
-                  <span className="material-symbols-outlined text-[16px]">
-                    {isInstagramPublishing ? 'hourglass_top' : 'photo_camera'}
-                  </span>
-                  <span>{isInstagramPublishing ? 'Wird veröffentlicht...' : 'Jetzt auf Instagram Posten'}</span>
-                </button>
-              </div>
+                  <Camera className="h-4 w-4" />
+                  {isInstagramPublishing ? 'Veröffentliche...' : 'Jetzt veröffentlichen'}
+                </Button>
+              </DialogFooter>
             </div>
-          </div>
-        </div>
-      )}
-
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

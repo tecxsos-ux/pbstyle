@@ -1,288 +1,310 @@
 import React from 'react';
 import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { fetchProducts } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
-import JsonLd, { generateFaqSchema } from '@/components/JsonLd';
+import JsonLd, { generateFaqSchema, generateWebPageSchema } from '@/components/JsonLd';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
-export const revalidate = 60; // ISR 60 seconds
+export const dynamic = 'force-dynamic';
 
 const homeFaqs = [
   {
-    question: 'Was macht die Schweizer Manufaktur PBstyle einzigartig?',
-    answer: 'PBSTYLE verbindet die mikrometrische Toleranzgrenze von ±0.01 mm der Schweizer Feinmechanik mit Haute Joaillerie. Jedes Stück wird aus massivem 950er Platin, Raumfahrttitan Grade 5 oder Chirurgenstahl 316L in Zürich gefertigt.'
+    question: 'Was macht die Schweizer Manufaktur PBSTYLE einzigartig?',
+    answer:
+      'PBSTYLE verbindet die mikrometrische Toleranzgrenze von ±0.01 mm der Schweizer Feinmechanik mit Haute Joaillerie. Jedes Stück wird aus massivem, unbeschichtetem 950er Platin (Pt 950), Raumfahrttitan Grade 5 (Ti-6Al-4V) oder medizinischem Chirurgenstahl 316L in Zürich gefertigt.',
   },
   {
-    question: 'Welche Zertifikate und Garantien begleiten die PBstyle Kreationen?',
-    answer: 'Alle Objekte werden mit individuellem metallurgischem Echtheitszertifikat geliefert. PBstyle gewährt eine lebenslange Ateliergarantie sowie eine kostenlose jährliche Ultraschall-Werksauffrischung.'
+    question: 'Welche Zertifikate und Garantien begleiten die PBSTYLE Kreationen?',
+    answer:
+      'Alle Objekte werden mit individuellem metallurgischem Echtheitszertifikat geliefert. PBSTYLE gewährt eine lebenslange Ateliergarantie auf Materialgefüge und Fertigungspräzision sowie eine kostenlose jährliche Ultraschall-Werksauffrischung.',
   },
   {
-    question: 'Wie schnell und sicher liefert PBstyle in der Schweiz und international?',
-    answer: 'In der Schweiz und Liechtenstein erfolgt der Versand kostenfrei per Schweizer Post «Pro Clima» in 1–2 Werktagen. Internationale Bestellungen in den DACH-Raum werden vollverzinst und verzollt (DDP) in diskreten Hochsicherheitskassetten zugestellt.'
-  }
+    question: 'Wie schnell und sicher liefert PBSTYLE in der Schweiz und im DACH-Raum?',
+    answer:
+      'In der Schweiz und Liechtenstein erfolgt der Versand ab CHF 150 kostenfrei und versichert per Schweizer Post «Pro Clima» in 1–2 Werktagen. Lieferungen nach Deutschland und Österreich erfolgen verzollt (DDP) in 2–4 Werktagen.',
+  },
+  {
+    question: 'Warum verwendet PBSTYLE massives 950er Platin statt rhodiniertem Weißgold?',
+    answer:
+      '950er Platin besitzt eine natürliche silbrig-weiße Farbe, eine Dichte von 21.45 g/cm³ und verliert bei Reibung keine Masse. Es ist 100% hypoallergen, läuft niemals an und benötigt keine vergängliche Rhodium-Beschichtung.',
+  },
 ];
 
 export default async function HomePage() {
   const products = await fetchProducts({ limit: 4, sort: 'featured' });
+  const heroFeatured = products[0];
+
+  const categories = [
+    {
+      index: '01',
+      title: 'Platinschmuck',
+      subtitle: 'Massives 950er Platin & Flugzeugtitan',
+      href: '/catalog?category=schmuck',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuCdjntWv6yHbxg0CZKo2MFCwpCbZ3tA6jzNipHDUIT9H5H4IuK3iAY_NPD5QxmRxUBDoCxBSogUAskqCwEEC6f6NrRthEJiuesWt1a6wE8YCKXn1or_N8P25VW6uVKUvR65XIv0fmtpfMQJv-CFSuyKzzXIaF4xHqUViK7Gfuu7VKOIoQSum71TTYqZ2QCy-m_DQALNbi4u6gt47N8Pv9D2nZ1B8hQ_Oc6G9QPePPneuuec71cTkBgDEr3RSmr_ABMMJ1kRnIZiEgE',
+    },
+    {
+      index: '02',
+      title: 'Beauty-Tools',
+      subtitle: 'Medizinischer Chirurgenstahl 316L',
+      href: '/catalog?category=beauty-tools',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuCtRjOqjJK8dTOsrxOxl5yuTJPf0AbTeOBiKKoZFUNDv6fx-UBtt1DviExuZRQbvXfd9cRyjd_xAWa_ZxF-MUAWvuSf67DFv7j8oC5esKRpJcgQOtXqzjGjDikSBpaBCyQsV1ZSoLPG0Cgm8d3CyJewdR9bmmUxoLzs6emmWgJoBIL6smQA4esdyK6KnavJeB0UfGEThvBjcOV-wU986ofKgs5iBfKLYnkwSZddkO9wSerfcCmZAJdN501nand0PTIsUfTkJw5bQPg',
+    },
+    {
+      index: '03',
+      title: 'Tresor-Editionen',
+      subtitle: 'Limitierte Meisterstücke & Prototypen',
+      href: '/catalog?category=neuheiten',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuD8DxlyWKoj1_fug149Ux4zigrvTRaN3Vk2X7MMm3-s0i7icQIGVpaBPyjI6Y-UKEno1nDNQvoKBviFndTQYJ9tlIfH1iUtsaWc3Muk1HpTLtZb3pOSJsuuYud_RM36FSo4Vy44AHrRuS4a9HZ6lmCtDGIjDSmNLsxCjybxwShD29YlXq9BvoFGrBXeNpKyzRpIer7AqrmCVIE97dR_GgPHPuSTfL2n3SpGZkw0rH0B8FMaB6TW1SYrwLg7D1rXH0BHqb5__yjnu20',
+    },
+  ];
 
   return (
-    <div className="space-y-24 md:space-y-36 pb-20">
+    <div className="space-y-24 md:space-y-32 pb-24">
+      <JsonLd
+        data={generateWebPageSchema({
+          url: 'https://pbstyle.ch',
+          name: 'PBSTYLE | Industrielle Eleganz — Schweizer Präzisionsschmuck & Beauty-Tools',
+          description:
+            'Luxuriöser Schmuck und dermatologische Beauty-Tools aus massivem 950er Platin, Titan Grade 5 und Chirurgenstahl 316L. Gefertigt in Zürich mit ±0.01 mm Toleranz.',
+          speakableSelectors: ['h1', 'header p', 'h2'],
+        })}
+      />
       <JsonLd data={generateFaqSchema(homeFaqs)} />
-      
-      {/* Hero Section */}
-      <header className="relative min-h-[85vh] flex items-center overflow-hidden bg-background">
-        <div className="max-w-container-max mx-auto px-4 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-12">
-          
-          {/* Text Left */}
-          <div className="lg:col-span-5 z-10 space-y-8">
-            <div className="inline-flex items-center gap-4">
-              <span className="h-px w-8 bg-primary" />
-              <span className="font-sans text-xs uppercase text-primary tracking-[0.3em]">
-                Edition 2026
+
+      {/* Editorial Swiss Horology Hero */}
+      <header className="relative overflow-hidden border-b border-border/70">
+        {/* Subtle ambient architectural radial light */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 right-0 w-[640px] h-[640px] rounded-full bg-bronze/10 blur-3xl opacity-70"
+        />
+
+        <div className="max-w-container-max mx-auto px-4 md:px-10 py-10 md:py-16 lg:py-20 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+          {/* Left Editorial Thesis */}
+          <div className="lg:col-span-6 space-y-8 relative z-10">
+            <div className="flex items-center gap-3">
+              <span className="h-px w-10 bg-bronze" />
+              <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-bronze">
+                Edition 2026 • Atelier Zürich
               </span>
             </div>
-            
-            <h1 className="font-serif text-5xl md:text-7xl text-on-surface leading-[1.05] tracking-tight">
-              Präzision<br />
-              <span className="font-light italic text-on-surface-variant font-serif">Veredelt.</span>
+
+            <h1 className="font-serif text-5xl sm:text-6xl xl:text-[5.25rem] text-foreground leading-[0.98] tracking-[-0.03em]">
+              Präzision
+              <br />
+              <span className="italic font-light text-muted-foreground">Veredelt.</span>
             </h1>
-            
-            <p className="font-sans text-base text-on-surface-variant max-w-md leading-relaxed">
-              Wo industrielles Design auf die erhabene Kunst der Haute Joaillerie trifft. In Zürich entwickelt, für den anspruchsvollen Sammler geschmiedet.
+
+            <p className="text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
+              Monolithischer Schmuck aus massivem 950er Platin und dermatologische Präzisions-Tools aus Chirurgenstahl 316L — gefräst nach Schweizer Uhrmachertoleranz.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link
-                href="/catalog"
-                className="group relative inline-flex items-center justify-center bg-on-background text-background px-10 py-5 font-sans text-xs uppercase tracking-[0.2em] overflow-hidden transition-all duration-300 hover:shadow-2xl hover:bg-primary"
-              >
-                <span className="relative z-10">Kollektion ansehen</span>
-              </Link>
-              <Link
-                href="/brand-story"
-                className="inline-flex items-center justify-center border border-outline/30 px-10 py-5 font-sans text-xs uppercase tracking-[0.2em] text-on-surface hover:bg-surface-container-low hover:border-primary transition-all duration-300"
-              >
-                Unsere Herkunft
-              </Link>
-            </div>
-          </div>
-
-          {/* Editorial Image Grid Right */}
-          <div className="lg:col-span-7 grid grid-cols-12 gap-6 relative h-[450px] sm:h-[550px] lg:h-[650px] items-center">
-            {/* Large back image */}
-            <div className="col-span-9 h-[88%] relative overflow-hidden group shadow-2xl border border-outline-variant/20">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwNQ1qvT8pN4BHlHMAnesDlNwFzWVc5C4MCgMKvjG6Dgi0wINdiMz6xIKg0pghaC970is5ojjKQBwOXo-XPzDwD5pM_u1CCdycEwwLT5D9oQasqR_VtBLpo7hKvEGdUPmTXLS_p7L_7hW6syTQ8B0FWOLJARlFNI--4EtFtRScQzSf_rYSG6do9C_qxEgjjpMv6sTxgn7gPepLNq6P5fQ6SexplAfCcLoaBp2UAmEMEaseVIG_orJ9PrUEsJ3f5hP3So0oi8KJXd0"
-                alt="PBSTYLE Titanium & Platinum Showcase"
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
+            <div className="flex flex-col sm:flex-row gap-3.5 pt-1">
+              <Button size="lg" className="h-12 px-8 group" asChild>
+                <Link href="/catalog">
+                  Kollektion entdecken
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="h-12 px-8" asChild>
+                <Link href="/brand-story">Atelier & Handwerk</Link>
+              </Button>
             </div>
 
-            {/* Floating front image */}
-            <div className="col-span-6 absolute bottom-6 right-0 w-[50%] h-[52%] p-2 md:p-3 bg-surface shadow-2xl border border-outline-variant/30 z-20 group">
-              <div className="w-full h-full overflow-hidden relative">
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTnOF-EQ40OwuZ0ZU27tQmsN-13iuaRYLileGEV_ZUsvB__23n3zRDNNf-qHgdweB6KRm6ck0uGD6SRIwI3pR_ulHsVdfgqC8VkKhdotEjeZA_4G_Bwe0pKZRiEbBlgCu87izJN5spl_cyDJMfoKSHHM9A9dbolPqfVZTKXbByG5tn7TX4vIH0Dj24KCecbPFtwHIOQB1Mz13-2GFR0sZCkLkoEkPPu3DiDsl7LWoCWhe2TQ9OcjK1GIRHtNB47a2wytHhKmvD5gA"
-                  alt="PBSTYLE Precision Tool Details"
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 brightness-105"
-                />
+            {/* Precision Specification Strip */}
+            <div className="pt-6 border-t border-border/80 grid grid-cols-3 gap-4 max-w-lg">
+              <div>
+                <span className="font-mono text-sm sm:text-base font-semibold text-foreground block">
+                  950 Pt
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Unbeschichtet
+                </span>
+              </div>
+              <div className="border-l border-border/80 pl-4">
+                <span className="font-mono text-sm sm:text-base font-semibold text-foreground block">
+                  ±0.01 mm
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  5-Achs CNC
+                </span>
+              </div>
+              <div className="border-l border-border/80 pl-4">
+                <span className="font-mono text-sm sm:text-base font-semibold text-bronze flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                  100%
+                </span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  Lebenslang
+                </span>
               </div>
             </div>
           </div>
 
+          {/* Right Layered Editorial Showcase */}
+          <div className="lg:col-span-6 relative">
+            <div className="relative pl-6 sm:pl-12 pb-8 sm:pb-12">
+              {/* Primary Tall Gallery Frame */}
+              <div className="relative aspect-[4/5] max-h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-2xl bg-muted group">
+                <img
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwNQ1qvT8pN4BHlHMAnesDlNwFzWVc5C4MCgMKvjG6Dgi0wINdiMz6xIKg0pghaC970is5ojjKQBwOXo-XPzDwD5pM_u1CCdycEwwLT5D9oQasqR_VtBLpo7hKvEGdUPmTXLS_p7L_7hW6syTQ8B0FWOLJARlFNI--4EtFtRScQzSf_rYSG6do9C_qxEgjjpMv6sTxgn7gPepLNq6P5fQ6SexplAfCcLoaBp2UAmEMEaseVIG_orJ9PrUEsJ3f5hP3So0oi8KJXd0"
+                  alt="PBSTYLE 950 Platin & Titan Kollektion"
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+
+                {/* Floating Live Featured Object Plaque */}
+                {heroFeatured && (
+                  <Link
+                    href={`/products/${heroFeatured.handle}`}
+                    className="absolute bottom-4 right-4 left-28 sm:left-auto sm:w-64 rounded-md bg-background/90 backdrop-blur-md border border-border/80 p-3.5 shadow-xl hover:border-bronze transition-colors flex items-center justify-between gap-3 group/plaque"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-bronze block">
+                        Signatur-Objekt
+                      </span>
+                      <span className="font-serif text-sm font-medium text-foreground truncate block">
+                        {heroFeatured.title}
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        CHF {heroFeatured.base_price.toLocaleString('de-CH')}
+                      </span>
+                    </div>
+                    <span className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 group-hover/plaque:bg-bronze transition-colors">
+                      <ArrowUpRight className="h-4 w-4" />
+                    </span>
+                  </Link>
+                )}
+              </div>
+
+              {/* Inset Precision Detail Frame */}
+              <div className="absolute bottom-0 left-0 w-36 sm:w-48 aspect-[4/5] p-1.5 rounded-lg bg-card border border-border shadow-2xl z-20 group">
+                <div className="w-full h-full rounded-md overflow-hidden bg-muted">
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTnOF-EQ40OwuZ0ZU27tQmsN-13iuaRYLileGEV_ZUsvB__23n3zRDNNf-qHgdweB6KRm6ck0uGD6SRIwI3pR_ulHsVdfgqC8VkKhdotEjeZA_4G_Bwe0pKZRiEbBlgCu87izJN5spl_cyDJMfoKSHHM9A9dbolPqfVZTKXbByG5tn7TX4vIH0Dj24KCecbPFtwHIOQB1Mz13-2GFR0sZCkLkoEkPPu3DiDsl7LWoCWhe2TQ9OcjK1GIRHtNB47a2wytHhKmvD5gA"
+                    alt="PBSTYLE Chirurgenstahl 316L Detail"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Categories Banner Cards */}
-      <section className="max-w-container-max mx-auto px-4 md:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Link
-            href="/catalog?category=schmuck"
-            className="group relative h-96 overflow-hidden bg-surface-container-low border border-outline-variant/20 flex flex-col justify-end p-8"
-          >
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdjntWv6yHbxg0CZKo2MFCwpCbZ3tA6jzNipHDUIT9H5H4IuK3iAY_NPD5QxmRxUBDoCxBSogUAskqCwEEC6f6NrRthEJiuesWt1a6wE8YCKXn1or_N8P25VW6uVKUvR65XIv0fmtpfMQJv-CFSuyKzzXIaF4xHqUViK7Gfuu7VKOIoQSum71TTYqZ2QCy-m_DQALNbi4u6gt47N8Pv9D2nZ1B8hQ_Oc6G9QPePPneuuec71cTkBgDEr3RSmr_ABMMJ1kRnIZiEgE"
-              alt="Schmuck Kollektion"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale contrast-125 group-hover:grayscale-0"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="relative z-10 space-y-2 text-white">
-              <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-primary">
-                Kategorie 01
-              </span>
-              <h3 className="font-serif text-2xl tracking-tight">Platinschmuck</h3>
-              <p className="font-sans text-xs text-white/70">
-                Massives 950er Platin & Flugzeugtitan
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/catalog?category=beauty-tools"
-            className="group relative h-96 overflow-hidden bg-surface-container-low border border-outline-variant/20 flex flex-col justify-end p-8"
-          >
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtRjOqjJK8dTOsrxOxl5yuTJPf0AbTeOBiKKoZFUNDv6fx-UBtt1DviExuZRQbvXfd9cRyjd_xAWa_ZxF-MUAWvuSf67DFv7j8oC5esKRpJcgQOtXqzjGjDikSBpaBCyQsV1ZSoLPG0Cgm8d3CyJewdR9bmmUxoLzs6emmWgJoBIL6smQA4esdyK6KnavJeB0UfGEThvBjcOV-wU986ofKgs5iBfKLYnkwSZddkO9wSerfcCmZAJdN501nand0PTIsUfTkJw5bQPg"
-              alt="Beauty Tools"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale contrast-125 group-hover:grayscale-0"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="relative z-10 space-y-2 text-white">
-              <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-primary">
-                Kategorie 02
-              </span>
-              <h3 className="font-serif text-2xl tracking-tight">Beauty-Tools</h3>
-              <p className="font-sans text-xs text-white/70">
-                Medizinischer Chirurgenstahl 316L
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/catalog?category=neuheiten"
-            className="group relative h-96 overflow-hidden bg-surface-container-low border border-outline-variant/20 flex flex-col justify-end p-8"
-          >
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8DxlyWKoj1_fug149Ux4zigrvTRaN3Vk2X7MMm3-s0i7icQIGVpaBPyjI6Y-UKEno1nDNQvoKBviFndTQYJ9tlIfH1iUtsaWc3Muk1HpTLtZb3pOSJsuuYud_RM36FSo4Vy44AHrRuS4a9HZ6lmCtDGIjDSmNLsxCjybxwShD29YlXq9BvoFGrBXeNpKyzRpIer7AqrmCVIE97dR_GgPHPuSTfL2n3SpGZkw0rH0B8FMaB6TW1SYrwLg7D1rXH0BHqb5__yjnu20"
-              alt="Neuheiten"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale contrast-125 group-hover:grayscale-0"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="relative z-10 space-y-2 text-white">
-              <span className="font-sans text-[10px] uppercase tracking-[0.25em] text-primary">
-                Kategorie 03
-              </span>
-              <h3 className="font-serif text-2xl tracking-tight">Tresor-Editionen</h3>
-              <p className="font-sans text-xs text-white/70">
-                Limitierte Meisterstücke & Prototypen
-              </p>
-            </div>
-          </Link>
+      {/* Architectural Category Cards */}
+      <section className="max-w-container-max mx-auto px-4 md:px-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {categories.map((cat) => (
+            <Link key={cat.index} href={cat.href} className="group block">
+              <Card className="relative h-96 overflow-hidden border-border/80 transition-all duration-300 hover:border-bronze/60 hover:shadow-xl">
+                <img
+                  src={cat.image}
+                  alt={cat.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale contrast-115 group-hover:grayscale-0"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                <div className="relative z-10 h-full p-7 flex flex-col justify-between text-white">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-white/75">
+                      Kategorie {cat.index}
+                    </span>
+                    <span className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center group-hover:bg-bronze transition-colors">
+                      <ArrowUpRight className="h-4 w-4" />
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-serif text-2xl tracking-tight">{cat.title}</h3>
+                    <p className="text-xs text-white/75">{cat.subtitle}</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Featured Products Grid */}
-      <section className="max-w-container-max mx-auto px-4 md:px-12 space-y-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-outline-variant/15 pb-6 gap-4">
-          <div>
-            <span className="font-sans text-xs uppercase tracking-[0.25em] text-primary block mb-2">
+      {/* Featured Products */}
+      <section className="max-w-container-max mx-auto px-4 md:px-10 space-y-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+          <div className="space-y-2">
+            <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-bronze block">
               Ausgewählte Meisterwerke
             </span>
-            <h2 className="font-serif text-3xl md:text-4xl text-on-surface">
+            <h2 className="font-serif text-3xl md:text-4xl text-foreground">
               Kollektions-Highlights
             </h2>
           </div>
-          <Link
-            href="/catalog"
-            className="font-sans text-xs uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2"
-          >
-            <span>Gesamten Katalog ansehen</span>
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-          </Link>
+          <Button variant="ghost" asChild className="self-start md:self-auto">
+            <Link href="/catalog">
+              Gesamten Katalog ansehen
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
 
-      {/* Brand Story Editorial Split Section */}
-      <section className="bg-surface-container-low py-20 border-y border-outline-variant/20">
-        <div className="max-w-container-max mx-auto px-4 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          
-          <div className="lg:col-span-6 space-y-8">
-            <span className="font-sans text-xs uppercase tracking-[0.25em] text-primary block">
+      {/* Craftsmanship Editorial Split */}
+      <section className="border-y border-border bg-card/60 py-20">
+        <div className="max-w-container-max mx-auto px-4 md:px-10 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
+          <div className="lg:col-span-6 space-y-7">
+            <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-bronze block">
               Handwerkskunst & Metallurgie
             </span>
-            <h2 className="font-serif text-3xl md:text-5xl text-on-surface leading-tight">
-              Geschaffen für die Ewigkeit.<br />
-              <span className="font-light italic text-on-surface-variant font-serif">Ohne Kompromisse.</span>
+            <h2 className="font-serif text-3xl md:text-5xl text-foreground leading-tight">
+              Geschaffen für die Ewigkeit.
+              <br />
+              <span className="italic font-light text-muted-foreground">Ohne Kompromisse.</span>
             </h2>
-            <p className="font-sans text-sm text-on-surface-variant leading-relaxed">
-              Jedes Objekt im PBstyle-Atelier durchläuft dieselben strengen mikrometrischen Toleranzprüfungen wie mechanische Schweizer Uhrwerke. Wir verwenden ausschließlich unbeschichtetes 950er Feingold-Platin und medizinischen Chirurgenstahl 316L, deren Masse und Haptik Generationen überdauern.
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Jedes Objekt im PBSTYLE Atelier durchläuft dieselben strengen mikrometrischen Toleranzprüfungen wie mechanische Schweizer Uhrwerke. Wir verarbeiten ausschließlich massives, unbeschichtetes 950er Platin, Titan Grade 5 und medizinischen Chirurgenstahl 316L.
             </p>
-            
-            <div className="grid grid-cols-2 gap-8 pt-4 border-t border-outline-variant/20">
-              <div>
-                <span className="font-serif text-3xl text-primary font-light block">0.01 mm</span>
-                <span className="font-sans text-xs uppercase tracking-widest text-on-surface-variant">
+
+            <div className="grid grid-cols-2 gap-6 pt-4 border-t border-border">
+              <Card className="p-5 bg-background/70">
+                <span className="font-mono text-2xl font-semibold text-bronze block">±0.01 mm</span>
+                <span className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1 block">
                   Fertigungstoleranz
                 </span>
-              </div>
-              <div>
-                <span className="font-serif text-3xl text-primary font-light block">100%</span>
-                <span className="font-sans text-xs uppercase tracking-widest text-on-surface-variant">
-                  Zertifiziertes Platin
+              </Card>
+              <Card className="p-5 bg-background/70">
+                <span className="font-mono text-2xl font-semibold text-bronze block">100%</span>
+                <span className="text-[11px] uppercase tracking-widest text-muted-foreground mt-1 block">
+                  Sekundärplatin
                 </span>
-              </div>
+              </Card>
             </div>
 
-            <Link
-              href="/brand-story"
-              className="inline-flex items-center gap-3 font-sans text-xs uppercase tracking-widest text-primary border-b border-primary/40 pb-1 hover:border-primary transition-colors"
-            >
-              <span>Zur vollständigen Markenphilosophie</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </Link>
+            <Button variant="outline" asChild>
+              <Link href="/brand-story">
+                Zur Markenphilosophie
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
 
-          <div className="lg:col-span-6 relative">
-            <div className="ghost-border p-4 bg-surface">
+          <div className="lg:col-span-6">
+            <Card className="p-3 overflow-hidden shadow-xl">
               <img
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBk7MnhJ9AmwM4ZVHl-gG4J6kedDo3op_uX4aN8P5Go6NXf-jAyz8_eZko27xlVmDnzbK3R8nK8s6DrjTnFgeY3arJazb4xmjeJeeFuBYDR0Tcb2VV-FQuJl8ebJyBKQ7pFbmkfxIo16E7GNgd-MtOuRZoTeeriz-3WdofzK_FrU7XxCZAN2dWYe0l_MPsPu7E08Q_xnAd0DLKFFkFK6ZdKs7vLZKGU0fBklwjufPXHIcuj1uehMxUAA4BYoBjw92P5bVR4Xd1quHE"
-                alt="PBstyle Schweizer Manufaktur Atelier"
-                className="w-full aspect-[4/3] object-cover filter grayscale contrast-125"
+                alt="PBSTYLE Schweizer Manufaktur Atelier"
+                className="w-full aspect-[4/3] object-cover rounded-md grayscale contrast-115"
               />
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Swissness & AI Optimization (AIO/GIO) Section */}
-      <section className="max-w-container-max mx-auto px-4 md:px-12">
-        <div className="bg-surface-container-low border border-outline-variant/20 p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8 font-sans">
-          <div className="space-y-3 max-w-2xl">
-            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
-                +
-              </span>
-              <span className="text-xs uppercase tracking-[0.25em] text-primary font-semibold">
-                Offizielle Schweizer Herkunft (Swiss Made)
-              </span>
-            </div>
-            <h3 className="font-serif text-2xl md:text-3xl text-on-surface">
-              Metallurgische Souveränität & Transparenz
-            </h3>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              Konform mit dem Schweizer Bundesgesetz über den Schutz von Marken und Herkunftsangaben (MSchG Art. 48). Entwickelt, gefräst und von Meisterhand endpoliert an der Bahnhofstrasse, 8001 Zürich.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-4 flex-shrink-0">
-            <Link
-              href="/llms.txt"
-              target="_blank"
-              className="px-5 py-3 border border-outline-variant/30 hover:border-primary text-xs uppercase tracking-widest text-on-surface transition-colors flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">smart_toy</span>
-              <span>AIO Manifest</span>
-            </Link>
-            <Link
-              href="/llms-full.txt"
-              target="_blank"
-              className="px-5 py-3 bg-primary text-on-primary text-xs uppercase tracking-widest hover:opacity-90 transition-opacity flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">hub</span>
-              <span>GIO Wissensgraph</span>
-            </Link>
+            </Card>
           </div>
         </div>
       </section>
-
     </div>
   );
 }
-

@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import CartDrawer from '@/components/CartDrawer';
-import JsonLd, { generateOrganizationSchema, generateWebSiteSchema } from '@/components/JsonLd';
+import StorefrontShell from '@/components/StorefrontShell';
+import JsonLd, { generateGlobalKnowledgeGraph } from '@/components/JsonLd';
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAF6EF' },
-    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+    { media: '(prefers-color-scheme: light)', color: '#F7F7F5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0D0F14' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -21,7 +19,8 @@ export const metadata: Metadata = {
     default: 'PBSTYLE | Industrielle Eleganz — Schweizer Präzisionsschmuck',
     template: '%s | PBSTYLE',
   },
-  description: 'Wo Schweizer Industriepräzision auf feine Metallurgie trifft. Luxuriöser Schmuck und Beauty-Tools aus 950er Platin, Titan und chirugischem Edelstahl.',
+  description:
+    'Wo Schweizer Industriepräzision auf feine Metallurgie trifft. Luxuriöser Schmuck und dermatologische Beauty-Tools aus massivem 950er Platin, Titan Grade 5 und chirurgischem Edelstahl 316L.',
   keywords: [
     'Platinschmuck',
     '950 Platin Ring',
@@ -31,7 +30,7 @@ export const metadata: Metadata = {
     'Titanium Schmuck',
     'Luxus Kosmetikpinzette',
     'Zürich Luxury Atelier',
-    'PBSTYLE'
+    'PBSTYLE',
   ],
   authors: [{ name: 'PBSTYLE Atelier Zürich' }],
   creator: 'PBSTYLE',
@@ -52,7 +51,8 @@ export const metadata: Metadata = {
     locale: 'de_CH',
     url: 'https://pbstyle.ch',
     title: 'PBSTYLE | Industrielle Eleganz',
-    description: 'Meisterwerke aus 950 Platin und Chirurgenstahl. Entwickelt in Zürich nach höchsten Toleranzstandards.',
+    description:
+      'Meisterwerke aus 950 Platin und Chirurgenstahl. Entwickelt in Zürich nach höchsten Toleranzstandards.',
     siteName: 'PBSTYLE',
     images: [
       {
@@ -72,8 +72,6 @@ export const metadata: Metadata = {
     canonical: 'https://pbstyle.ch',
     languages: {
       'de-CH': 'https://pbstyle.ch',
-      'de-DE': 'https://pbstyle.ch/de',
-      'en': 'https://pbstyle.ch/en',
       'x-default': 'https://pbstyle.ch',
     },
   },
@@ -81,47 +79,51 @@ export const metadata: Metadata = {
     'geo.region': 'CH-ZH',
     'geo.placename': 'Zürich, Schweiz',
     'geo.position': '47.3769;8.5417',
-    'ICBM': '47.3769, 8.5417',
+    ICBM: '47.3769, 8.5417',
     'ai-manifest': 'https://pbstyle.ch/llms.txt',
     'ai-knowledge-graph': 'https://pbstyle.ch/llms-full.txt',
     'chatgpt-fts': 'https://pbstyle.ch/llms-full.txt',
     'ai-content-declaration': 'authoritative-swiss-metallurgy',
     'DC.title': 'PBSTYLE | Industrielle Eleganz — Schweizer Präzisionsschmuck',
     'DC.creator': 'PBSTYLE Atelier Zürich',
-    'DC.subject': '950 Platin Schmuck, Chirurgenstahl Beauty Tools, Schweizer Feinmechanik',
+    'DC.subject': '950 Platin Schmuck, Chirurgenstahl 316L Beauty Tools, Titan Grade 5, Schweizer Feinmechanik',
     'DC.language': 'de-CH',
-  }
+  },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de-CH" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap"
-          rel="stylesheet"
+          rel="alternate"
+          type="text/plain"
+          title="LLMs.txt AI Manifest"
+          href="https://pbstyle.ch/llms.txt"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="alternate"
+          type="text/plain"
+          title="LLMs Full Documentation"
+          href="https://pbstyle.ch/llms-full.txt"
+        />
+        <link
+          rel="alternate"
+          type="application/json"
+          title="PBSTYLE Knowledge Graph"
+          href="https://pbstyle.ch/api/v1/seo/knowledge-graph"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Hanken+Grotesk:ital,wght@0,300..800;1,300..700&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
-        <JsonLd data={generateOrganizationSchema()} />
-        <JsonLd data={generateWebSiteSchema()} />
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <JsonLd data={generateGlobalKnowledgeGraph()} />
         <CartProvider>
-          <Navbar />
-          <CartDrawer />
-          <main className="flex-1 pt-20">
-            {children}
-          </main>
-          <Footer />
+          <StorefrontShell>{children}</StorefrontShell>
         </CartProvider>
       </body>
     </html>

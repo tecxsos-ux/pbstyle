@@ -4,43 +4,52 @@ import { fetchProducts } from '@/lib/api';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://pbstyle.ch';
   const products = await fetchProducts();
+  const now = new Date();
 
-  const productUrls = products.map((p) => ({
-    url: `${baseUrl}/products/${p.handle}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.9,
-  }));
+  const productUrls: MetadataRoute.Sitemap = products.map((p) => {
+    const imgs = [
+      ...(p.featured_image ? [p.featured_image] : []),
+      ...(p.images ? p.images.map((i) => i.image_url) : []),
+    ].filter((v, idx, arr) => Boolean(v) && arr.indexOf(v) === idx);
 
-  const staticUrls = [
+    return {
+      url: `${baseUrl}/products/${p.handle}`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      images: imgs.length > 0 ? imgs : undefined,
+    };
+  });
+
+  const staticUrls: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/catalog`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/brand-story`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      lastModified: now,
+      changeFrequency: 'weekly',
       priority: 0.85,
     },
     {
       url: `${baseUrl}/llms.txt`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/llms-full.txt`,
-      lastModified: new Date(),
-      changeFrequency: 'daily' as const,
+      lastModified: now,
+      changeFrequency: 'daily',
       priority: 0.8,
     },
   ];

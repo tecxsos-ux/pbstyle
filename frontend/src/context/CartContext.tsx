@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { CartSummary } from '@/lib/types';
 import { fetchCart, addToCartApi, updateCartItemApi, removeCartItemApi, clearCart } from '@/lib/api';
 
@@ -43,7 +44,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Initialize session ID
   useEffect(() => {
     let sid = localStorage.getItem('pbstyle_session_id');
     if (!sid) {
@@ -80,7 +80,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = await addToCartApi(sessionId, productId, variantId, quantity);
       setCart(updated);
       setIsCartOpen(true);
-      showToast('Objekt erfolgreich zum Warenkorb hinzugefügt');
+      showToast('Objekt zum Warenkorb hinzugefügt');
     } catch (err) {
       console.error('Failed to add to cart', err);
       showToast('Fehler beim Hinzufügen zum Warenkorb');
@@ -142,10 +142,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
       {children}
-      {/* Global Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-primary text-on-primary px-6 py-4 shadow-2xl font-sans text-xs uppercase tracking-widest flex items-center gap-3 animate-fade-in border border-outline-variant/30">
-          <span className="material-symbols-outlined text-[18px]">check_circle</span>
+        <div className="fixed bottom-6 right-6 z-50 rounded-md bg-card text-card-foreground border border-bronze/40 px-5 py-3.5 shadow-2xl text-xs font-medium flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-3">
+          <CheckCircle2 className="h-4 w-4 text-bronze shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}

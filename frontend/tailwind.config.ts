@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  darkMode: "class",
+  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,57 +10,75 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--color-background)",
-        surface: "var(--color-surface)",
-        "surface-container-lowest": "var(--color-surface-container-lowest)",
-        "surface-container-low": "var(--color-surface-container-low)",
-        "surface-container": "var(--color-surface-container)",
-        "surface-container-high": "var(--color-surface-container-high)",
-        "surface-container-highest": "var(--color-surface-container-highest)",
-        "surface-bright": "var(--color-bright)",
-        "surface-dim": "var(--color-dim)",
-        primary: "var(--color-primary)",
-        "on-primary": "var(--color-on-primary)",
-        "primary-container": "var(--color-primary-container)",
-        "on-primary-container": "var(--color-on-primary-container)",
-        secondary: "var(--color-secondary)",
-        "on-secondary": "var(--color-on-secondary)",
-        "secondary-container": "var(--color-secondary-container)",
-        "on-secondary-container": "var(--color-on-secondary-container)",
-        tertiary: "var(--color-tertiary)",
-        "on-tertiary": "var(--color-on-tertiary)",
-        "tertiary-container": "var(--color-tertiary-container)",
-        "on-tertiary-container": "var(--color-on-tertiary-container)",
-        "on-background": "var(--color-on-background)",
-        "on-surface": "var(--color-on-surface)",
-        "on-surface-variant": "var(--color-on-surface-variant)",
-        outline: "var(--color-outline)",
-        "outline-variant": "var(--color-outline-variant)",
-        "inverse-surface": "var(--color-inverse-surface)",
-        "inverse-on-surface": "var(--color-inverse-on-surface)",
-        "inverse-primary": "var(--color-inverse-primary)",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        bronze: {
+          DEFAULT: "hsl(var(--bronze))",
+          foreground: "hsl(var(--bronze-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        serif: ["'Bodoni Moda'", "serif"],
-        display: ["'Bodoni Moda'", "serif"],
-        sans: ["'Hanken Grotesk'", "sans-serif"],
-        body: ["'Hanken Grotesk'", "sans-serif"],
+        serif: ["'Bodoni Moda'", "Georgia", "serif"],
+        display: ["'Bodoni Moda'", "Georgia", "serif"],
+        sans: ["'Hanken Grotesk'", "system-ui", "sans-serif"],
+        mono: ["'JetBrains Mono'", "ui-monospace", "monospace"],
       },
       maxWidth: {
-        "container-max": "1440px",
+        "container-max": "1400px",
       },
-      spacing: {
-        "section-padding": "6rem",
-        "gutter": "2rem",
-        "margin-desktop": "4rem",
-        "margin-mobile": "1.25rem",
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
-      letterSpacing: {
-        widest: "0.2em",
-        tightest: "-0.04em",
-      }
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+      },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
+
 export default config;

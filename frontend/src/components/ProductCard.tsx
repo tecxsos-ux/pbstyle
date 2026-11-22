@@ -2,8 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Package, ShoppingBag, ArrowUpRight } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { useCart } from '@/context/CartContext';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface ProductCardProps {
   product: Product;
@@ -14,88 +18,94 @@ export default function ProductCard({ product }: ProductCardProps) {
   const featuredImage = product.featured_image || (product.images && product.images[0]?.image_url);
 
   const materialLabel = (mat: string) => {
-    switch (mat.toLowerCase()) {
-      case 'platinum': return '950 Platin';
-      case 'brushed steel': return 'Chirurgenstahl 316L';
-      case 'titanium': return 'Titan Grade 5';
-      default: return mat;
-    }
+    const m = mat.toLowerCase();
+    if (m.includes('platin')) return '950 Platin';
+    if (m.includes('titan')) return 'Titan Grade 5';
+    if (m.includes('steel') || m.includes('stahl')) return 'Chirurgenstahl 316L';
+    return mat;
   };
 
   return (
-    <div className="product-item group flex flex-col justify-between">
-      {/* Image Container */}
-      <div className="relative aspect-[4/5] bg-surface-container-low overflow-hidden mb-6 border border-outline-variant/15">
-        {featuredImage ? (
-          <img
-            src={featuredImage}
-            alt={product.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-surface-container-low text-on-surface-variant">
-            <span className="material-symbols-outlined text-4xl">inventory_2</span>
-          </div>
-        )}
+    <Card className="group overflow-hidden border-border/80 bg-card transition-all duration-300 hover:border-bronze/50 hover:shadow-lg flex flex-col justify-between">
+      {/* Image Viewport */}
+      <div className="relative aspect-[4/5] bg-muted overflow-hidden">
+        <Link href={`/products/${product.handle}`} className="block w-full h-full">
+          {featuredImage ? (
+            <img
+              src={featuredImage}
+              alt={product.title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <Package className="h-10 w-10" />
+            </div>
+          )}
+        </Link>
 
-        {/* Hover Action Overlay */}
-        <div className="absolute inset-0 bg-inverse-surface/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-          <Link
-            href={`/products/${product.handle}`}
-            className="bg-surface px-6 py-3 font-sans text-xs uppercase tracking-widest text-on-surface shadow-xl translate-y-3 group-hover:translate-y-0 transition-transform duration-300 hover:bg-primary hover:text-on-primary"
-          >
-            Details ansehen
-          </Link>
-          <button
-            onClick={() => addToCart(product.id, undefined, 1)}
-            aria-label="Schnell in den Warenkorb"
-            className="bg-surface p-3 text-on-surface shadow-xl translate-y-3 group-hover:translate-y-0 transition-transform duration-300 hover:bg-primary hover:text-on-primary flex items-center justify-center"
-          >
-            <span className="material-symbols-outlined text-[18px]">add_shopping_bag</span>
-          </button>
+        {/* Top Badges */}
+        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          {product.material && (
+            <Badge
+              variant="secondary"
+              className="bg-background/85 backdrop-blur-md text-foreground border-border/60"
+            >
+              {materialLabel(product.material)}
+            </Badge>
+          )}
+          {product.is_new && (
+            <Badge variant="bronze" className="bg-background/90 backdrop-blur-md">
+              Neuheit
+            </Badge>
+          )}
         </div>
 
-        {/* Badges */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {product.is_new && (
-            <span className="bg-surface/90 backdrop-blur-md px-3 py-1 font-sans text-[10px] uppercase tracking-widest text-primary border border-outline-variant/30">
-              Neuheit
-            </span>
-          )}
-          {product.material && (
-            <span className="bg-surface/90 backdrop-blur-md px-2.5 py-0.5 font-sans text-[9px] uppercase tracking-widest text-on-surface-variant border border-outline-variant/20">
-              {materialLabel(product.material)}
-            </span>
-          )}
+        {/* Hover Quick Actions */}
+        <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+          <Button variant="default" size="sm" className="flex-1 bg-background/95 text-foreground hover:bg-primary hover:text-primary-foreground backdrop-blur-md border border-border/60" asChild>
+            <Link href={`/products/${product.handle}`}>
+              Details
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
+          <Button
+            variant="bronze"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => addToCart(product.id, undefined, 1)}
+            aria-label="In den Warenkorb"
+          >
+            <ShoppingBag className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
-      {/* Info Container */}
-      <div className="flex justify-between items-start gap-4">
-        <div>
+      {/* Info Footer */}
+      <div className="p-4 flex justify-between items-start gap-3">
+        <div className="min-w-0">
           <Link href={`/products/${product.handle}`}>
-            <h3 className="font-serif text-lg text-on-surface group-hover:text-primary transition-colors leading-tight">
+            <h3 className="font-serif text-lg text-foreground group-hover:text-bronze transition-colors leading-snug truncate">
               {product.title}
             </h3>
           </Link>
           {product.subtitle && (
-            <p className="font-sans text-xs text-on-surface-variant mt-1 line-clamp-1">
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
               {product.subtitle}
             </p>
           )}
         </div>
-        <div className="text-right flex-shrink-0">
-          <span className="font-serif text-base text-primary font-medium block">
+        <div className="text-right shrink-0">
+          <span className="font-mono text-sm font-semibold text-foreground block">
             CHF {product.base_price.toLocaleString('de-CH')}
           </span>
           {product.compare_at_price && (
-            <span className="font-sans text-xs text-on-surface-variant/60 line-through">
+            <span className="font-mono text-[11px] text-muted-foreground line-through">
               CHF {product.compare_at_price.toLocaleString('de-CH')}
             </span>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

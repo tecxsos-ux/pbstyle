@@ -18,8 +18,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -45,6 +45,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Environment & Local Secrets
+.env
 .env.local
 .env.development.local
 .env.test.local

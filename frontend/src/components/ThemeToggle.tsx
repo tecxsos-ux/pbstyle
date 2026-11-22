@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState<boolean>(false);
@@ -30,12 +32,14 @@ export default function ThemeToggle() {
   };
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggleTheme}
       aria-label="Design-Modus umschalten"
-      className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer active:scale-95"
+      className="text-muted-foreground hover:text-foreground"
     >
-      {isDark ? 'light_mode' : 'dark_mode'}
-    </button>
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
   );
 }

@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     BRAND_URL: str = "https://pbstyle.ch"
     CURRENCY: str = "CHF"
 
+    # Stripe Payment Configuration
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    FRONTEND_URL: str = "http://localhost:3001"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

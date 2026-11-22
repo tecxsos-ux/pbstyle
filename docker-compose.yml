@@ -1,35 +1,33 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: pbstyle-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: pbstyle
-      POSTGRES_PASSWORD: pbstyle_secret
-      POSTGRES_DB: pbstyle_db
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${POSTGRES_USER:-pbstyle}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pbstyle_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-pbstyle_db}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pbstyle -d pbstyle_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pbstyle} -d ${POSTGRES_DB:-pbstyle_db}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pbstyle-backend
-    restart: always
+    restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql+asyncpg://pbstyle:pbstyle_secret@postgres:5432/pbstyle_db
-      CORS_ORIGINS: '["http://localhost:3000","http://localhost:3001","http://localhost:8080"]'
-    ports:
-      - "8000:8000"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-pbstyle}:${POSTGRES_PASSWORD:-pbstyle_secret}@postgres:5432/${POSTGRES_DB:-pbstyle_db}
+      SYNC_DATABASE_URL: postgresql://${POSTGRES_USER:-pbstyle}:${POSTGRES_PASSWORD:-pbstyle_secret}@postgres:5432/${POSTGRES_DB:-pbstyle_db}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://pbstyle.179.237.67.13.sslip.io}
+    expose:
+      - "8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,12 +36,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: pbstyle-frontend
-    restart: always
+    restart: unless-stopped
     environment:
       INTERNAL_API_URL: http://backend:8000/api/v1
-    ports:
-      - "3001:3001"
+      INTERNAL_API_HOST: http://backend:8000
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+    expose:
+      - "3001"
     depends_on:
       - backend
 

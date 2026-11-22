@@ -178,7 +178,13 @@ async def get_knowledge_graph(db: AsyncSession = Depends(get_db)):
             "target": p_node_id,
             "relation": "manufactures"
         })
-        mat_id = "urn:pbstyle:material:pt950" if "platin" in p.material.lower() else "urn:pbstyle:material:steel316l"
+        mat_lower = p.material.lower()
+        if "platin" in mat_lower:
+            mat_id = "urn:pbstyle:material:pt950"
+        elif "titan" in mat_lower:
+            mat_id = "urn:pbstyle:material:ti5"
+        else:
+            mat_id = "urn:pbstyle:material:steel316l"
         edges.append({
             "source": p_node_id,
             "target": mat_id,

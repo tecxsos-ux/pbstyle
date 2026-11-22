@@ -2,30 +2,42 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Search, SlidersHorizontal, RotateCcw, SearchX } from 'lucide-react';
 import { Product } from '@/lib/types';
 import { fetchProducts } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import JsonLd, { generateBreadcrumbSchema } from '@/components/JsonLd';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 function CatalogContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'all';
+  const initialSearch = searchParams.get('search') || '';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
   const [maxPrice, setMaxPrice] = useState<number>(5000);
   const [sortBy, setSortBy] = useState<string>('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Sync with URL query parameter
   useEffect(() => {
     const cat = searchParams.get('category');
     if (cat) setSelectedCategory(cat);
+    const q = searchParams.get('search');
+    if (q !== null) setSearchQuery(q);
   }, [searchParams]);
 
-  // Load products
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
@@ -47,36 +59,40 @@ function CatalogContent() {
     );
   };
 
-  // Filter & Sort
+  const resetFilters = () => {
+    setSelectedMaterials([]);
+    setMaxPrice(5000);
+    setSelectedCategory('all');
+    setSearchQuery('');
+  };
+
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      // Category filter
-      if (selectedCategory !== 'all') {
-        const catHandle = p.category?.handle || (p.category_title ? p.category_title.toLowerCase() : '');
-        if (catHandle !== selectedCategory.toLowerCase()) return false;
-      }
-
-      // Material filter
-      if (selectedMaterials.length > 0) {
-        const mat = p.material.toLowerCase();
-        if (!selectedMaterials.some((m) => mat.includes(m.toLowerCase()))) {
-          return false;
+    return products
+      .filter((p) => {
+        if (selectedCategory !== 'all') {
+          const catHandle =
+            p.category?.handle || (p.category_title ? p.category_title.toLowerCase() : '');
+          if (catHandle !== selectedCategory.toLowerCase()) return false;
         }
-      }
-
-      // Price filter
-      if (p.base_price > maxPrice) {
-        return false;
-      }
-
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === 'price-asc') return a.base_price - b.base_price;
-      if (sortBy === 'price-desc') return b.base_price - a.base_price;
-      if (sortBy === 'title-asc') return a.title.localeCompare(b.title);
-      return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
-    });
-  }, [products, selectedCategory, selectedMaterials, maxPrice, sortBy]);
+        if (selectedMaterials.length > 0) {
+          const mat = p.material.toLowerCase();
+          if (!selectedMaterials.some((m) => mat.includes(m.toLowerCase()))) return false;
+        }
+        if (p.base_price > maxPrice) return false;
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const hay = `${p.title} ${p.subtitle || ''} ${p.material} ${p.description}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'price-asc') return a.base_price - b.base_price;
+        if (sortBy === 'price-desc') return b.base_price - a.base_price;
+        if (sortBy === 'title-asc') return a.title.localeCompare(b.title);
+        return (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0);
+      });
+  }, [products, selectedCategory, selectedMaterials, maxPrice, searchQuery, sortBy]);
 
   const categories = [
     { title: 'Alle Objekte', handle: 'all' },
@@ -91,8 +107,87 @@ function CatalogContent() {
     { label: 'Titan Grade 5', value: 'titanium' },
   ];
 
+  const hasActiveFilters =
+    selectedMaterials.length > 0 || maxPrice < 5000 || selectedCategory !== 'all' || searchQuery.trim() !== '';
+
+  const FilterControls = () => (
+    <div className="space-y-7">
+      {/* Search */}
+      <div className="space-y-2">
+        <Label htmlFor="catalog-search">Suche</Label>
+        <div className="relative">
+          <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+          <Input
+            id="catalog-search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Ring, Pinzette, Platin..."
+            className="pl-9 text-xs"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Materials */}
+      <div className="space-y-3">
+        <Label>Material</Label>
+        <div className="space-y-3 pt-1">
+          {materials.map((m) => (
+            <div key={m.value} className="flex items-center space-x-2.5">
+              <Checkbox
+                id={`mat-${m.value}`}
+                checked={selectedMaterials.includes(m.value)}
+                onCheckedChange={() => handleMaterialToggle(m.value)}
+              />
+              <label
+                htmlFor={`mat-${m.value}`}
+                className="text-xs text-foreground cursor-pointer select-none"
+              >
+                {m.label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Price Slider */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Label>Preisgrenze</Label>
+          <span className="font-mono text-xs font-semibold text-bronze">
+            CHF {maxPrice.toLocaleString('de-CH')}
+          </span>
+        </div>
+        <Slider
+          min={50}
+          max={5000}
+          step={50}
+          value={[maxPrice]}
+          onValueChange={(v) => setMaxPrice(v[0])}
+        />
+        <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
+          <span>CHF 50</span>
+          <span>CHF 5&apos;000</span>
+        </div>
+      </div>
+
+      {hasActiveFilters && (
+        <>
+          <Separator />
+          <Button variant="outline" size="sm" onClick={resetFilters} className="w-full">
+            <RotateCcw className="h-3.5 w-3.5" />
+            Filter zurücksetzen
+          </Button>
+        </>
+      )}
+    </div>
+  );
+
   return (
-    <div className="bg-background text-on-surface pb-28">
+    <div className="pb-24">
       <JsonLd
         data={generateBreadcrumbSchema([
           { name: 'Home', url: 'https://pbstyle.ch' },
@@ -113,245 +208,130 @@ function CatalogContent() {
       />
 
       {/* Header */}
-      <header className="pt-16 pb-12 bg-surface-container-low/50 border-b border-outline-variant/15">
-        <div className="max-w-container-max mx-auto px-4 md:px-12 text-center space-y-6">
-          <span className="font-sans text-xs uppercase text-primary tracking-[0.25em] block">
+      <header className="pt-14 pb-10 border-b border-border bg-card/50">
+        <div className="max-w-container-max mx-auto px-4 md:px-10 text-center space-y-5">
+          <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-bronze block">
             Tresor-Kollektion
           </span>
-          <h1 className="font-serif text-4xl md:text-6xl text-on-surface leading-tight">
+          <h1 className="font-serif text-4xl md:text-6xl text-foreground">
             {categories.find((c) => c.handle === selectedCategory)?.title || 'Alle Objekte'}
           </h1>
-          <p className="font-sans text-sm text-on-surface-variant max-w-xl mx-auto leading-relaxed">
-            Ein Katalog präzisionsgefertigter Schmuckstücke und kosmetischer Instrumente, hergestellt aus beständigen Edelmetallen für dauerhaften Wert.
+          <p className="text-sm text-muted-foreground max-w-xl mx-auto leading-relaxed">
+            Präzisionsgefertigte Schmuckstücke und kosmetische Instrumente aus beständigen Edelmetallen für dauerhaften Wert.
           </p>
 
-          {/* Quick Collection Links */}
-          <div className="flex flex-wrap justify-center gap-x-6 md:gap-x-10 gap-y-3 pt-4 font-sans text-xs uppercase tracking-widest">
+          {/* Category Pills */}
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
             {categories.map((c) => {
               const active = selectedCategory === c.handle;
               return (
-                <button
+                <Button
                   key={c.handle}
+                  size="sm"
+                  variant={active ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory(c.handle)}
-                  className={`pb-1 transition-colors ${
-                    active
-                      ? 'text-primary border-b border-primary font-bold'
-                      : 'text-on-surface-variant/70 hover:text-primary'
-                  }`}
                 >
                   {c.title}
-                </button>
+                </Button>
               );
             })}
           </div>
         </div>
       </header>
 
-      {/* Main Grid & Filters */}
-      <div className="max-w-container-max mx-auto px-4 md:px-12 flex flex-col lg:flex-row gap-12 py-16">
-        
-        {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-28 h-fit border-r border-outline-variant/20 pr-8 space-y-10">
-          
-          {/* Material Filter */}
-          <div>
-            <h3 className="font-sans text-xs uppercase tracking-widest mb-5 text-on-surface font-semibold">
-              Material
-            </h3>
-            <div className="space-y-3 font-sans text-xs">
-              {materials.map((m) => (
-                <label key={m.value} className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={selectedMaterials.includes(m.value)}
-                    onChange={() => handleMaterialToggle(m.value)}
-                    className="w-4 h-4 rounded-none accent-primary border-outline-variant focus:ring-0 bg-transparent"
-                  />
-                  <span className="text-on-surface-variant group-hover:text-primary transition-colors">
-                    {m.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Price Range Slider */}
-          <div>
-            <h3 className="font-sans text-xs uppercase tracking-widest mb-5 text-on-surface font-semibold">
-              Preisgrenze
-            </h3>
-            <div className="space-y-3 font-sans">
-              <input
-                type="range"
-                min="50"
-                max="5000"
-                step="50"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full h-1 bg-outline-variant/30 appearance-none cursor-pointer accent-primary"
-              />
-              <div className="flex justify-between text-xs text-on-surface-variant">
-                <span>CHF 50</span>
-                <span className="text-primary font-medium">CHF {maxPrice.toLocaleString('de-CH')}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Reset Filters */}
-          {(selectedMaterials.length > 0 || maxPrice < 5000 || selectedCategory !== 'all') && (
-            <button
-              onClick={() => {
-                setSelectedMaterials([]);
-                setMaxPrice(5000);
-                setSelectedCategory('all');
-              }}
-              className="text-xs uppercase tracking-widest text-primary border-b border-primary/40 pb-0.5 hover:border-primary transition-colors font-sans"
-            >
-              Filter zurücksetzen
-            </button>
-          )}
-
+      {/* Main Content */}
+      <div className="max-w-container-max mx-auto px-4 md:px-10 flex flex-col lg:flex-row gap-10 py-12">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-64 shrink-0">
+          <Card className="p-6 sticky top-28">
+            <FilterControls />
+          </Card>
         </aside>
 
-        {/* Products Grid Content */}
-        <div className="flex-1">
-          {/* Top Bar with Count & Sort */}
-          <div className="flex justify-between items-center mb-8 pb-4 border-b border-outline-variant/15 font-sans">
-            <span className="text-xs uppercase tracking-widest text-on-surface-variant">
-              Zeige {filteredProducts.length} {filteredProducts.length === 1 ? 'Objekt' : 'Objekte'}
+        {/* Grid Area */}
+        <div className="flex-1 space-y-8">
+          <div className="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-border">
+            <span className="font-mono text-xs text-muted-foreground">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'Objekt' : 'Objekte'}
             </span>
 
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:inline text-xs uppercase tracking-widest text-on-surface-variant">
-                Sortieren nach:
-              </span>
-              <select
+            <div className="flex items-center gap-3">
+              {/* Mobile Filter Sheet */}
+              <Sheet open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="lg:hidden">
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                    Filter
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                  <SheetHeader className="mb-6">
+                    <SheetTitle>Filter & Optionen</SheetTitle>
+                  </SheetHeader>
+                  <FilterControls />
+                  <Button
+                    className="w-full mt-6"
+                    onClick={() => setIsMobileFilterOpen(false)}
+                  >
+                    Ergebnisse anzeigen ({filteredProducts.length})
+                  </Button>
+                </SheetContent>
+              </Sheet>
+
+              <Select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent border border-outline-variant/30 py-2 px-3 text-xs uppercase tracking-wider text-on-surface focus:outline-none focus:border-primary cursor-pointer font-sans"
+                className="w-52 h-9 text-xs"
+                aria-label="Sortieren"
               >
-                <option value="featured">Ausgewählt</option>
+                <option value="featured">Empfohlen</option>
                 <option value="price-asc">Preis: niedrig bis hoch</option>
                 <option value="price-desc">Preis: hoch bis niedrig</option>
-                <option value="title-asc">Alphabetisch: A-Z</option>
-              </select>
+                <option value="title-asc">Alphabetisch: A–Z</option>
+              </Select>
             </div>
           </div>
 
-          {/* Grid */}
           {isLoading ? (
-            <div className="py-24 text-center text-on-surface-variant font-sans text-xs uppercase tracking-widest">
-              Lade Kollektion...
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((n) => (
+                <Card key={n} className="h-[420px] animate-pulse bg-muted/50" />
+              ))}
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="py-24 text-center space-y-4">
-              <span className="material-symbols-outlined text-4xl text-outline-variant/60">search_off</span>
-              <p className="font-serif text-xl">Keine Objekte für diese Filterkombination gefunden</p>
-              <button
-                onClick={() => {
-                  setSelectedMaterials([]);
-                  setMaxPrice(5000);
-                  setSelectedCategory('all');
-                }}
-                className="mt-2 px-6 py-2.5 bg-primary text-on-primary text-xs uppercase tracking-widest font-sans"
-              >
+            <Card className="p-16 text-center space-y-4">
+              <SearchX className="h-10 w-10 text-muted-foreground mx-auto" />
+              <h3 className="font-serif text-2xl">Keine Objekte gefunden</h3>
+              <p className="text-xs text-muted-foreground">
+                Passen Sie Ihre Material- oder Preisfilter an, um weitere Kreationen zu entdecken.
+              </p>
+              <Button variant="bronze" size="sm" onClick={resetFilters}>
                 Filter zurücksetzen
-              </button>
-            </div>
+              </Button>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
         </div>
-
       </div>
-
-      {/* Mobile Filter Floating Trigger Button */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 lg:hidden">
-        <button
-          onClick={() => setIsMobileFilterOpen(true)}
-          className="flex items-center gap-2 bg-on-background text-background px-6 py-3.5 shadow-2xl font-sans text-xs uppercase tracking-widest active:scale-95 transition-transform"
-        >
-          <span className="material-symbols-outlined text-[18px]">filter_list</span>
-          <span>Filtern & Sortieren</span>
-        </button>
-      </div>
-
-      {/* Mobile Filter Drawer */}
-      {isMobileFilterOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsMobileFilterOpen(false)}
-          />
-          <div className="fixed inset-x-0 bottom-0 max-h-[80vh] bg-surface rounded-t-2xl p-6 overflow-y-auto space-y-8 border-t border-outline-variant/30">
-            <div className="flex justify-between items-center border-b border-outline-variant/20 pb-4">
-              <span className="font-serif text-lg">Filter & Optionen</span>
-              <button onClick={() => setIsMobileFilterOpen(false)} className="material-symbols-outlined">
-                close
-              </button>
-            </div>
-
-            {/* Material */}
-            <div>
-              <h4 className="font-sans text-xs uppercase tracking-widest mb-3 font-semibold">Material</h4>
-              <div className="space-y-2">
-                {materials.map((m) => (
-                  <label key={m.value} className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedMaterials.includes(m.value)}
-                      onChange={() => handleMaterialToggle(m.value)}
-                      className="w-4 h-4 accent-primary"
-                    />
-                    <span className="font-sans text-xs">{m.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Price */}
-            <div>
-              <div className="flex justify-between font-sans text-xs mb-2">
-                <span>Maximaler Preis</span>
-                <span className="text-primary font-medium">CHF {maxPrice.toLocaleString('de-CH')}</span>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="5000"
-                step="50"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full h-1 bg-outline-variant accent-primary"
-              />
-            </div>
-
-            <button
-              onClick={() => setIsMobileFilterOpen(false)}
-              className="w-full py-4 bg-primary text-on-primary font-sans text-xs uppercase tracking-widest"
-            >
-              Ergebnisse anzeigen ({filteredProducts.length})
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export default function CatalogPage() {
   return (
-    <Suspense fallback={
-      <div className="py-32 text-center font-sans text-xs uppercase tracking-widest text-on-surface-variant">
-        Lade Kollektion...
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="py-32 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          Lade Kollektion...
+        </div>
+      }
+    >
       <CatalogContent />
     </Suspense>
   );
 }
-

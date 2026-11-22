@@ -1,15 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import {
+  AlertCircle,
+  CheckCircle2,
+  CreditCard,
+  ExternalLink,
+  Landmark,
+  Lock,
+  Tag,
+} from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { validateDiscountCodeApi, createOrderApi } from '@/lib/api';
+import {
+  validateDiscountCodeApi,
+  createOrderApi,
+  createStripeCheckoutSessionApi,
+} from '@/lib/api';
 import { Order } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 
-export default function CheckoutPage() {
+function CheckoutContent() {
+  const searchParams = useSearchParams();
+  const wasCanceled = searchParams.get('canceled') === '1';
   const { cart, clearUserCart } = useCart();
 
-  // Form State
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,15 +39,13 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Schweiz');
-  const [paymentMethod, setPaymentMethod] = useState('Kreditkarte (Geschützt)');
+  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'wire'>('stripe');
 
-  // Promo code state
   const [promoCode, setPromoCode] = useState('PBSTYLE20');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [promoMessage, setPromoMessage] = useState<string>('');
   const [isValidatingPromo, setIsValidatingPromo] = useState<boolean>(false);
 
-  // Submission
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -36,14 +56,9 @@ export default function CheckoutPage() {
     setPromoMessage('');
     try {
       const res = await validateDiscountCodeApi(promoCode);
-      if (res.valid) {
-        setDiscountPercent(res.discount_percent);
-        setPromoMessage(res.message);
-      } else {
-        setDiscountPercent(0);
-        setPromoMessage(res.message);
-      }
-    } catch (err) {
+      setDiscountPercent(res.valid ? res.discount_percent : 0);
+      setPromoMessage(res.message);
+    } catch {
       setPromoMessage('Gutscheincode konnte nicht validiert werden.');
     } finally {
       setIsValidatingPromo(false);
@@ -63,352 +78,407 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
     setErrorMessage('');
-    try {
-      const orderPayload = {
-        session_id: cart.session_id,
-        customer_email: email,
-        customer_name: `${firstName} ${lastName}`,
-        shipping_address: {
-          first_name: firstName,
-          last_name: lastName,
-          address,
-          city,
-          postal_code: postalCode,
-          country,
-        },
-        promo_code: discountPercent > 0 ? promoCode : null,
-        payment_method: paymentMethod,
-      };
 
-      const orderResult = await createOrderApi(orderPayload);
+    const payload = {
+      session_id: cart.session_id,
+      customer_email: email,
+      customer_name: `${firstName} ${lastName}`,
+      shipping_address: {
+        first_name: firstName,
+        last_name: lastName,
+        address,
+        city,
+        postal_code: postalCode,
+        country,
+      },
+      promo_code: discountPercent > 0 ? promoCode : null,
+      payment_method:
+        paymentMethod === 'stripe'
+          ? 'Stripe Checkout (Karte / Apple Pay / Google Pay / Link)'
+          : 'Banküberweisung / Vorauszahlung',
+    };
+
+    try {
+      if (paymentMethod === 'stripe') {
+        const stripeRes = await createStripeCheckoutSessionApi(payload);
+        window.location.href = stripeRes.checkout_url;
+        return;
+      }
+
+      const orderResult = await createOrderApi(payload);
       setCompletedOrder(orderResult);
       await clearUserCart();
     } catch (err: any) {
       setErrorMessage(err.message || 'Fehler beim Abschluss der Bestellung.');
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   if (completedOrder) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-24 text-center space-y-8 animate-fade-in font-sans">
-        <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary text-primary mx-auto flex items-center justify-center">
-          <span className="material-symbols-outlined text-3xl">check</span>
-        </div>
-        <div className="space-y-3">
-          <span className="text-xs uppercase tracking-[0.25em] text-primary">
-            Bestellung Erfolgreich
-          </span>
-          <h1 className="font-serif text-4xl text-on-surface">Vielen Dank für Ihre Bestellung</h1>
-          <p className="text-sm text-on-surface-variant max-w-md mx-auto">
-            Ihre Reservierung mit der Bestellnummer <span className="font-mono font-semibold text-primary">{completedOrder.order_number}</span> wurde erfasst. Eine Bestätigung wurde an <span className="font-medium text-on-surface">{completedOrder.customer_email}</span> gesendet.
-          </p>
-        </div>
+      <div className="max-w-xl mx-auto px-4 py-20">
+        <Card className="p-8 text-center space-y-6">
+          <div className="w-14 h-14 rounded-full bg-bronze/15 border border-bronze/40 text-bronze mx-auto flex items-center justify-center">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
+          <div className="space-y-2">
+            <Badge variant="bronze">Bestellung Erfolgreich</Badge>
+            <h1 className="font-serif text-3xl text-foreground">Vielen Dank für Ihre Bestellung</h1>
+            <p className="text-xs text-muted-foreground">
+              Bestellnummer{' '}
+              <span className="font-mono font-semibold text-foreground">
+                {completedOrder.order_number}
+              </span>{' '}
+              wurde an <span className="font-medium text-foreground">{completedOrder.customer_email}</span> bestätigt.
+            </p>
+          </div>
 
-        <div className="bg-surface-container-low p-6 text-left border border-outline-variant/20 space-y-4 text-xs">
-          <div className="flex justify-between border-b border-outline-variant/10 pb-2">
-            <span className="text-on-surface-variant uppercase tracking-widest">Gesamtbetrag:</span>
-            <span className="font-serif text-base text-primary font-semibold">
-              CHF {completedOrder.total_amount.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
-            </span>
+          <div className="rounded-md bg-muted/40 border border-border p-5 text-left space-y-3 text-xs">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Gesamtbetrag</span>
+              <span className="font-mono font-semibold text-bronze">
+                CHF {completedOrder.total_amount.toLocaleString('de-CH', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <Separator />
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Lieferadresse</span>
+              <span className="text-right">
+                {completedOrder.shipping_address.address}, {completedOrder.shipping_address.postal_code}{' '}
+                {completedOrder.shipping_address.city}
+              </span>
+            </div>
+            <Separator />
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Status</span>
+              <Badge variant="secondary">{completedOrder.status}</Badge>
+            </div>
           </div>
-          <div className="flex justify-between border-b border-outline-variant/10 pb-2">
-            <span className="text-on-surface-variant uppercase tracking-widest">Lieferadresse:</span>
-            <span className="text-right">
-              {completedOrder.shipping_address.address}, {completedOrder.shipping_address.postal_code} {completedOrder.shipping_address.city}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-on-surface-variant uppercase tracking-widest">Status:</span>
-            <span className="text-primary font-medium">{completedOrder.status}</span>
-          </div>
-        </div>
 
-        <div className="pt-4">
-          <Link
-            href="/catalog"
-            className="inline-block px-8 py-4 bg-primary text-on-primary text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
-          >
-            Weiter einkaufen
-          </Link>
-        </div>
+          <Button asChild size="lg">
+            <Link href="/catalog">Weiter einkaufen</Link>
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-container-max mx-auto px-4 md:px-12 py-12">
-      <div className="mb-10 space-y-2">
-        <span className="font-sans text-xs uppercase tracking-[0.25em] text-primary">
+    <div className="max-w-container-max mx-auto px-4 md:px-10 py-12 space-y-8">
+      <div className="space-y-1.5">
+        <span className="font-mono text-[11px] uppercase tracking-[0.25em] text-bronze block">
           Sicherer Tresor-Checkout
         </span>
-        <h1 className="font-serif text-3xl md:text-5xl text-on-surface">Kasse</h1>
+        <h1 className="font-serif text-3xl md:text-5xl text-foreground">Kasse</h1>
       </div>
 
-      {cart.items.length === 0 ? (
-        <div className="py-20 text-center space-y-6">
-          <p className="font-serif text-2xl">Ihr Warenkorb ist derzeit leer.</p>
-          <Link
-            href="/catalog"
-            className="inline-block px-8 py-3.5 bg-primary text-on-primary font-sans text-xs uppercase tracking-widest"
-          >
-            Zur Kollektion
-          </Link>
+      {wasCanceled && (
+        <div className="p-4 rounded-md bg-amber-500/10 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2.5">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>
+            Die Stripe-Zahlung wurde abgebrochen. Ihr Warenkorb bleibt gespeichert — Sie können den Checkout jederzeit fortsetzen.
+          </span>
         </div>
+      )}
+
+      {cart.items.length === 0 ? (
+        <Card className="p-16 text-center space-y-5">
+          <p className="font-serif text-2xl">Ihr Warenkorb ist derzeit leer.</p>
+          <Button variant="bronze" asChild>
+            <Link href="/catalog">Zur Kollektion</Link>
+          </Button>
+        </Card>
       ) : (
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-12 font-sans">
-          
-          {/* Left Column: Customer & Shipping Details */}
-          <div className="lg:col-span-7 space-y-10">
+        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column */}
+          <div className="lg:col-span-7 space-y-6">
             {errorMessage && (
-              <div className="p-4 bg-red-500/10 border border-red-500 text-red-500 text-xs uppercase tracking-widest">
+              <div className="p-4 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-xs">
                 {errorMessage}
               </div>
             )}
 
-            {/* Contact */}
-            <div className="space-y-4">
-              <h2 className="font-serif text-xl border-b border-outline-variant/15 pb-2">
-                1. Kontaktinformationen
-              </h2>
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                  E-Mail-Adresse für Bestellbestätigung & Sendungsverfolgung
-                </label>
-                <input
+            <Card>
+              <CardHeader>
+                <CardTitle>1. Kontaktinformationen</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Label htmlFor="checkout-email">E-Mail-Adresse</Label>
+                <Input
+                  id="checkout-email"
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@domain.ch"
-                  className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
                 />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Shipping Address */}
-            <div className="space-y-4">
-              <h2 className="font-serif text-xl border-b border-outline-variant/15 pb-2">
-                2. Lieferadresse (Schweiz & International)
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                    Vorname
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                    Nachname
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                  Straße & Hausnummer
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Bahnhofstrasse 10"
-                  className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                    Postleitzahl
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
-                    placeholder="8001"
-                    className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                    Stadt / Ort
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Zürich"
-                    className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs uppercase tracking-widest text-on-surface-variant mb-1">
-                  Land
-                </label>
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full bg-surface border border-outline-variant/30 p-3 text-xs outline-none focus:border-primary text-on-surface"
-                >
-                  <option value="Schweiz">Schweiz (Liechtenstein)</option>
-                  <option value="Deutschland">Deutschland</option>
-                  <option value="Österreich">Österreich</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="space-y-4">
-              <h2 className="font-serif text-xl border-b border-outline-variant/15 pb-2">
-                3. Bezahlung & Verschlüsselung
-              </h2>
-              <div className="space-y-3">
-                {[
-                  { id: 'cc', title: 'Kreditkarte (Visa, Mastercard, Amex)', icon: 'credit_card' },
-                  { id: 'twint', title: 'TWINT Schweizer Zahlungsapp', icon: 'smartphone' },
-                  { id: 'wire', title: 'Banküberweisung / Vorauszahlung', icon: 'account_balance' },
-                ].map((pm) => (
-                  <label
-                    key={pm.id}
-                    className={`flex items-center gap-4 p-4 border cursor-pointer transition-colors ${
-                      paymentMethod === pm.title
-                        ? 'border-primary bg-primary/5 text-primary font-semibold'
-                        : 'border-outline-variant/30 text-on-surface hover:border-primary/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === pm.title}
-                      onChange={() => setPaymentMethod(pm.title)}
-                      className="accent-primary"
+            <Card>
+              <CardHeader>
+                <CardTitle>2. Lieferadresse</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="first-name">Vorname</Label>
+                    <Input
+                      id="first-name"
+                      required
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                     />
-                    <span className="material-symbols-outlined text-[20px]">{pm.icon}</span>
-                    <span className="text-xs uppercase tracking-wider">{pm.title}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Right Column: Order Summary & Coupon */}
-          <div className="lg:col-span-5 bg-surface-container-low p-8 border border-outline-variant/20 h-fit space-y-6">
-            <h2 className="font-serif text-xl border-b border-outline-variant/15 pb-3">
-              Bestellübersicht ({cart.item_count})
-            </h2>
-
-            {/* Items list */}
-            <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
-              {cart.items.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center">
-                  <div className="w-14 h-16 bg-surface flex-shrink-0 overflow-hidden border border-outline-variant/20">
-                    {item.image_url && (
-                      <img src={item.image_url} alt={item.product_title} className="w-full h-full object-cover" />
-                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="font-serif text-sm leading-tight text-on-surface">{item.product_title}</p>
-                    <p className="text-[11px] text-on-surface-variant">{item.quantity}x • {item.variant_title || 'Standard'}</p>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="last-name">Nachname</Label>
+                    <Input
+                      id="last-name"
+                      required
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                    />
                   </div>
-                  <span className="font-serif text-sm text-primary font-medium">
-                    CHF {item.total_price.toFixed(2)}
-                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="address">Straße & Hausnummer</Label>
+                  <Input
+                    id="address"
+                    required
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Bahnhofstrasse 10"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="postal">Postleitzahl</Label>
+                    <Input
+                      id="postal"
+                      required
+                      value={postalCode}
+                      onChange={(e) => setPostalCode(e.target.value)}
+                      placeholder="8001"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="city">Stadt / Ort</Label>
+                    <Input
+                      id="city"
+                      required
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Zürich"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="country">Land</Label>
+                  <Select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
+                    <option value="Schweiz">Schweiz (Liechtenstein)</option>
+                    <option value="Deutschland">Deutschland</option>
+                    <option value="Österreich">Österreich</option>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Promo Code Input */}
-            <div className="pt-4 border-t border-outline-variant/15 space-y-2">
-              <label className="block text-[11px] uppercase tracking-widest text-on-surface-variant font-medium">
-                Rabatt- oder Geschenkgutschein (Tipp: PBSTYLE20)
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="PBSTYLE20"
-                  className="flex-1 bg-surface border border-outline-variant/30 p-2.5 text-xs uppercase tracking-widest outline-none focus:border-primary text-on-surface"
-                />
-                <button
-                  type="button"
-                  onClick={handleApplyPromo}
-                  disabled={isValidatingPromo}
-                  className="px-4 bg-outline-variant/30 text-on-surface hover:bg-primary hover:text-on-primary transition-colors text-xs uppercase tracking-widest"
+            <Card>
+              <CardHeader>
+                <CardTitle>3. Zahlungsmethode</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <label
+                  className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
+                    paymentMethod === 'stripe'
+                      ? 'border-bronze bg-bronze/10 text-foreground'
+                      : 'border-border hover:border-bronze/50'
+                  }`}
                 >
-                  {isValidatingPromo ? 'Prüfen...' : 'Anwenden'}
-                </button>
-              </div>
-              {promoMessage && (
-                <p className={`text-xs ${discountPercent > 0 ? 'text-primary' : 'text-red-500'}`}>
-                  {promoMessage}
-                </p>
-              )}
-            </div>
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === 'stripe'}
+                    onChange={() => setPaymentMethod('stripe')}
+                    className="mt-0.5 accent-[hsl(var(--bronze))]"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-bronze" />
+                        Stripe Checkout — Kreditkarte, Apple Pay, Google Pay & Link
+                      </span>
+                      <Badge variant="bronze">Empfohlen</Badge>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Sie werden sicher zur verschlüsselten Stripe-Zahlungsseite weitergeleitet (CHF).
+                    </p>
+                  </div>
+                </label>
 
-            {/* Calculations */}
-            <div className="border-t border-outline-variant/15 pt-4 space-y-2 text-xs">
-              <div className="flex justify-between text-on-surface-variant">
-                <span>Zwischensumme:</span>
-                <span>CHF {cart.subtotal.toFixed(2)}</span>
-              </div>
-              {discountPercent > 0 && (
-                <div className="flex justify-between text-primary font-medium">
-                  <span>Rabatt ({discountPercent}%):</span>
-                  <span>- CHF {discountAmount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-on-surface-variant">
-                <span>Schweizer Post Kurier:</span>
-                <span>{shippingCost === 0 ? 'Kostenlos' : `CHF ${shippingCost.toFixed(2)}`}</span>
-              </div>
-              <div className="flex justify-between text-base font-serif font-bold text-on-surface pt-3 border-t border-outline-variant/15">
-                <span>Gesamtbetrag (inkl. MWST):</span>
-                <span className="text-primary font-serif text-xl">
-                  CHF {finalTotal.toFixed(2)}
-                </span>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-4 bg-on-background text-background font-sans text-xs uppercase tracking-widest hover:bg-primary transition-colors shadow-2xl active:scale-[0.99] flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[18px]">lock</span>
-              <span>{isSubmitting ? 'Wird übermittelt...' : `Jetzt Bestellen (CHF ${finalTotal.toFixed(2)})`}</span>
-            </button>
-
-            <p className="text-[10px] text-center text-on-surface-variant/70 leading-relaxed">
-              Durch Klicken auf Jetzt Bestellen stimmen Sie den PBstyle AGB und den Datenschutzbestimmungen zu.
-            </p>
+                <label
+                  className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
+                    paymentMethod === 'wire'
+                      ? 'border-bronze bg-bronze/10 text-foreground'
+                      : 'border-border hover:border-bronze/50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment"
+                    checked={paymentMethod === 'wire'}
+                    onChange={() => setPaymentMethod('wire')}
+                    className="mt-0.5 accent-[hsl(var(--bronze))]"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <span className="text-xs font-semibold flex items-center gap-2">
+                      <Landmark className="h-4 w-4 text-bronze" />
+                      Banküberweisung / Schweizer QR-Rechnung
+                    </span>
+                    <p className="text-[11px] text-muted-foreground">
+                      Sofortige Reservierung mit offizieller UBS-Rechnung per E-Mail.
+                    </p>
+                  </div>
+                </label>
+              </CardContent>
+            </Card>
           </div>
 
+          {/* Right Summary */}
+          <div className="lg:col-span-5">
+            <Card className="sticky top-28">
+              <CardHeader>
+                <CardTitle>Bestellübersicht ({cart.item_count})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1">
+                  {cart.items.map((item) => (
+                    <div key={item.id} className="flex gap-3.5 items-center">
+                      <div className="w-14 h-16 rounded-md bg-muted border border-border overflow-hidden shrink-0">
+                        {item.image_url && (
+                          <img
+                            src={item.image_url}
+                            alt={item.product_title}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-serif text-sm text-foreground truncate">
+                          {item.product_title}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {item.quantity}x • {item.variant_title || 'Standard'}
+                        </p>
+                      </div>
+                      <span className="font-mono text-xs font-medium">
+                        CHF {item.total_price.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <Separator />
+
+                {/* Promo Code */}
+                <div className="space-y-2">
+                  <Label htmlFor="promo-code" className="flex items-center gap-1.5">
+                    <Tag className="h-3 w-3 text-bronze" />
+                    Gutscheincode (Tipp: PBSTYLE20)
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="promo-code"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="PBSTYLE20"
+                      className="font-mono uppercase text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleApplyPromo}
+                      disabled={isValidatingPromo}
+                    >
+                      {isValidatingPromo ? '...' : 'Anwenden'}
+                    </Button>
+                  </div>
+                  {promoMessage && (
+                    <p
+                      className={`text-xs ${
+                        discountPercent > 0 ? 'text-bronze' : 'text-destructive'
+                      }`}
+                    >
+                      {promoMessage}
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Zwischensumme</span>
+                    <span className="font-mono">CHF {cart.subtotal.toFixed(2)}</span>
+                  </div>
+                  {discountPercent > 0 && (
+                    <div className="flex justify-between text-bronze font-medium">
+                      <span>Rabatt ({discountPercent}%)</span>
+                      <span className="font-mono">- CHF {discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Schweizer Post Kurier</span>
+                    <span className="font-mono">
+                      {shippingCost === 0 ? 'Kostenlos' : `CHF ${shippingCost.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-baseline text-sm font-semibold">
+                    <span>Gesamtbetrag (inkl. MWST)</span>
+                    <span className="font-mono text-lg text-bronze">
+                      CHF {finalTotal.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                  {paymentMethod === 'stripe' ? (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      {isSubmitting
+                        ? 'Weiterleitung zu Stripe...'
+                        : `Mit Stripe bezahlen (CHF ${finalTotal.toFixed(2)})`}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      {isSubmitting
+                        ? 'Wird übermittelt...'
+                        : `Jetzt bestellen (CHF ${finalTotal.toFixed(2)})`}
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </form>
       )}
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
+          Lade Kasse...
+        </div>
+      }
+    >
+      <CheckoutContent />
+    </Suspense>
   );
 }

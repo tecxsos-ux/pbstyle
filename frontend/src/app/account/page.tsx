@@ -2,6 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft, CheckCircle2, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function AccountPage() {
   const [fullName, setFullName] = useState('Philippe Bernasconi');
@@ -16,75 +21,69 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 md:px-8 py-16 space-y-10 font-sans">
-      <div className="border-b border-outline-variant/15 pb-6">
-        <span className="text-xs uppercase tracking-[0.25em] text-primary block mb-2">
-          Sicherheit & Stammdaten
-        </span>
-        <h1 className="font-serif text-3xl md:text-4xl text-on-surface">
-          Konto-Einstellungen
-        </h1>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 md:px-8 py-14 space-y-6">
+      <Button variant="ghost" size="sm" asChild>
+        <Link href="/dashboard">
+          <ArrowLeft className="h-4 w-4" />
+          Zurück zum Dashboard
+        </Link>
+      </Button>
 
-      {saved && (
-        <div className="p-4 bg-primary/10 border border-primary text-primary text-xs uppercase tracking-widest flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]">check_circle</span>
-          <span>Einstellungen erfolgreich gespeichert.</span>
-        </div>
-      )}
+      <Card>
+        <CardHeader>
+          <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze">
+            Sicherheit & Stammdaten
+          </span>
+          <CardTitle className="text-3xl">Konto-Einstellungen</CardTitle>
+          <CardDescription>
+            Verwalten Sie Ihre persönlichen Kontaktdaten für Kurierzustellungen und Atelier-Services.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {saved && (
+            <div className="p-3.5 rounded-md bg-bronze/10 border border-bronze/30 text-bronze text-xs flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Einstellungen erfolgreich gespeichert.</span>
+            </div>
+          )}
 
-      <form onSubmit={handleSave} className="space-y-6 text-xs">
-        <div>
-          <label className="block uppercase tracking-widest text-on-surface-variant mb-1.5 font-semibold">
-            Vollständiger Name
-          </label>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface"
-          />
-        </div>
+          <form onSubmit={handleSave} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="acc-name">Vollständiger Name</Label>
+              <Input
+                id="acc-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="block uppercase tracking-widest text-on-surface-variant mb-1.5 font-semibold">
-            E-Mail-Adresse
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="acc-email">E-Mail-Adresse</Label>
+              <Input
+                id="acc-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className="block uppercase tracking-widest text-on-surface-variant mb-1.5 font-semibold">
-            Telefonnummer (für Kurierzustellung)
-          </label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full bg-surface-container-low border border-outline-variant/30 p-3 outline-none focus:border-primary text-on-surface"
-          />
-        </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="acc-phone">Telefonnummer (Kurierzustellung)</Label>
+              <Input
+                id="acc-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
 
-        <div className="pt-4 flex items-center justify-between">
-          <button
-            type="submit"
-            className="px-8 py-3.5 bg-primary text-on-primary uppercase tracking-widest font-semibold hover:opacity-90 transition-opacity"
-          >
-            Änderungen speichern
-          </button>
-          <Link
-            href="/dashboard"
-            className="text-on-surface-variant hover:text-primary uppercase tracking-widest transition-colors"
-          >
-            Zurück zum Dashboard
-          </Link>
-        </div>
-      </form>
+            <Button type="submit" variant="bronze">
+              <Save className="h-4 w-4" />
+              Änderungen speichern
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

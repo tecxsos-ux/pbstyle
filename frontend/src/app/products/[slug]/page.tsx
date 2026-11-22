@@ -3,7 +3,14 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchProductByHandle, fetchProducts } from '@/lib/api';
 import ProductDetailClient from './ProductDetailClient';
-import JsonLd, { generateProductSchema, generateBreadcrumbSchema, generateFaqSchema } from '@/components/JsonLd';
+import JsonLd, {
+  formatMaterialLabel,
+  generateBreadcrumbSchema,
+  generateCareHowToSchema,
+  generateFaqSchema,
+  generateProductSchema,
+  generateWebPageSchema,
+} from '@/components/JsonLd';
 
 interface Props {
   params: { slug: string };
@@ -40,13 +47,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const imageUrl = product.featured_image || (product.images && product.images[0]?.image_url);
+  const materialLabel = formatMaterialLabel(product.material);
 
   return {
-    title: `${product.title} — ${product.material === 'platinum' ? '950 Platin' : 'Chirurgenstahl 316L'} | PBSTYLE`,
+    title: `${product.title} — ${materialLabel}`,
     description: `${product.subtitle || ''}. ${product.description.slice(0, 160)}. Gefertigt in Zürich nach Schweizer Präzisionstoleranzen (±0.01 mm).`,
     keywords: [
       product.title,
-      product.material === 'platinum' ? '950 Platin Schmuck' : 'Chirurgenstahl 316L',
+      materialLabel,
       'PBSTYLE Atelier Zürich',
       'Schweizer Manufaktur',
       'Industrielle Eleganz',
@@ -72,8 +80,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://pbstyle.ch/products/${product.handle}`,
       languages: {
         'de-CH': `https://pbstyle.ch/products/${product.handle}`,
-        'de-DE': `https://pbstyle.ch/de/products/${product.handle}`,
-        'en': `https://pbstyle.ch/en/products/${product.handle}`,
         'x-default': `https://pbstyle.ch/products/${product.handle}`,
       }
     },
@@ -91,6 +97,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function generateStaticParams() {
   const products = await fetchProducts();
   return products.map((p) => ({ slug: p.handle }));
@@ -101,9 +109,19 @@ export default async function ProductDetailPage({ params }: Props) {
   if (!product) notFound();
 
   const productFaqs = getProductFaqs(product);
+  const materialLabel = formatMaterialLabel(product.material);
 
   return (
     <>
+      <JsonLd
+        data={generateWebPageSchema({
+          url: `https://pbstyle.ch/products/${product.handle}`,
+          name: `${product.title} — ${materialLabel} | PBSTYLE`,
+          description: product.subtitle || product.description.slice(0, 160),
+          type: 'ItemPage',
+          speakableSelectors: ['h1', 'h3'],
+        })}
+      />
       <JsonLd data={generateProductSchema(product)} />
       <JsonLd
         data={generateBreadcrumbSchema([
@@ -113,6 +131,7 @@ export default async function ProductDetailPage({ params }: Props) {
         ])}
       />
       <JsonLd data={generateFaqSchema(productFaqs)} />
+      <JsonLd data={generateCareHowToSchema(product.title, materialLabel)} />
       <ProductDetailClient product={product} />
     </>
   );

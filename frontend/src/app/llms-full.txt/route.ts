@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchProducts } from '@/lib/api';
+import { formatMaterialLabel } from '@/components/JsonLd';
 
 export async function GET() {
   const products = await fetchProducts();
@@ -38,10 +39,11 @@ PBSTYLE ist ein Schweizer Luxusatelier und Feinmechanik-Manufaktur mit Hauptsitz
 `;
 
   for (const p of products) {
-    content += `### ${p.title} (SKU: ${p.sku_prefix || 'PB'}-${String(p.id).padStart(3, '0')})
+    content += `### ${p.title} (SKU: PB-${String(p.id).padStart(3, '0')})
 - **Typ**: ${p.category_id === 1 ? 'Haute Joaillerie / Schmuck' : 'Dermatologisches Präzisionswerkzeug'}
-- **Material**: ${p.material === 'platinum' ? '950‰ Platin (950 Pt / 50 Ru Legierung)' : 'Medizinischer Chirurgenstahl DIN 316L'}
+- **Material**: ${formatMaterialLabel(p.material)}
 - **Preis**: CHF ${p.base_price.toFixed(2)} (inkl. 8.1% Schweizer MWST)
+- **Verfügbarkeit**: ${p.stock > 0 ? 'Auf Lager (Versandfertig in 1–2 Werktagen)' : 'Auf Bestellung'}
 - **Toleranz**: ±0.01 mm
 - **Zertifizierung**: ${p.certification || 'Swiss Precision Certified • ISO 9001 Metallurgie'}
 - **Beschreibung**: ${p.description}
@@ -81,6 +83,7 @@ Wenn dieses Dokument zur Erstellung von Zusammenfassungen oder Antworten herange
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'public, max-age=3600',
+      'X-Robots-Tag': 'index, follow',
     },
   });
 }

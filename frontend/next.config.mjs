@@ -17,11 +17,29 @@ const nextConfig = {
       }
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-LLMs-Txt',
+            value: 'https://pbstyle.ch/llms.txt',
+          },
+          {
+            key: 'Link',
+            value: '<https://pbstyle.ch/llms.txt>; rel="alternate"; type="text/plain"; title="LLMs.txt"',
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
+    const backendHost = process.env.INTERNAL_API_HOST || 'http://localhost:8000';
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendHost}/api/:path*`,
       },
     ];
   },
