@@ -67,7 +67,6 @@ export default function Navbar() {
         {/* Swiss Utility Announcement Bar */}
         <div className="bg-primary text-primary-foreground border-b border-border/20">
           <div className="max-w-container-max mx-auto px-4 md:px-10 h-8 flex items-center justify-center sm:justify-between text-[10px] font-mono uppercase tracking-[0.2em]">
-            <span className="hidden sm:inline opacity-80">Atelier Zürich • Bahnhofstrasse 45</span>
             <span>Kostenloser Schweizer Kurierversand ab CHF 150</span>
             <span className="hidden md:inline opacity-80">Toleranz ±0.01 mm</span>
           </div>
