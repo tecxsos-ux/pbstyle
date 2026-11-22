@@ -10,12 +10,24 @@ import { Separator } from '@/components/ui/separator';
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    setSubmitting(true);
+    try {
+      await fetch('/api/v1/user/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, full_name: email.split('@')[0] }),
+      });
       setSubscribed(true);
       setEmail('');
+    } catch {
+      setSubscribed(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 

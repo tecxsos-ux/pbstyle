@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     STRIPE_WEBHOOK_SECRET: str = ""
     FRONTEND_URL: str = "http://localhost:3001"
 
+    # Infomaniak SMTP Mail Configuration
+    SMTP_HOST: str = "mail.infomaniak.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = "info@pbstyle.ch"
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_NAME: str = "PBSTYLE Atelier Zürich"
+    SMTP_FROM_EMAIL: str = "info@pbstyle.ch"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

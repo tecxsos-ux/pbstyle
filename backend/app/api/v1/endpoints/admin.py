@@ -16,8 +16,9 @@ from app.schemas.schemas import (
     CustomerCrmRead, CustomerCrmUpdate,
     InventoryItemRead, InventoryStockUpdate, ProductCreate,
     InvoiceDetail, InvoiceItemDetail, SendInvoiceRequest, SendInvoiceResponse,
-    AdminOverviewMetrics, OrderRead
+    AdminOverviewMetrics, OrderRead, OrderTrackingUpdate
 )
+from app.services.email_service import build_tracking_url, send_order_invoice_email, send_tracking_email
 
 router = APIRouter()
 
@@ -467,27 +468,94 @@ async def send_invoice_by_mail(
     req: SendInvoiceRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    res = await db.execute(select(Order).where(Order.id == order_id))
+    res = await db.execute(
+        select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+    )
     order = res.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="Bestellung nicht gefunden.")
 
+    if not order.invoice_number:
+        order.invoice_number = f"INV-2026-{order.order_number.replace('PB-2026-', '')}"
+
     now = datetime.datetime.utcnow()
+    sent = await send_order_invoice_email(
+        order=order,
+        recipient_email=req.recipient_email,
+        subject=req.subject,
+        custom_message=req.custom_message,
+    )
+    if not sent:
+        raise HTTPException(
+            status_code=502,
+            detail="E-Mail-Versand über info@pbstyle.ch fehlgeschlagen. Bitte SMTP-Einstellungen prüfen.",
+        )
+
     order.invoice_sent = True
     order.invoice_sent_at = now
     if req.custom_message:
         order.invoice_notes = req.custom_message
-    
+
     await db.flush()
     await db.refresh(order)
 
-    # In production, this connects to SMTP/SendGrid/SES.
-    # Here we record the dispatch log and return instant receipt with invoice URL.
     return SendInvoiceResponse(
         success=True,
-        message=f"Offizielle PBSTYLE Rechnung ({order.invoice_number or order.order_number}) erfolgreich an {req.recipient_email} versandt.",
+        message=f"Offizielle PBSTYLE Rechnung ({order.invoice_number or order.order_number}) erfolgreich über info@pbstyle.ch an {req.recipient_email} versandt.",
         order_id=order.id,
         recipient_email=req.recipient_email,
         dispatched_at=now,
         preview_url=f"/api/v1/admin/invoices/{order.id}/html"
     )
+
+
+@router.put("/orders/{order_id}/tracking", response_model=Dict[str, Any])
+async def update_order_tracking(
+    order_id: int,
+    data: OrderTrackingUpdate,
+    db: AsyncSession = Depends(get_db)
+):
+    res = await db.execute(
+        select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+    )
+    order = res.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Bestellung nicht gefunden.")
+
+    tracking_clean = data.tracking_number.strip()
+    if not tracking_clean:
+        raise HTTPException(status_code=400, detail="Bitte eine gültige Sendungsnummer eingeben.")
+
+    carrier = data.tracking_carrier.strip() or "Schweizer Post «Pro Clima»"
+    final_url = build_tracking_url(carrier, tracking_clean, data.tracking_url)
+    now = datetime.datetime.utcnow()
+
+    order.tracking_number = tracking_clean
+    order.tracking_carrier = carrier
+    order.tracking_url = final_url
+    order.status = "Versendet"
+    order.shipped_at = now
+
+    await db.flush()
+    await db.refresh(order)
+
+    email_sent = False
+    if data.send_email:
+        email_sent = await send_tracking_email(
+            order=order,
+            tracking_number=tracking_clean,
+            carrier=carrier,
+            tracking_url=final_url,
+            custom_note=data.custom_note,
+        )
+
+    return {
+        "success": True,
+        "email_sent": email_sent,
+        "message": (
+            f"Tracking-Nummer {tracking_clean} gespeichert & per E-Mail an {order.customer_email} versandt."
+            if email_sent
+            else f"Tracking-Nummer {tracking_clean} gespeichert."
+        ),
+        "order": OrderRead.model_validate(order),
+    }

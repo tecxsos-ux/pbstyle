@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.models.models import Order, OrderItem, CartItem, Product, DiscountCode
 from app.schemas.schemas import OrderCreate, OrderRead, DiscountValidate, DiscountResult
+from app.services.email_service import send_order_invoice_email
 
 router = APIRouter()
 
@@ -84,9 +85,11 @@ async def checkout(order_in: OrderCreate, db: AsyncSession = Depends(get_db)):
     # Generate Order Number: PB-2026-XXXX
     random_suffix = "".join(random.choices(string.digits, k=4))
     order_number = f"PB-2026-{random_suffix}"
+    invoice_number = f"INV-2026-{random_suffix}"
 
     new_order = Order(
         order_number=order_number,
+        invoice_number=invoice_number,
         customer_email=order_in.customer_email,
         customer_name=order_in.customer_name,
         shipping_address=order_in.shipping_address.model_dump(),
@@ -113,7 +116,16 @@ async def checkout(order_in: OrderCreate, db: AsyncSession = Depends(get_db)):
     res_final = await db.execute(
         select(Order).where(Order.id == new_order.id).options(selectinload(Order.items))
     )
-    return res_final.scalar_one()
+    final_order = res_final.scalar_one()
+
+    # Send automated Thank-You + Official Invoice email via info@pbstyle.ch
+    sent = await send_order_invoice_email(final_order)
+    if sent:
+        final_order.invoice_sent = True
+        final_order.invoice_sent_at = datetime.datetime.utcnow()
+        await db.flush()
+
+    return final_order
 
 @router.get("/{order_number}", response_model=OrderRead)
 async def get_order_by_number(order_number: str, db: AsyncSession = Depends(get_db)):

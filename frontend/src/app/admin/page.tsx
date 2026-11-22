@@ -26,6 +26,7 @@ import {
   ShoppingBag,
   Store,
   TrendingUp,
+  Truck,
   Users,
   Zap,
 } from 'lucide-react';
@@ -105,6 +106,13 @@ export default function AdminDashboardPage() {
   const [dispatchSubject, setDispatchSubject] = useState('');
   const [dispatchMessage, setDispatchMessage] = useState('');
   const [isDispatching, setIsDispatching] = useState(false);
+
+  // Tracking Number Dispatch
+  const [trackingModalOrder, setTrackingModalOrder] = useState<any>(null);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingCarrier, setTrackingCarrier] = useState('Schweizer Post «Pro Clima»');
+  const [trackingNote, setTrackingNote] = useState('');
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
 
   // Instagram
   const [instagramSettings, setInstagramSettings] = useState<any>(null);
@@ -396,6 +404,44 @@ export default function AdminDashboardPage() {
       console.error(e);
     } finally {
       setIsDispatching(false);
+    }
+  };
+
+  const openTrackingModal = (order: any) => {
+    setTrackingModalOrder(order);
+    setTrackingNumber(order.tracking_number || '');
+    setTrackingCarrier(order.tracking_carrier || 'Schweizer Post «Pro Clima»');
+    setTrackingNote('');
+  };
+
+  const handleSaveTracking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackingModalOrder || !trackingNumber.trim()) return;
+    setIsSavingTracking(true);
+    try {
+      const res = await fetch(`/api/v1/admin/orders/${trackingModalOrder.id}/tracking`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tracking_number: trackingNumber.trim(),
+          tracking_carrier: trackingCarrier,
+          custom_note: trackingNote.trim() || null,
+          send_email: true,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        showToast(data.message || 'Tracking-Nummer gespeichert & per E-Mail versandt.');
+        setTrackingModalOrder(null);
+        await loadOverview();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || 'Fehler beim Speichern der Tracking-Nummer.');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingTracking(false);
     }
   };
 
@@ -797,25 +843,34 @@ export default function AdminDashboardPage() {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 pt-1">
-                              <Button variant="outline" size="sm" asChild className="w-full">
+                            <div className="grid grid-cols-3 gap-2 pt-1">
+                              <Button variant="outline" size="sm" asChild className="w-full px-2">
                                 <a
                                   href={`/api/v1/admin/invoices/${ord.id}/html`}
                                   target="_blank"
                                   rel="noreferrer"
                                 >
                                   <Printer className="h-3.5 w-3.5" />
-                                  Rechnung
+                                  Beleg
                                 </a>
+                              </Button>
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="w-full px-2"
+                                onClick={() => openTrackingModal(ord)}
+                              >
+                                <Truck className="h-3.5 w-3.5 text-bronze" />
+                                Track
                               </Button>
                               <Button
                                 variant="bronze"
                                 size="sm"
-                                className="w-full"
+                                className="w-full px-2"
                                 onClick={() => openDispatchModal(ord)}
                               >
                                 <Mail className="h-3.5 w-3.5" />
-                                Senden
+                                Mail
                               </Button>
                             </div>
                           </CardContent>
@@ -847,9 +902,26 @@ export default function AdminDashboardPage() {
                                   CHF {ord.total_amount?.toFixed(2)}
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="secondary">{ord.status}</Badge>
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <Badge variant={ord.tracking_number ? 'success' : 'secondary'}>
+                                      {ord.status}
+                                    </Badge>
+                                    {ord.tracking_number && (
+                                      <span className="font-mono text-[10px] text-muted-foreground">
+                                        {ord.tracking_number}
+                                      </span>
+                                    )}
+                                  </div>
                                 </TableCell>
                                 <TableCell className="text-right space-x-2">
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() => openTrackingModal(ord)}
+                                  >
+                                    <Truck className="h-3.5 w-3.5 text-bronze" />
+                                    {ord.tracking_number ? 'Tracking' : '+ Tracking'}
+                                  </Button>
                                   <Button variant="outline" size="sm" asChild>
                                     <a
                                       href={`/api/v1/admin/invoices/${ord.id}/html`}
@@ -1308,25 +1380,34 @@ export default function AdminDashboardPage() {
                               )}
                             </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            <Button variant="outline" size="sm" asChild className="w-full">
+                          <div className="grid grid-cols-3 gap-2 pt-1">
+                            <Button variant="outline" size="sm" asChild className="w-full px-2">
                               <a
                                 href={`/api/v1/admin/invoices/${ord.id}/html`}
                                 target="_blank"
                                 rel="noreferrer"
                               >
                                 <Printer className="h-3.5 w-3.5" />
-                                Ansehen
+                                Beleg
                               </a>
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="w-full px-2"
+                              onClick={() => openTrackingModal(ord)}
+                            >
+                              <Truck className="h-3.5 w-3.5 text-bronze" />
+                              Track
                             </Button>
                             <Button
                               variant="bronze"
                               size="sm"
-                              className="w-full"
+                              className="w-full px-2"
                               onClick={() => openDispatchModal(ord)}
                             >
                               <Send className="h-3.5 w-3.5" />
-                              Mail senden
+                              Mail
                             </Button>
                           </div>
                         </CardContent>
@@ -1377,6 +1458,14 @@ export default function AdminDashboardPage() {
                                 )}
                               </TableCell>
                               <TableCell className="text-right space-x-2">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => openTrackingModal(ord)}
+                                >
+                                  <Truck className="h-3.5 w-3.5 text-bronze" />
+                                  {ord.tracking_number ? 'Tracking' : '+ Tracking'}
+                                </Button>
                                 <Button variant="outline" size="sm" asChild>
                                   <a
                                     href={`/api/v1/admin/invoices/${ord.id}/html`}
@@ -1917,6 +2006,69 @@ export default function AdminDashboardPage() {
                 </Button>
               </DialogFooter>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG 6: ADD TRACKING NUMBER & NOTIFY CLIENT */}
+      <Dialog
+        open={!!trackingModalOrder}
+        onOpenChange={(open) => !open && setTrackingModalOrder(null)}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Sendungsverfolgung hinterlegen</DialogTitle>
+            <DialogDescription>
+              Bestellung {trackingModalOrder?.order_number} ({trackingModalOrder?.customer_email}) — sendet automatisch eine Tracking-E-Mail über info@pbstyle.ch.
+            </DialogDescription>
+          </DialogHeader>
+          {trackingModalOrder && (
+            <form onSubmit={handleSaveTracking} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Versanddienstleister</Label>
+                <Select
+                  value={trackingCarrier}
+                  onChange={(e) => setTrackingCarrier(e.target.value)}
+                >
+                  <option value="Schweizer Post «Pro Clima»">Schweizer Post «Pro Clima»</option>
+                  <option value="DHL Express">DHL Express</option>
+                  <option value="UPS Express">UPS Express</option>
+                  <option value="FedEx Priority">FedEx Priority</option>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Sendungsnummer (Tracking Number)</Label>
+                <Input
+                  required
+                  value={trackingNumber}
+                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  placeholder="z.B. 99.00.123456.78901234"
+                  className="font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Persönliche Notiz (optional)</Label>
+                <Textarea
+                  rows={3}
+                  value={trackingNote}
+                  onChange={(e) => setTrackingNote(e.target.value)}
+                  placeholder="z.B. Diskrete Hochsicherheitsverpackung, Zustellung morgen vormittags."
+                />
+              </div>
+              <DialogFooter className="gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setTrackingModalOrder(null)}
+                >
+                  Abbrechen
+                </Button>
+                <Button type="submit" variant="bronze" disabled={isSavingTracking}>
+                  <Truck className="h-4 w-4" />
+                  {isSavingTracking ? 'Wird gesendet...' : 'Speichern & Tracking senden'}
+                </Button>
+              </DialogFooter>
+            </form>
           )}
         </DialogContent>
       </Dialog>

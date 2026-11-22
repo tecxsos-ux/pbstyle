@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from sqlalchemy import text
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.router import api_router
@@ -10,6 +11,14 @@ async def lifespan(app: FastAPI):
     # Initialize DB schemas on startup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Safe additive migrations for existing PostgreSQL deployments
+        for col_sql in [
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(120)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_carrier VARCHAR(100)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_url VARCHAR(500)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMP WITHOUT TIME ZONE",
+        ]:
+            await conn.execute(text(col_sql))
     yield
     # Shutdown
     await engine.dispose()

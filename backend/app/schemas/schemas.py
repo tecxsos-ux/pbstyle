@@ -166,10 +166,31 @@ class OrderRead(BaseModel):
     currency: str
     status: str
     payment_method: str
+    invoice_number: Optional[str] = None
+    invoice_sent: Optional[bool] = False
+    tracking_number: Optional[str] = None
+    tracking_carrier: Optional[str] = None
+    tracking_url: Optional[str] = None
+    shipped_at: Optional[datetime] = None
     created_at: datetime
     items: List[OrderItemRead] = []
     class Config:
         from_attributes = True
+
+
+class OrderTrackingUpdate(BaseModel):
+    tracking_number: str
+    tracking_carrier: str = "Schweizer Post «Pro Clima»"
+    tracking_url: Optional[str] = None
+    custom_note: Optional[str] = None
+    send_email: bool = True
+
+
+class UserRegisterRequest(BaseModel):
+    email: str
+    full_name: str
+    phone: Optional[str] = None
+    company: Optional[str] = None
 
 # Customer Schemas
 class CustomerRead(BaseModel):

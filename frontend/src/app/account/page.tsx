@@ -2,22 +2,48 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle2, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Mail, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function AccountPage() {
-  const [fullName, setFullName] = useState('Philippe Bernasconi');
-  const [email, setEmail] = useState('philippe.bernasconi@pbstyle.ch');
-  const [phone, setPhone] = useState('+41 44 211 44 88');
-  const [saved, setSaved] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setIsSubmitting(true);
+    setFeedback('');
+    setErrorMsg('');
+
+    try {
+      const res = await fetch('/api/v1/user/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: fullName, email, phone: phone || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || 'Registrierung fehlgeschlagen.');
+      }
+      setFeedback(
+        data.message ||
+          `Willkommen im PBSTYLE Atelier Club! Eine Willkommens-E-Mail wurde an ${email} gesendet.`
+      );
+      setFullName('');
+      setEmail('');
+      setPhone('');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Verbindungsfehler.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -32,28 +58,36 @@ export default function AccountPage() {
       <Card>
         <CardHeader>
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-bronze">
-            Sicherheit & Stammdaten
+            PBSTYLE Atelier Club
           </span>
-          <CardTitle className="text-3xl">Konto-Einstellungen</CardTitle>
+          <CardTitle className="text-3xl">Registrierung &amp; Konto</CardTitle>
           <CardDescription>
-            Verwalten Sie Ihre persönlichen Kontaktdaten für Kurierzustellungen und Atelier-Services.
+            Registrieren Sie sich für den PBSTYLE Atelier Club und erhalten Sie sofort Ihre persönliche Willkommens-E-Mail inklusive 20% Vorteilscode.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {saved && (
-            <div className="p-3.5 rounded-md bg-bronze/10 border border-bronze/30 text-bronze text-xs flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Einstellungen erfolgreich gespeichert.</span>
+          {feedback && (
+            <div className="p-4 rounded-md bg-bronze/10 border border-bronze/30 text-foreground text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="h-4 w-4 text-bronze shrink-0 mt-0.5" />
+              <span>{feedback}</span>
             </div>
           )}
 
-          <form onSubmit={handleSave} className="space-y-5">
+          {errorMsg && (
+            <div className="p-3.5 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-xs">
+              {errorMsg}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="acc-name">Vollständiger Name</Label>
               <Input
                 id="acc-name"
+                required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                placeholder="Vor- und Nachname"
               />
             </div>
 
@@ -62,24 +96,36 @@ export default function AccountPage() {
               <Input
                 id="acc-email"
                 type="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@domain.ch"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="acc-phone">Telefonnummer (Kurierzustellung)</Label>
+              <Label htmlFor="acc-phone">Telefonnummer (optional, für Kurierzustellung)</Label>
               <Input
                 id="acc-phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder="+41 79 000 00 00"
               />
             </div>
 
-            <Button type="submit" variant="bronze">
-              <Save className="h-4 w-4" />
-              Änderungen speichern
+            <Button type="submit" variant="bronze" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Mail className="h-4 w-4" />
+                  Wird registriert...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  Kostenlos registrieren
+                </>
+              )}
             </Button>
           </form>
         </CardContent>

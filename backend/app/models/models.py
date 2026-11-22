@@ -134,6 +134,12 @@ class Order(Base):
     invoice_sent_at = Column(DateTime, nullable=True)
     invoice_notes = Column(Text, nullable=True)
 
+    # Shipping & Tracking attributes
+    tracking_number = Column(String(120), nullable=True)
+    tracking_carrier = Column(String(100), nullable=True)
+    tracking_url = Column(String(500), nullable=True)
+    shipped_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")

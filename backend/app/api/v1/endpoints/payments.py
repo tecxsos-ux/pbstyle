@@ -11,6 +11,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.models.models import CartItem, DiscountCode, Order, OrderItem, Product
 from app.schemas.schemas import OrderCreate, OrderRead
+from app.services.email_service import send_order_invoice_email
 
 router = APIRouter()
 
@@ -134,9 +135,11 @@ async def create_checkout_session(order_in: OrderCreate, db: AsyncSession = Depe
 
     random_suffix = "".join(random.choices(string.digits, k=4))
     order_number = f"PB-2026-{random_suffix}"
+    invoice_number = f"INV-2026-{random_suffix}"
 
     new_order = Order(
         order_number=order_number,
+        invoice_number=invoice_number,
         customer_email=order_in.customer_email,
         customer_name=order_in.customer_name,
         shipping_address=order_in.shipping_address.model_dump(),
@@ -205,8 +208,14 @@ async def verify_checkout_session(stripe_session_id: str, db: AsyncSession = Dep
     payment_status = session.get("payment_status")
     if payment_status == "paid":
         order.status = "Bezahlt (Stripe)"
+        order.payment_status = "Bezahlt"
         if cart_session_id:
             await db.execute(delete(CartItem).where(CartItem.session_id == cart_session_id))
+        if not order.invoice_sent:
+            sent = await send_order_invoice_email(order)
+            if sent:
+                order.invoice_sent = True
+                order.invoice_sent_at = datetime.datetime.utcnow()
         await db.flush()
 
     return {
@@ -242,12 +251,20 @@ async def stripe_webhook(request: Request, db: AsyncSession = Depends(get_db)):
         order_id = metadata.get("order_id")
         cart_session_id = metadata.get("cart_session_id")
         if order_id:
-            res = await db.execute(select(Order).where(Order.id == int(order_id)))
+            res = await db.execute(
+                select(Order).where(Order.id == int(order_id)).options(selectinload(Order.items))
+            )
             order = res.scalar_one_or_none()
             if order:
                 order.status = "Bezahlt (Stripe)"
+                order.payment_status = "Bezahlt"
                 if cart_session_id:
                     await db.execute(delete(CartItem).where(CartItem.session_id == cart_session_id))
+                if not order.invoice_sent:
+                    sent = await send_order_invoice_email(order)
+                    if sent:
+                        order.invoice_sent = True
+                        order.invoice_sent_at = datetime.datetime.utcnow()
                 await db.flush()
 
     return {"received": True}
