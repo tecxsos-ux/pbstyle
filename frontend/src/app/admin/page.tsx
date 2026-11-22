@@ -1873,28 +1873,59 @@ export default function AdminDashboardPage() {
                 placeholder="z.B. Chronos Platin Cuff"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Kategorie</Label>
-                <Select
-                  value={newProdCategory}
-                  onChange={(e) => setNewProdCategory(Number(e.target.value))}
-                >
-                  <option value={1}>Schmuck</option>
-                  <option value={2}>Beauty-Tools</option>
-                  <option value={3}>Neuheiten</option>
-                </Select>
+            <div className="space-y-2">
+              <Label>Kategorie</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 1, label: 'Schmuck' },
+                  { id: 2, label: 'Beauty-Tools' },
+                  { id: 3, label: 'Neuheiten' },
+                ].map((cat) => {
+                  const selected = newProdCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setNewProdCategory(cat.id)}
+                      className={`h-10 px-2.5 rounded-md border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                        selected
+                          ? 'border-bronze bg-bronze/15 text-foreground shadow-sm'
+                          : 'border-border bg-card text-muted-foreground hover:border-bronze/50 hover:text-foreground'
+                      }`}
+                    >
+                      {selected && <CheckCircle2 className="h-3.5 w-3.5 text-bronze shrink-0" />}
+                      <span className="truncate">{cat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="space-y-1.5">
-                <Label>Material</Label>
-                <Select
-                  value={newProdMaterial}
-                  onChange={(e) => setNewProdMaterial(e.target.value)}
-                >
-                  <option value="platinum">950 Platin</option>
-                  <option value="brushed steel">Chirurgenstahl 316L</option>
-                  <option value="titanium">Titan Grade 5</option>
-                </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Material</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { value: 'platinum', label: '950 Platin' },
+                  { value: 'brushed steel', label: 'Stahl 316L' },
+                  { value: 'titanium', label: 'Titan Gr. 5' },
+                ].map((mat) => {
+                  const selected = newProdMaterial === mat.value;
+                  return (
+                    <button
+                      key={mat.value}
+                      type="button"
+                      onClick={() => setNewProdMaterial(mat.value)}
+                      className={`h-10 px-2.5 rounded-md border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                        selected
+                          ? 'border-bronze bg-bronze/15 text-foreground shadow-sm'
+                          : 'border-border bg-card text-muted-foreground hover:border-bronze/50 hover:text-foreground'
+                      }`}
+                    >
+                      {selected && <CheckCircle2 className="h-3.5 w-3.5 text-bronze shrink-0" />}
+                      <span className="truncate">{mat.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3">
