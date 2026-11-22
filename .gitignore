@@ -68,5 +68,6 @@ Thumbs.db
 
 # Database / Volumes
 postgres_data/
+backend/uploads/
 *.sqlite3
 *.db

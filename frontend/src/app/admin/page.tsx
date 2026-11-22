@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   ExternalLink,
   Heart,
+  ImagePlus,
   LayoutDashboard,
+  Loader2,
   LogOut,
   Mail,
   Menu,
@@ -27,7 +29,9 @@ import {
   Store,
   TrendingUp,
   Truck,
+  Upload,
   Users,
+  X,
   Zap,
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -97,6 +101,10 @@ export default function AdminDashboardPage() {
   const [newProdMaterial, setNewProdMaterial] = useState('platinum');
   const [newProdCategory, setNewProdCategory] = useState(1);
   const [newProdDesc, setNewProdDesc] = useState('');
+  const [newProdImages, setNewProdImages] = useState<string[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
+  const galleryInputRef = React.useRef<HTMLInputElement>(null);
 
   // Invoices
   const [invoicesOrderList, setInvoicesOrderList] = useState<any[]>([]);
@@ -305,6 +313,44 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleUploadProductPhotos = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIsUploadingPhoto(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/v1/admin/uploads/product-image', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.url) uploadedUrls.push(data.url);
+        } else {
+          const err = await res.json().catch(() => ({}));
+          showToast(err.detail || 'Foto-Upload fehlgeschlagen.');
+        }
+      }
+      if (uploadedUrls.length > 0) {
+        setNewProdImages((prev) => [...prev, ...uploadedUrls]);
+        showToast(
+          uploadedUrls.length === 1
+            ? 'Produktfoto erfolgreich hochgeladen.'
+            : `${uploadedUrls.length} Produktfotos erfolgreich hochgeladen.`
+        );
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Fehler beim Hochladen der Fotos.');
+    } finally {
+      setIsUploadingPhoto(false);
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -324,6 +370,8 @@ export default function AdminDashboardPage() {
           low_stock_threshold: 5,
           sku_prefix: 'PB',
           status: 'Aktiv',
+          image_url: newProdImages[0] || null,
+          image_urls: newProdImages,
         }),
       });
       if (res.ok) {
@@ -333,6 +381,7 @@ export default function AdminDashboardPage() {
         setNewProdTitle('');
         setNewProdHandle('');
         setNewProdDesc('');
+        setNewProdImages([]);
         showToast(`"${created.title}" angelegt.`);
         loadOverview();
         loadInstagramData();
@@ -1878,6 +1927,91 @@ export default function AdminDashboardPage() {
                 />
               </div>
             </div>
+            <div className="space-y-2.5">
+              <Label>Produktfotos (Kamera oder Mediathek)</Label>
+
+              {/* Hidden native mobile camera & photo gallery inputs */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => handleUploadProductPhotos(e.target.files)}
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(e) => handleUploadProductPhotos(e.target.files)}
+              />
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploadingPhoto}
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="h-11 border-dashed border-bronze/50 hover:border-bronze"
+                >
+                  {isUploadingPhoto ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-bronze" />
+                  ) : (
+                    <Camera className="h-4 w-4 text-bronze" />
+                  )}
+                  <span>Kamera</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isUploadingPhoto}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="h-11 border-dashed border-border hover:border-bronze"
+                >
+                  {isUploadingPhoto ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-bronze" />
+                  ) : (
+                    <ImagePlus className="h-4 w-4 text-bronze" />
+                  )}
+                  <span>Foto hochladen</span>
+                </Button>
+              </div>
+
+              {newProdImages.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  {newProdImages.map((url, idx) => (
+                    <div
+                      key={`${url}-${idx}`}
+                      className="relative aspect-square rounded-md overflow-hidden border border-border bg-muted group"
+                    >
+                      <img
+                        src={url}
+                        alt={`Produktfoto ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {idx === 0 && (
+                        <span className="absolute bottom-1 left-1 bg-background/90 text-foreground font-mono text-[9px] uppercase px-1.5 py-0.5 rounded">
+                          Hauptbild
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setNewProdImages((prev) => prev.filter((_, i) => i !== idx))
+                        }
+                        aria-label="Foto entfernen"
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-destructive transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label>Beschreibung</Label>
               <Textarea

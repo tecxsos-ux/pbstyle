@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 from app.core.config import settings
@@ -41,6 +43,11 @@ app.add_middleware(
 
 # Include v1 router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Serve uploaded product photos under /api/v1/uploads (proxied automatically by Next.js /api/* rewrite)
+UPLOAD_DIR = os.path.join(os.getcwd(), "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount(f"{settings.API_V1_STR}/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/health", tags=["Health"])
 async def health_check():

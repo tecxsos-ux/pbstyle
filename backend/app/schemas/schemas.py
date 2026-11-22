@@ -313,6 +313,7 @@ class ProductCreate(BaseModel):
     sku_prefix: str = "PB"
     status: str = "Aktiv"
     image_url: Optional[str] = None
+    image_urls: Optional[List[str]] = None
 
 # Invoice & Mail Schemas
 class InvoiceItemDetail(BaseModel):

@@ -34,6 +34,8 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-info@pbstyle.ch}
     expose:
       - "8000"
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,3 +56,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

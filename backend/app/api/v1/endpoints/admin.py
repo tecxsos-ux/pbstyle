@@ -1,7 +1,9 @@
 import datetime
+import os
 import random
 import string
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+import uuid
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
@@ -229,6 +231,49 @@ async def update_inventory_stock(
         variants_count=len(product.variants) if product.variants else 0
     )
 
+@router.post("/uploads/product-image", response_model=Dict[str, str])
+async def upload_product_image(file: UploadFile = File(...)):
+    content_type = (file.content_type or "").lower()
+    allowed_types = {
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+        "image/heic": ".heic",
+        "image/heif": ".heif",
+    }
+    ext = allowed_types.get(content_type)
+    if not ext and file.filename:
+        _, orig_ext = os.path.splitext(file.filename.lower())
+        if orig_ext in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".heic", ".heif"}:
+            ext = orig_ext
+    if not ext:
+        raise HTTPException(
+            status_code=400,
+            detail="Nur Bilddateien (JPG, PNG, WEBP, HEIC) sind erlaubt.",
+        )
+
+    raw_bytes = await file.read()
+    if len(raw_bytes) > 15 * 1024 * 1024:
+        raise HTTPException(
+            status_code=413,
+            detail="Bild ist zu groß (maximal 15 MB erlaubt).",
+        )
+
+    upload_dir = os.path.join(os.getcwd(), "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f"prod_{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(upload_dir, filename)
+    with open(filepath, "wb") as f:
+        f.write(raw_bytes)
+
+    return {
+        "url": f"/api/v1/uploads/{filename}",
+        "filename": filename,
+    }
+
+
 @router.post("/inventory/products", response_model=InventoryItemRead)
 async def create_inventory_product(data: ProductCreate, db: AsyncSession = Depends(get_db)):
     new_prod = Product(
@@ -247,8 +292,17 @@ async def create_inventory_product(data: ProductCreate, db: AsyncSession = Depen
         status=data.status,
         currency="CHF"
     )
-    if data.image_url:
-        new_prod.images = [ProductImage(image_url=data.image_url, sort_order=0, alt_text=data.title)]
+    all_images: List[str] = []
+    if data.image_urls:
+        all_images.extend([u for u in data.image_urls if u and u.strip()])
+    if data.image_url and data.image_url.strip() and data.image_url.strip() not in all_images:
+        all_images.insert(0, data.image_url.strip())
+
+    if all_images:
+        new_prod.images = [
+            ProductImage(image_url=img_url, sort_order=idx, alt_text=data.title)
+            for idx, img_url in enumerate(all_images)
+        ]
 
     db.add(new_prod)
     await db.flush()
