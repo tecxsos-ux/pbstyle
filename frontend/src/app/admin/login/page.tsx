@@ -3,19 +3,18 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, KeyRound, LockOpen, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, LockOpen, ShieldCheck } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@pbstyle.ch');
-  const [password, setPassword] = useState('PBstyle2026!Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -47,11 +46,6 @@ export default function AdminLoginPage() {
     }
   };
 
-  const fillDemoCreds = () => {
-    setEmail('admin@pbstyle.ch');
-    setPassword('PBstyle2026!Admin');
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between p-4 md:p-8">
       {/* Top Bar */}
@@ -76,7 +70,7 @@ export default function AdminLoginPage() {
               <Badge variant="bronze">Atelier Command Center</Badge>
               <CardTitle className="text-3xl pt-1">pbstyle Admin</CardTitle>
               <CardDescription>
-                Zugang zu CRM, Inventar, Rechnungen & Instagram Auto-Post.
+                Zugang zu CRM, Inventar, Rechnungen &amp; Instagram Auto-Post.
               </CardDescription>
             </div>
           </CardHeader>
@@ -95,6 +89,7 @@ export default function AdminLoginPage() {
                   id="admin-email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@pbstyle.ch"
@@ -107,6 +102,7 @@ export default function AdminLoginPage() {
                   id="admin-password"
                   type="password"
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
@@ -118,34 +114,12 @@ export default function AdminLoginPage() {
                 {isLoading ? 'Wird geprüft...' : 'Anmelden'}
               </Button>
             </form>
-
-            <Separator />
-
-            <div className="rounded-md bg-muted/50 border border-border p-4 space-y-2 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-bronze flex items-center gap-1.5 uppercase tracking-wider text-[10px]">
-                  <KeyRound className="h-3.5 w-3.5" />
-                  Vorkonfiguriertes Konto
-                </span>
-                <Button variant="link" size="sm" className="h-auto p-0 text-[11px]" onClick={fillDemoCreds}>
-                  Einfügen
-                </Button>
-              </div>
-              <div className="font-mono text-[11px] text-muted-foreground space-y-0.5">
-                <p>
-                  E-Mail: <span className="text-foreground">admin@pbstyle.ch</span>
-                </p>
-                <p>
-                  Passwort: <span className="text-foreground">PBstyle2026!Admin</span>
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
 
       <p className="text-center text-[11px] text-muted-foreground font-mono">
-        PBSTYLE Schweiz AG • Bahnhofstrasse 45, 8001 Zürich
+        PBSTYLE Schweiz AG
       </p>
     </div>
   );
