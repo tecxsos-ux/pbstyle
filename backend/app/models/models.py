@@ -23,8 +23,10 @@ class Category(Base):
     handle = Column(String(100), unique=True, index=True, nullable=False)
     description = Column(Text, nullable=True)
     image_url = Column(String(500), nullable=True)
+    parent_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"), nullable=True)
 
     products = relationship("Product", back_populates="category")
+    parent = relationship("Category", remote_side=[id], backref="subcategories")
 
 
 class Product(Base):
@@ -151,7 +153,7 @@ class OrderItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="SET NULL"), nullable=True)
     product_title = Column(String(255), nullable=False)
     variant_title = Column(String(100), nullable=True)
     unit_price = Column(Float, nullable=False)

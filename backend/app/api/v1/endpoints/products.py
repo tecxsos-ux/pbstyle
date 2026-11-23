@@ -65,6 +65,8 @@ async def get_products(
         query = query.order_by(Product.base_price.desc())
     elif sort == "title-asc":
         query = query.order_by(Product.title.asc())
+    elif sort == "newest":
+        query = query.order_by(Product.is_new.desc(), Product.created_at.desc(), Product.id.desc())
     else: # featured
         query = query.order_by(Product.is_featured.desc(), Product.id.asc())
 

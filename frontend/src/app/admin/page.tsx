@@ -8,6 +8,7 @@ import {
   Camera,
   CheckCircle2,
   ExternalLink,
+  FolderPlus,
   Heart,
   ImagePlus,
   LayoutDashboard,
@@ -27,6 +28,7 @@ import {
   Send,
   ShoppingBag,
   Store,
+  Trash2,
   TrendingUp,
   Truck,
   Upload,
@@ -103,8 +105,18 @@ export default function AdminDashboardPage() {
   const [newProdDesc, setNewProdDesc] = useState('');
   const [newProdImages, setNewProdImages] = useState<string[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState<any>(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
   const cameraInputRef = React.useRef<HTMLInputElement>(null);
   const galleryInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Categories & Subcategories
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCatTitle, setNewCatTitle] = useState('');
+  const [newCatParentId, setNewCatParentId] = useState<string>('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
 
   // Invoices
   const [invoicesOrderList, setInvoicesOrderList] = useState<any[]>([]);
@@ -147,14 +159,24 @@ export default function AdminDashboardPage() {
       } catch {}
     }
 
-    Promise.all([loadOverview(), loadCustomers(), loadInventory(), loadInstagramData()]).finally(
-      () => setIsInitialLoading(false)
-    );
+    Promise.all([
+      loadOverview(),
+      loadCustomers(),
+      loadInventory(),
+      loadCategories(),
+      loadInstagramData(),
+    ]).finally(() => setIsInitialLoading(false));
   }, []);
 
   const refreshAll = async () => {
     setIsRefreshing(true);
-    await Promise.all([loadOverview(), loadCustomers(), loadInventory(), loadInstagramData()]);
+    await Promise.all([
+      loadOverview(),
+      loadCustomers(),
+      loadInventory(),
+      loadCategories(),
+      loadInstagramData(),
+    ]);
     setIsRefreshing(false);
     showToast('Daten aktualisiert');
   };
@@ -190,6 +212,98 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch('/api/v1/admin/inventory/products');
       if (res.ok) setInventory(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const res = await fetch('/api/v1/admin/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+        if (data.length > 0 && !data.some((c: any) => c.id === newProdCategory)) {
+          setNewProdCategory(data[0].id);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deletingProduct) return;
+    setIsDeletingProduct(true);
+    try {
+      const res = await fetch(`/api/v1/admin/inventory/products/${deletingProduct.id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInventory((prev) => prev.filter((p) => p.id !== deletingProduct.id));
+        setDeletingProduct(null);
+        showToast(data.message || 'Produkt gelöscht.');
+        loadOverview();
+        loadCategories();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || 'Produkt konnte nicht gelöscht werden.');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsDeletingProduct(false);
+    }
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatTitle.trim()) return;
+    setIsSavingCategory(true);
+    try {
+      const res = await fetch('/api/v1/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newCatTitle.trim(),
+          parent_id: newCatParentId ? Number(newCatParentId) : null,
+          description: newCatDesc.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setCategories((prev) => [...prev, created]);
+        setNewCatTitle('');
+        setNewCatParentId('');
+        setNewCatDesc('');
+        showToast(
+          created.parent_title
+            ? `Unterkategorie "${created.title}" unter "${created.parent_title}" erstellt.`
+            : `Kategorie "${created.title}" erstellt.`
+        );
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || 'Kategorie konnte nicht erstellt werden.');
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSavingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (catId: number) => {
+    try {
+      const res = await fetch(`/api/v1/admin/categories/${catId}`, { method: 'DELETE' });
+      if (res.ok) {
+        const data = await res.json();
+        setCategories((prev) => prev.filter((c) => c.id !== catId));
+        showToast(data.message || 'Kategorie gelöscht.');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.detail || 'Kategorie enthält noch Produkte.');
+      }
     } catch (e) {
       console.error(e);
     }
@@ -715,15 +829,32 @@ export default function AdminDashboardPage() {
 
           <div className="flex items-center gap-1.5 sm:gap-2">
             {activeTab === 'inventory' && (
-              <Button
-                variant="bronze"
-                size="sm"
-                onClick={() => setIsNewProductModalOpen(true)}
-                className="h-9"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Neues Objekt</span>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    loadCategories();
+                    setIsCategoryModalOpen(true);
+                  }}
+                  className="h-9"
+                >
+                  <FolderPlus className="h-4 w-4 text-bronze" />
+                  <span className="hidden sm:inline">Kategorien</span>
+                </Button>
+                <Button
+                  variant="bronze"
+                  size="sm"
+                  onClick={() => {
+                    loadCategories();
+                    setIsNewProductModalOpen(true);
+                  }}
+                  className="h-9"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Neues Objekt</span>
+                </Button>
+              </>
             )}
 
             <Button
@@ -1241,24 +1372,33 @@ export default function AdminDashboardPage() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-3 gap-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full"
+                                className="w-full px-2"
                                 onClick={() => handleOpenInstagramModal(item)}
                               >
                                 <Camera className="h-3.5 w-3.5 text-bronze" />
-                                IG Post
+                                IG
                               </Button>
                               <Button
                                 variant="secondary"
                                 size="sm"
-                                className="w-full"
+                                className="w-full px-2"
                                 onClick={() => setEditingItem({ ...item })}
                               >
                                 <Pencil className="h-3.5 w-3.5" />
-                                Bearbeiten
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full px-2 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+                                onClick={() => setDeletingProduct(item)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Löschen
                               </Button>
                             </div>
                           </CardContent>
@@ -1360,6 +1500,15 @@ export default function AdminDashboardPage() {
                                       onClick={() => setEditingItem({ ...item })}
                                     >
                                       Bearbeiten
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+                                      onClick={() => setDeletingProduct(item)}
+                                      aria-label="Produkt löschen"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5" />
                                     </Button>
                                   </div>
                                 </TableCell>
@@ -1874,27 +2023,46 @@ export default function AdminDashboardPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Kategorie</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 1, label: 'Schmuck' },
-                  { id: 2, label: 'Beauty-Tools' },
-                  { id: 3, label: 'Neuheiten' },
-                ].map((cat) => {
+              <div className="flex items-center justify-between">
+                <Label>Kategorie / Unterkategorie</Label>
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  className="text-[11px] text-bronze hover:underline font-medium"
+                >
+                  + Neu anlegen
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {(categories.length > 0
+                  ? categories
+                  : [
+                      { id: 1, title: 'Schmuck', parent_title: null },
+                      { id: 2, title: 'Beauty-Tools', parent_title: null },
+                      { id: 3, title: 'Neuheiten', parent_title: null },
+                    ]
+                ).map((cat) => {
                   const selected = newProdCategory === cat.id;
                   return (
                     <button
                       key={cat.id}
                       type="button"
                       onClick={() => setNewProdCategory(cat.id)}
-                      className={`h-10 px-2.5 rounded-md border text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                      className={`min-h-[42px] px-2.5 py-1.5 rounded-md border text-xs font-medium transition-all flex flex-col items-center justify-center text-center ${
                         selected
                           ? 'border-bronze bg-bronze/15 text-foreground shadow-sm'
                           : 'border-border bg-card text-muted-foreground hover:border-bronze/50 hover:text-foreground'
                       }`}
                     >
-                      {selected && <CheckCircle2 className="h-3.5 w-3.5 text-bronze shrink-0" />}
-                      <span className="truncate">{cat.label}</span>
+                      <span className="flex items-center gap-1 max-w-full">
+                        {selected && <CheckCircle2 className="h-3 w-3 text-bronze shrink-0" />}
+                        <span className="truncate">{cat.title}</span>
+                      </span>
+                      {cat.parent_title && (
+                        <span className="text-[9px] text-muted-foreground truncate max-w-full">
+                          ↳ {cat.parent_title}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -2235,6 +2403,137 @@ export default function AdminDashboardPage() {
               </DialogFooter>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG 7: DELETE PRODUCT CONFIRMATION */}
+      <Dialog
+        open={!!deletingProduct}
+        onOpenChange={(open) => !open && setDeletingProduct(null)}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Produkt löschen?</DialogTitle>
+            <DialogDescription>
+              Möchten Sie <strong>{deletingProduct?.title}</strong> wirklich dauerhaft aus dem Katalog entfernen? Bestehende Bestellungen und Rechnungen bleiben erhalten.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeletingProduct(null)}
+              disabled={isDeletingProduct}
+            >
+              Abbrechen
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteProduct}
+              disabled={isDeletingProduct}
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeletingProduct ? 'Wird gelöscht...' : 'Endgültig löschen'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG 8: CATEGORIES & SUBCATEGORIES MANAGER */}
+      <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Kategorien &amp; Unterkategorien</DialogTitle>
+            <DialogDescription>
+              Erstellen Sie Hauptkategorien oder ordnen Sie eine Unterkategorie zu.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateCategory} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Name der Kategorie / Unterkategorie</Label>
+              <Input
+                required
+                value={newCatTitle}
+                onChange={(e) => setNewCatTitle(e.target.value)}
+                placeholder="z.B. Platinringe oder Pinzetten"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Übergeordnete Kategorie (optional für Unterkategorie)</Label>
+              <Select
+                value={newCatParentId}
+                onChange={(e) => setNewCatParentId(e.target.value)}
+              >
+                <option value="">Keine — als Hauptkategorie anlegen</option>
+                {categories
+                  .filter((c) => !c.parent_id)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      Unterkategorie von: {c.title}
+                    </option>
+                  ))}
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Kurzbeschreibung (optional)</Label>
+              <Input
+                value={newCatDesc}
+                onChange={(e) => setNewCatDesc(e.target.value)}
+                placeholder="Kurze Beschreibung für den Katalog..."
+              />
+            </div>
+
+            <Button type="submit" variant="bronze" className="w-full" disabled={isSavingCategory}>
+              <FolderPlus className="h-4 w-4" />
+              {isSavingCategory
+                ? 'Wird gespeichert...'
+                : newCatParentId
+                ? 'Unterkategorie erstellen'
+                : 'Hauptkategorie erstellen'}
+            </Button>
+          </form>
+
+          <Separator />
+
+          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+            <Label>Vorhandene Kategorien ({categories.length})</Label>
+            <div className="space-y-1.5 pt-1">
+              {categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-md border border-border bg-muted/30 text-xs"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium text-foreground flex items-center gap-1.5">
+                      {cat.parent_title && (
+                        <span className="text-muted-foreground font-mono text-[10px]">
+                          {cat.parent_title} ↳
+                        </span>
+                      )}
+                      <span className="truncate">{cat.title}</span>
+                    </div>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      /{cat.handle} • {cat.products_count} Produkte
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    aria-label="Kategorie löschen"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

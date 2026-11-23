@@ -19,6 +19,8 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_carrier VARCHAR(100)",
             "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_url VARCHAR(500)",
             "ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMP WITHOUT TIME ZONE",
+            "ALTER TABLE categories ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL",
+            "ALTER TABLE order_items ALTER COLUMN product_id DROP NOT NULL",
         ]:
             await conn.execute(text(col_sql))
     yield

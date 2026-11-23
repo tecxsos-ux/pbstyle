@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { fetchProducts } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
+import HeroSlideshow from '@/components/HeroSlideshow';
 import JsonLd, { generateFaqSchema, generateWebPageSchema } from '@/components/JsonLd';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,8 +34,10 @@ const homeFaqs = [
 ];
 
 export default async function HomePage() {
-  const products = await fetchProducts({ limit: 4, sort: 'featured' });
-  const heroFeatured = products[0];
+  const [products, newestProducts] = await Promise.all([
+    fetchProducts({ limit: 4, sort: 'featured' }),
+    fetchProducts({ limit: 5, sort: 'newest' }),
+  ]);
 
   const categories = [
     {
@@ -146,53 +149,9 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Right Layered Editorial Showcase */}
+          {/* Right Layered Editorial Slideshow (Latest 5 New Products) */}
           <div className="lg:col-span-6 relative">
-            <div className="relative pl-6 sm:pl-12 pb-8 sm:pb-12">
-              {/* Primary Tall Gallery Frame */}
-              <div className="relative aspect-[4/5] max-h-[600px] w-full rounded-lg overflow-hidden border border-border shadow-2xl bg-muted group">
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwNQ1qvT8pN4BHlHMAnesDlNwFzWVc5C4MCgMKvjG6Dgi0wINdiMz6xIKg0pghaC970is5ojjKQBwOXo-XPzDwD5pM_u1CCdycEwwLT5D9oQasqR_VtBLpo7hKvEGdUPmTXLS_p7L_7hW6syTQ8B0FWOLJARlFNI--4EtFtRScQzSf_rYSG6do9C_qxEgjjpMv6sTxgn7gPepLNq6P5fQ6SexplAfCcLoaBp2UAmEMEaseVIG_orJ9PrUEsJ3f5hP3So0oi8KJXd0"
-                  alt="PBSTYLE 950 Platin & Titan Kollektion"
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-
-                {/* Floating Live Featured Object Plaque */}
-                {heroFeatured && (
-                  <Link
-                    href={`/products/${heroFeatured.handle}`}
-                    className="absolute bottom-4 right-4 left-28 sm:left-auto sm:w-64 rounded-md bg-background/90 backdrop-blur-md border border-border/80 p-3.5 shadow-xl hover:border-bronze transition-colors flex items-center justify-between gap-3 group/plaque"
-                  >
-                    <div className="min-w-0">
-                      <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-bronze block">
-                        Signatur-Objekt
-                      </span>
-                      <span className="font-serif text-sm font-medium text-foreground truncate block">
-                        {heroFeatured.title}
-                      </span>
-                      <span className="font-mono text-xs text-muted-foreground">
-                        CHF {heroFeatured.base_price.toLocaleString('de-CH')}
-                      </span>
-                    </div>
-                    <span className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 group-hover/plaque:bg-bronze transition-colors">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </span>
-                  </Link>
-                )}
-              </div>
-
-              {/* Inset Precision Detail Frame */}
-              <div className="absolute bottom-0 left-0 w-36 sm:w-48 aspect-[4/5] p-1.5 rounded-lg bg-card border border-border shadow-2xl z-20 group">
-                <div className="w-full h-full rounded-md overflow-hidden bg-muted">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTnOF-EQ40OwuZ0ZU27tQmsN-13iuaRYLileGEV_ZUsvB__23n3zRDNNf-qHgdweB6KRm6ck0uGD6SRIwI3pR_ulHsVdfgqC8VkKhdotEjeZA_4G_Bwe0pKZRiEbBlgCu87izJN5spl_cyDJMfoKSHHM9A9dbolPqfVZTKXbByG5tn7TX4vIH0Dj24KCecbPFtwHIOQB1Mz13-2GFR0sZCkLkoEkPPu3DiDsl7LWoCWhe2TQ9OcjK1GIRHtNB47a2wytHhKmvD5gA"
-                    alt="PBSTYLE Chirurgenstahl 316L Detail"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-              </div>
-            </div>
+            <HeroSlideshow products={newestProducts.length > 0 ? newestProducts : products} />
           </div>
         </div>
       </header>

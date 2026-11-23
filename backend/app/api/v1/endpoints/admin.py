@@ -6,15 +6,27 @@ import uuid
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Header
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, desc
+from sqlalchemy import delete, select, func, desc, update
 from sqlalchemy.orm import selectinload
 from typing import List, Optional, Dict, Any
 
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
-from app.models.models import AdminUser, Customer, Product, ProductVariant, ProductImage, Order, OrderItem, Category
+from app.models.models import (
+    AdminUser,
+    CartItem,
+    Category,
+    Customer,
+    InstagramPost,
+    Order,
+    OrderItem,
+    Product,
+    ProductImage,
+    ProductVariant,
+)
 from app.schemas.schemas import (
     AdminLogin, AdminToken, AdminUserRead,
+    CategoryAdminRead, CategoryCreate,
     CustomerCrmRead, CustomerCrmUpdate,
     InventoryItemRead, InventoryStockUpdate, ProductCreate,
     InvoiceDetail, InvoiceItemDetail, SendInvoiceRequest, SendInvoiceResponse,
@@ -290,6 +302,7 @@ async def create_inventory_product(data: ProductCreate, db: AsyncSession = Depen
         low_stock_threshold=data.low_stock_threshold,
         sku_prefix=data.sku_prefix,
         status=data.status,
+        is_new=True,
         currency="CHF"
     )
     all_images: List[str] = []
@@ -334,6 +347,128 @@ async def create_inventory_product(data: ProductCreate, db: AsyncSession = Depen
         category_title=cat.title if cat else None,
         variants_count=0
     )
+
+
+@router.delete("/inventory/products/{product_id}", response_model=Dict[str, Any])
+async def delete_inventory_product(product_id: int, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Product).where(Product.id == product_id))
+    product = res.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Produkt nicht gefunden.")
+
+    title = product.title
+    # Cleanly remove cart references and detach historical order/instagram references
+    await db.execute(delete(CartItem).where(CartItem.product_id == product_id))
+    await db.execute(
+        update(OrderItem).where(OrderItem.product_id == product_id).values(product_id=None)
+    )
+    await db.execute(
+        update(InstagramPost).where(InstagramPost.product_id == product_id).values(product_id=None)
+    )
+    await db.delete(product)
+    await db.flush()
+
+    return {"success": True, "deleted_id": product_id, "message": f'Produkt "{title}" wurde gelöscht.'}
+
+
+# 4B. CATEGORY & SUBCATEGORY MANAGEMENT
+@router.get("/categories", response_model=List[CategoryAdminRead])
+async def list_admin_categories(db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Category).order_by(Category.parent_id.asc().nullsfirst(), Category.id.asc()))
+    cats = res.scalars().all()
+    cat_map = {c.id: c.title for c in cats}
+
+    counts_res = await db.execute(
+        select(Product.category_id, func.count(Product.id)).group_by(Product.category_id)
+    )
+    counts = {row[0]: row[1] for row in counts_res.all()}
+
+    return [
+        CategoryAdminRead(
+            id=c.id,
+            title=c.title,
+            handle=c.handle,
+            description=c.description,
+            parent_id=c.parent_id,
+            parent_title=cat_map.get(c.parent_id) if c.parent_id else None,
+            products_count=counts.get(c.id, 0),
+        )
+        for c in cats
+    ]
+
+
+@router.post("/categories", response_model=CategoryAdminRead)
+async def create_admin_category(data: CategoryCreate, db: AsyncSession = Depends(get_db)):
+    title_clean = data.title.strip()
+    if not title_clean:
+        raise HTTPException(status_code=400, detail="Bitte einen Kategorienamen eingeben.")
+
+    raw_handle = (data.handle or title_clean).strip().lower()
+    slug = (
+        raw_handle.replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
+    slug = "".join(ch if ch.isalnum() or ch == "-" else "-" for ch in slug)
+    while "--" in slug:
+        slug = slug.replace("--", "-")
+    slug = slug.strip("-") or f"cat-{random.randint(100, 999)}"
+
+    # Ensure unique handle
+    existing = await db.execute(select(Category).where(Category.handle == slug))
+    if existing.scalar_one_or_none():
+        slug = f"{slug}-{random.randint(10, 99)}"
+
+    parent_title = None
+    if data.parent_id:
+        p_res = await db.execute(select(Category).where(Category.id == data.parent_id))
+        parent_cat = p_res.scalar_one_or_none()
+        if not parent_cat:
+            raise HTTPException(status_code=404, detail="Übergeordnete Kategorie nicht gefunden.")
+        parent_title = parent_cat.title
+
+    new_cat = Category(
+        title=title_clean,
+        handle=slug,
+        description=data.description,
+        parent_id=data.parent_id,
+    )
+    db.add(new_cat)
+    await db.flush()
+    await db.refresh(new_cat)
+
+    return CategoryAdminRead(
+        id=new_cat.id,
+        title=new_cat.title,
+        handle=new_cat.handle,
+        description=new_cat.description,
+        parent_id=new_cat.parent_id,
+        parent_title=parent_title,
+        products_count=0,
+    )
+
+
+@router.delete("/categories/{category_id}", response_model=Dict[str, Any])
+async def delete_admin_category(category_id: int, db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(Category).where(Category.id == category_id))
+    cat = res.scalar_one_or_none()
+    if not cat:
+        raise HTTPException(status_code=404, detail="Kategorie nicht gefunden.")
+
+    prod_count_res = await db.execute(
+        select(func.count(Product.id)).where(Product.category_id == category_id)
+    )
+    if (prod_count_res.scalar() or 0) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Kategorie enthält noch Produkte und kann nicht gelöscht werden.",
+        )
+
+    title = cat.title
+    await db.delete(cat)
+    await db.flush()
+    return {"success": True, "deleted_id": category_id, "message": f'Kategorie "{title}" gelöscht.'}
 
 # 5. INVOICE GENERATION & SEND BY MAIL
 @router.get("/invoices/{order_id}", response_model=InvoiceDetail)

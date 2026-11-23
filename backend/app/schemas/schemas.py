@@ -11,8 +11,26 @@ class CategoryBase(BaseModel):
 
 class CategoryRead(CategoryBase):
     id: int
+    parent_id: Optional[int] = None
     class Config:
         from_attributes = True
+
+
+class CategoryCreate(BaseModel):
+    title: str
+    handle: Optional[str] = None
+    description: Optional[str] = None
+    parent_id: Optional[int] = None
+
+
+class CategoryAdminRead(BaseModel):
+    id: int
+    title: str
+    handle: str
+    description: Optional[str] = None
+    parent_id: Optional[int] = None
+    parent_title: Optional[str] = None
+    products_count: int = 0
 
 # Images & Variants
 class ProductImageRead(BaseModel):
@@ -144,7 +162,7 @@ class OrderCreate(BaseModel):
 
 class OrderItemRead(BaseModel):
     id: int
-    product_id: int
+    product_id: Optional[int] = None
     product_title: str
     variant_title: Optional[str] = None
     unit_price: float
