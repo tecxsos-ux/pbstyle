@@ -542,3 +542,81 @@ async def send_tracking_email(
         html_body=html_content,
         text_body=text_content,
     )
+
+
+async def send_refund_email(
+    order: object,
+    refund_amount: float,
+    return_status: str = "Erstattet",
+    reason: Optional[str] = None,
+    refund_id: Optional[str] = None,
+) -> bool:
+    base_url = settings.FRONTEND_URL.rstrip("/")
+    to_email = getattr(order, "customer_email")
+    customer_name = getattr(order, "customer_name", "Geschätzter Klient")
+    order_number = getattr(order, "order_number")
+    currency = getattr(order, "currency", "CHF")
+
+    reason_html = ""
+    if reason and reason.strip():
+        reason_html = f"""
+        <div style="background-color:#F8F7F4; border-left:3px solid #9A7B56; padding:14px 18px; margin: 18px 0; font-size:13px; color:#2B2D32;">
+          {html.escape(reason.strip()).replace(chr(10), '<br />')}
+        </div>
+        """
+
+    ref_line = f"<div style='font-family:Courier New, monospace; font-size:11px; color:#A3A7B0; margin-top:6px;'>Referenz: {html.escape(refund_id)}</div>" if refund_id else ""
+
+    body_html = f"""
+    <p style="margin:0 0 16px 0;">Guten Tag {html.escape(customer_name)},</p>
+    <p style="margin:0 0 20px 0;">
+      hiermit bestätigen wir die Bearbeitung Ihrer Rückgabe / Rückerstattung für die Bestellung <strong>{html.escape(order_number)}</strong>.
+    </p>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+           style="background-color:#111214; border-radius:6px; margin: 22px 0; border: 1px solid #9A7B56;">
+      <tr>
+        <td style="padding: 24px 28px; text-align:center;">
+          <div style="font-family:'Courier New', Courier, monospace; font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:#C9A97C;">
+            RÜCKERSTATTUNGSBETRAG ({html.escape(return_status)})
+          </div>
+          <div style="font-family:'Courier New', Courier, monospace; font-size:24px; font-weight:700; color:#FAF6EF; margin-top:8px;">
+            {currency} {refund_amount:,.2f}
+          </div>
+          {ref_line}
+        </td>
+      </tr>
+    </table>
+
+    {reason_html}
+
+    <p style="margin:12px 0 0 0; font-size:13px; color:#666A73;">
+      Die Gutschrift erfolgt automatisch auf Ihr ursprünglich verwendetes Zahlungsmittel (in der Regel innerhalb von 3–5 Werktagen).
+    </p>
+    """
+
+    html_content = _wrap_luxury_email(
+        preheader=f"Bestätigung Ihrer Rückerstattung ({currency} {refund_amount:,.2f}) für Bestellung {order_number}.",
+        eyebrow="Rückgabe & Rückerstattung",
+        headline="Ihre Rückerstattung wurde veranlasst",
+        body_html=body_html,
+        cta_label="Zur PBSTYLE Kollektion",
+        cta_url=f"{base_url}/catalog",
+    )
+
+    text_content = (
+        f"Guten Tag {customer_name},\n\n"
+        f"wir bestätigen Ihre Rückgabe / Rückerstattung für Bestellung {order_number}.\n"
+        f"Status: {return_status}\n"
+        f"Erstattungsbetrag: {currency} {refund_amount:,.2f}\n"
+        + (f"Referenz: {refund_id}\n" if refund_id else "")
+        + (f"Hinweis: {reason}\n" if reason else "")
+        + "\nPBSTYLE Atelier Zürich | info@pbstyle.ch"
+    )
+
+    return await send_email(
+        recipient_email=to_email,
+        subject=f"PBSTYLE Rückerstattung bestätigt ({currency} {refund_amount:,.2f}) — {order_number}",
+        html_body=html_content,
+        text_body=text_content,
+    )

@@ -25,18 +25,22 @@ from app.models.models import (
     ProductImage,
     ProductVariant,
 )
+import stripe
+from app.core.config import settings
 from app.schemas.schemas import (
     AdminLogin, AdminToken, AdminUserRead,
     CategoryAdminRead, CategoryCreate,
     CustomerCrmRead, CustomerCrmUpdate,
     InventoryItemRead, InventoryStockUpdate, ProductCreate,
     InvoiceDetail, InvoiceItemDetail, SendInvoiceRequest, SendInvoiceResponse,
-    AdminOverviewMetrics, OrderRead, OrderTrackingUpdate, SendCouponRequest
+    AdminOverviewMetrics, OrderRead, OrderTrackingUpdate, SendCouponRequest,
+    OrderRefundRequest,
 )
 from app.services.email_service import (
     build_tracking_url,
     send_coupon_email,
     send_order_invoice_email,
+    send_refund_email,
     send_tracking_email,
 )
 
@@ -825,4 +829,91 @@ async def send_coupon_to_clients(
         "sent_count": sent_count,
         "total_selected": len(selected_customers),
         "message": f"Gutschein {clean_code} ({pct_label}%) erfolgreich an {sent_count} von {len(selected_customers)} Klienten über info@pbstyle.ch versandt.",
+    }
+
+
+# 7. ORDER RETURN & REFUND (STRIPE + RESTOCK + EMAIL)
+@router.post("/orders/{order_id}/refund", response_model=Dict[str, Any])
+async def refund_order(
+    order_id: int,
+    req: OrderRefundRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    res = await db.execute(
+        select(Order).where(Order.id == order_id).options(selectinload(Order.items))
+    )
+    order = res.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Bestellung nicht gefunden.")
+
+    if req.refund_amount > order.total_amount + 0.01:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Erstattungsbetrag darf CHF {order.total_amount:.2f} nicht überschreiten.",
+        )
+
+    stripe_refund_id = None
+    stripe_refunded = False
+
+    # Execute real Stripe refund if paid via Stripe PaymentIntent
+    if order.stripe_payment_intent_id and settings.STRIPE_SECRET_KEY:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        try:
+            refund_obj = stripe.Refund.create(
+                payment_intent=order.stripe_payment_intent_id,
+                amount=int(round(req.refund_amount * 100)),
+                reason="requested_by_customer",
+            )
+            stripe_refund_id = refund_obj.id
+            stripe_refunded = True
+        except stripe.error.StripeError as exc:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Stripe Rückerstattung fehlgeschlagen: {exc.user_message or str(exc)}",
+            )
+
+    # Restock returned items if requested
+    if req.restock_items:
+        for item in order.items:
+            if item.product_id:
+                prod_res = await db.execute(select(Product).where(Product.id == item.product_id))
+                prod = prod_res.scalar_one_or_none()
+                if prod:
+                    prod.stock = (prod.stock or 0) + item.quantity
+
+    is_full_refund = abs(req.refund_amount - order.total_amount) < 0.05
+    now = datetime.datetime.utcnow()
+
+    order.return_status = req.return_status or ("Erstattet" if is_full_refund else "Teilerstattung")
+    order.status = "Erstattet" if is_full_refund else "Teilerstattung"
+    order.payment_status = "Erstattet" if is_full_refund else "Teilerstattet"
+    order.refund_amount = round(req.refund_amount, 2)
+    order.refund_reason = req.reason
+    order.refund_id = stripe_refund_id or f"REF-{order.order_number}"
+    order.refunded_at = now
+
+    await db.flush()
+    await db.refresh(order)
+
+    email_sent = False
+    if req.send_email:
+        email_sent = await send_refund_email(
+            order=order,
+            refund_amount=order.refund_amount,
+            return_status=order.return_status,
+            reason=req.reason,
+            refund_id=order.refund_id,
+        )
+
+    return {
+        "success": True,
+        "stripe_refunded": stripe_refunded,
+        "refund_id": order.refund_id,
+        "email_sent": email_sent,
+        "message": (
+            f"Rückerstattung über CHF {order.refund_amount:,.2f} "
+            + ("via Stripe ausgeführt" if stripe_refunded else "erfasst")
+            + (f" & Bestätigung an {order.customer_email} gesendet." if email_sent else ".")
+        ),
+        "order": OrderRead.model_validate(order),
     }

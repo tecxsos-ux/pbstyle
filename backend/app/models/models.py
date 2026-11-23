@@ -142,6 +142,14 @@ class Order(Base):
     tracking_url = Column(String(500), nullable=True)
     shipped_at = Column(DateTime, nullable=True)
 
+    # Stripe PaymentIntent & Return / Refund attributes
+    stripe_payment_intent_id = Column(String(120), nullable=True)
+    return_status = Column(String(50), nullable=True)
+    refund_id = Column(String(120), nullable=True)
+    refund_amount = Column(Float, default=0.0)
+    refund_reason = Column(Text, nullable=True)
+    refunded_at = Column(DateTime, nullable=True)
+
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")

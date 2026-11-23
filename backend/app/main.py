@@ -21,6 +21,12 @@ async def lifespan(app: FastAPI):
             "ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMP WITHOUT TIME ZONE",
             "ALTER TABLE categories ADD COLUMN IF NOT EXISTS parent_id INTEGER REFERENCES categories(id) ON DELETE SET NULL",
             "ALTER TABLE order_items ALTER COLUMN product_id DROP NOT NULL",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_payment_intent_id VARCHAR(120)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS return_status VARCHAR(50)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_id VARCHAR(120)",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_amount DOUBLE PRECISION DEFAULT 0.0",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_reason TEXT",
+            "ALTER TABLE orders ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMP WITHOUT TIME ZONE",
         ]:
             await conn.execute(text(col_sql))
     yield

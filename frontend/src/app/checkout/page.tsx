@@ -1,35 +1,154 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
 import {
-  AlertCircle,
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from '@stripe/react-stripe-js';
+import {
+  ArrowLeft,
   CheckCircle2,
   CreditCard,
-  ExternalLink,
   Landmark,
+  Loader2,
   Lock,
+  Smartphone,
   Tag,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import {
   validateDiscountCodeApi,
   createOrderApi,
-  createStripeCheckoutSessionApi,
+  createPaymentIntentApi,
+  confirmPaymentIntentApi,
 } from '@/lib/api';
 import { Order } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+
+function InAppPaymentForm({
+  amountChf,
+  orderNumber,
+  onSuccess,
+  onBack,
+}: {
+  amountChf: number;
+  orderNumber: string;
+  onSuccess: (order: Order) => void;
+  onBack: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isPaying, setIsPaying] = useState(false);
+  const [payError, setPayError] = useState('');
+
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsPaying(true);
+    setPayError('');
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/checkout/success`,
+      },
+      redirect: 'if_required',
+    });
+
+    if (error) {
+      setPayError(error.message || 'Zahlung konnte nicht abgeschlossen werden.');
+      setIsPaying(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      try {
+        const verified = await confirmPaymentIntentApi(paymentIntent.id);
+        onSuccess(verified.order);
+      } catch (err: any) {
+        setPayError(err.message || 'Zahlung erfolgreich, aber Bestätigung fehlgeschlagen.');
+        setIsPaying(false);
+      }
+    } else {
+      setPayError('Zahlung wird noch verarbeitet. Bitte prüfen Sie Ihre E-Mail.');
+      setIsPaying(false);
+    }
+  };
+
+  return (
+    <Card className="border-bronze/40 shadow-lg">
+      <CardHeader>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-bronze">
+              Bestellung {orderNumber}
+            </span>
+            <CardTitle className="mt-1">Sichere In-App Zahlung</CardTitle>
+            <CardDescription>
+              Bezahlen Sie direkt hier mit Kreditkarte, Apple Pay, Google Pay oder TWINT — ohne Weiterleitung.
+            </CardDescription>
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
+            Zurück
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleConfirm} className="space-y-6">
+          {payError && (
+            <div className="p-3.5 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-xs">
+              {payError}
+            </div>
+          )}
+
+          <div className="p-4 rounded-md border border-border bg-background">
+            <PaymentElement
+              options={{
+                layout: 'tabs',
+              }}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="bronze"
+            size="lg"
+            className="w-full"
+            disabled={!stripe || isPaying}
+          >
+            {isPaying ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Zahlung wird verarbeitet...
+              </>
+            ) : (
+              <>
+                <Lock className="h-4 w-4" />
+                CHF {amountChf.toLocaleString('de-CH', { minimumFractionDigits: 2 })} jetzt bezahlen
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function CheckoutContent() {
-  const searchParams = useSearchParams();
-  const wasCanceled = searchParams.get('canceled') === '1';
   const { cart, clearUserCart } = useCart();
 
   const [firstName, setFirstName] = useState('');
@@ -39,8 +158,15 @@ function CheckoutContent() {
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [country, setCountry] = useState('Schweiz');
-  const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'wire'>('stripe');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'twint' | 'wire'>('card');
 
+  // Embedded Stripe PaymentIntent state
+  const [clientSecret, setClientSecret] = useState<string>('');
+  const [pendingOrderNumber, setPendingOrderNumber] = useState<string>('');
+  const [pendingAmount, setPendingAmount] = useState<number>(0);
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  // Promo
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [promoMessage, setPromoMessage] = useState<string>('');
@@ -49,6 +175,10 @@ function CheckoutContent() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
 
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;
@@ -69,7 +199,7 @@ function CheckoutContent() {
   const shippingCost = cart.subtotal > 150 ? 0 : 15;
   const finalTotal = Math.max(0, cart.subtotal - discountAmount + shippingCost);
 
-  const handleSubmitOrder = async (e: React.FormEvent) => {
+  const handleContinueOrOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.items.length === 0) {
       setErrorMessage('Ihr Warenkorb ist leer.');
@@ -93,23 +223,30 @@ function CheckoutContent() {
       },
       promo_code: discountPercent > 0 ? promoCode : null,
       payment_method:
-        paymentMethod === 'stripe'
-          ? 'Stripe Checkout (Karte / Apple Pay / Google Pay / Link)'
-          : 'Banküberweisung / Vorauszahlung',
+        paymentMethod === 'card'
+          ? 'Karte / Apple Pay (In-App)'
+          : paymentMethod === 'twint'
+          ? 'TWINT Schweizer Zahlungsapp'
+          : 'Banküberweisung / QR-Rechnung',
     };
 
     try {
-      if (paymentMethod === 'stripe') {
-        const stripeRes = await createStripeCheckoutSessionApi(payload);
-        window.location.href = stripeRes.checkout_url;
+      if (paymentMethod === 'card') {
+        const pi = await createPaymentIntentApi(payload);
+        setClientSecret(pi.client_secret);
+        setPendingOrderNumber(pi.order_number);
+        setPendingAmount(pi.amount_chf);
+        setIsSubmitting(false);
         return;
       }
 
+      // Direct in-app TWINT / Banküberweisung order creation + instant invoice email
       const orderResult = await createOrderApi(payload);
       setCompletedOrder(orderResult);
       await clearUserCart();
     } catch (err: any) {
       setErrorMessage(err.message || 'Fehler beim Abschluss der Bestellung.');
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -118,18 +255,20 @@ function CheckoutContent() {
     return (
       <div className="max-w-xl mx-auto px-4 py-20">
         <Card className="p-8 text-center space-y-6">
-          <div className="w-14 h-14 rounded-full bg-bronze/15 border border-bronze/40 text-bronze mx-auto flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center">
             <CheckCircle2 className="h-7 w-7" />
           </div>
           <div className="space-y-2">
-            <Badge variant="bronze">Bestellung Erfolgreich</Badge>
+            <Badge variant="success">Bestellung Bestätigt</Badge>
             <h1 className="font-serif text-3xl text-foreground">Vielen Dank für Ihre Bestellung</h1>
             <p className="text-xs text-muted-foreground">
               Bestellnummer{' '}
               <span className="font-mono font-semibold text-foreground">
                 {completedOrder.order_number}
               </span>{' '}
-              wurde an <span className="font-medium text-foreground">{completedOrder.customer_email}</span> bestätigt.
+              und Ihre offizielle Rechnung wurden an{' '}
+              <span className="font-medium text-foreground">{completedOrder.customer_email}</span>{' '}
+              gesendet.
             </p>
           </div>
 
@@ -142,10 +281,15 @@ function CheckoutContent() {
             </div>
             <Separator />
             <div className="flex justify-between">
+              <span className="text-muted-foreground">Zahlungsmethode</span>
+              <span className="text-right font-medium">{completedOrder.payment_method}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between">
               <span className="text-muted-foreground">Lieferadresse</span>
               <span className="text-right">
-                {completedOrder.shipping_address.address}, {completedOrder.shipping_address.postal_code}{' '}
-                {completedOrder.shipping_address.city}
+                {completedOrder.shipping_address.address},{' '}
+                {completedOrder.shipping_address.postal_code} {completedOrder.shipping_address.city}
               </span>
             </div>
             <Separator />
@@ -155,7 +299,7 @@ function CheckoutContent() {
             </div>
           </div>
 
-          <Button asChild size="lg">
+          <Button asChild size="lg" variant="bronze">
             <Link href="/catalog">Weiter einkaufen</Link>
           </Button>
         </Card>
@@ -172,15 +316,6 @@ function CheckoutContent() {
         <h1 className="font-serif text-3xl md:text-5xl text-foreground">Kasse</h1>
       </div>
 
-      {wasCanceled && (
-        <div className="p-4 rounded-md bg-amber-500/10 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2.5">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>
-            Die Stripe-Zahlung wurde abgebrochen. Ihr Warenkorb bleibt gespeichert — Sie können den Checkout jederzeit fortsetzen.
-          </span>
-        </div>
-      )}
-
       {cart.items.length === 0 ? (
         <Card className="p-16 text-center space-y-5">
           <p className="font-serif text-2xl">Ihr Warenkorb ist derzeit leer.</p>
@@ -189,159 +324,228 @@ function CheckoutContent() {
           </Button>
         </Card>
       ) : (
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-7 space-y-6">
-            {errorMessage && (
-              <div className="p-4 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-xs">
-                {errorMessage}
-              </div>
-            )}
-
-            <Card>
-              <CardHeader>
-                <CardTitle>1. Kontaktinformationen</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Label htmlFor="checkout-email">E-Mail-Adresse</Label>
-                <Input
-                  id="checkout-email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@domain.ch"
+            {clientSecret ? (
+              <Elements
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  locale: 'de',
+                  appearance: {
+                    theme: isDark ? 'night' : 'stripe',
+                    variables: {
+                      colorPrimary: '#9A7B56',
+                      borderRadius: '6px',
+                      fontFamily: 'Hanken Grotesk, system-ui, sans-serif',
+                    },
+                  },
+                }}
+              >
+                <InAppPaymentForm
+                  amountChf={pendingAmount}
+                  orderNumber={pendingOrderNumber}
+                  onBack={() => setClientSecret('')}
+                  onSuccess={async (order) => {
+                    setCompletedOrder(order);
+                    setClientSecret('');
+                    await clearUserCart();
+                  }}
                 />
-              </CardContent>
-            </Card>
+              </Elements>
+            ) : (
+              <form onSubmit={handleContinueOrOrder} className="space-y-6">
+                {errorMessage && (
+                  <div className="p-4 rounded-md bg-destructive/10 border border-destructive/40 text-destructive text-xs">
+                    {errorMessage}
+                  </div>
+                )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>2. Lieferadresse</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="first-name">Vorname</Label>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>1. Kontaktinformationen</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Label htmlFor="checkout-email">E-Mail-Adresse</Label>
                     <Input
-                      id="first-name"
+                      id="checkout-email"
+                      type="email"
                       required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@domain.ch"
                     />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="last-name">Nachname</Label>
-                    <Input
-                      id="last-name"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="address">Straße & Hausnummer</Label>
-                  <Input
-                    id="address"
-                    required
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Bahnhofstrasse 10"
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="postal">Postleitzahl</Label>
-                    <Input
-                      id="postal"
-                      required
-                      value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      placeholder="8001"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="city">Stadt / Ort</Label>
-                    <Input
-                      id="city"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="Zürich"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="country">Land</Label>
-                  <Select id="country" value={country} onChange={(e) => setCountry(e.target.value)}>
-                    <option value="Schweiz">Schweiz (Liechtenstein)</option>
-                    <option value="Deutschland">Deutschland</option>
-                    <option value="Österreich">Österreich</option>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>3. Zahlungsmethode</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <label
-                  className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
-                    paymentMethod === 'stripe'
-                      ? 'border-bronze bg-bronze/10 text-foreground'
-                      : 'border-border hover:border-bronze/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'stripe'}
-                    onChange={() => setPaymentMethod('stripe')}
-                    className="mt-0.5 accent-[hsl(var(--bronze))]"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-bronze" />
-                        Stripe Checkout — Kreditkarte, Apple Pay, Google Pay & Link
-                      </span>
-                      <Badge variant="bronze">Empfohlen</Badge>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>2. Lieferadresse</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="first-name">Vorname</Label>
+                        <Input
+                          id="first-name"
+                          required
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="last-name">Nachname</Label>
+                        <Input
+                          id="last-name"
+                          required
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                        />
+                      </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Sie werden sicher zur verschlüsselten Stripe-Zahlungsseite weitergeleitet (CHF).
-                    </p>
-                  </div>
-                </label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="address">Straße &amp; Hausnummer</Label>
+                      <Input
+                        id="address"
+                        required
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="Bahnhofstrasse 10"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="postal">Postleitzahl</Label>
+                        <Input
+                          id="postal"
+                          required
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value)}
+                          placeholder="8001"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="city">Stadt / Ort</Label>
+                        <Input
+                          id="city"
+                          required
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="Zürich"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="country">Land</Label>
+                      <Select
+                        id="country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                      >
+                        <option value="Schweiz">Schweiz (Liechtenstein)</option>
+                        <option value="Deutschland">Deutschland</option>
+                        <option value="Österreich">Österreich</option>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <label
-                  className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
-                    paymentMethod === 'wire'
-                      ? 'border-bronze bg-bronze/10 text-foreground'
-                      : 'border-border hover:border-bronze/50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'wire'}
-                    onChange={() => setPaymentMethod('wire')}
-                    className="mt-0.5 accent-[hsl(var(--bronze))]"
-                  />
-                  <div className="flex-1 space-y-1">
-                    <span className="text-xs font-semibold flex items-center gap-2">
-                      <Landmark className="h-4 w-4 text-bronze" />
-                      Banküberweisung / Schweizer QR-Rechnung
-                    </span>
-                    <p className="text-[11px] text-muted-foreground">
-                      Sofortige Reservierung mit offizieller UBS-Rechnung per E-Mail.
-                    </p>
-                  </div>
-                </label>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>3. Zahlungsmethode (Direkt in der App)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <label
+                      className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
+                        paymentMethod === 'card'
+                          ? 'border-bronze bg-bronze/10 text-foreground'
+                          : 'border-border hover:border-bronze/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === 'card'}
+                        onChange={() => setPaymentMethod('card')}
+                        className="mt-0.5 accent-[hsl(var(--bronze))]"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-semibold flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-bronze" />
+                            Kreditkarte, Apple Pay &amp; Google Pay (In-App)
+                          </span>
+                          <Badge variant="bronze">Empfohlen</Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Direkte, verschlüsselte Kartenzahlung auf pbstyle.ch ohne Weiterleitung.
+                        </p>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
+                        paymentMethod === 'twint'
+                          ? 'border-bronze bg-bronze/10 text-foreground'
+                          : 'border-border hover:border-bronze/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === 'twint'}
+                        onChange={() => setPaymentMethod('twint')}
+                        className="mt-0.5 accent-[hsl(var(--bronze))]"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <span className="text-xs font-semibold flex items-center gap-2">
+                          <Smartphone className="h-4 w-4 text-bronze" />
+                          TWINT Schweizer Zahlungsapp
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">
+                          Schnelle Schweizer Zahlung mit sofortiger Bestätigung &amp; Rechnung per E-Mail.
+                        </p>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`flex items-start gap-3.5 p-4 rounded-md border cursor-pointer transition-colors ${
+                        paymentMethod === 'wire'
+                          ? 'border-bronze bg-bronze/10 text-foreground'
+                          : 'border-border hover:border-bronze/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={paymentMethod === 'wire'}
+                        onChange={() => setPaymentMethod('wire')}
+                        className="mt-0.5 accent-[hsl(var(--bronze))]"
+                      />
+                      <div className="flex-1 space-y-1">
+                        <span className="text-xs font-semibold flex items-center gap-2">
+                          <Landmark className="h-4 w-4 text-bronze" />
+                          Banküberweisung / Schweizer QR-Rechnung
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">
+                          Sofortige Reservierung mit offizieller Rechnung per E-Mail.
+                        </p>
+                      </div>
+                    </label>
+                  </CardContent>
+                </Card>
+
+                <Button type="submit" size="lg" variant="bronze" className="w-full" disabled={isSubmitting}>
+                  <Lock className="h-4 w-4" />
+                  {isSubmitting
+                    ? 'Wird vorbereitet...'
+                    : paymentMethod === 'card'
+                    ? `Weiter zur Kartenzahlung (CHF ${finalTotal.toFixed(2)})`
+                    : `Jetzt verbindlich bestellen (CHF ${finalTotal.toFixed(2)})`}
+                </Button>
+              </form>
+            )}
           </div>
 
           {/* Right Summary */}
@@ -393,12 +597,13 @@ function CheckoutContent() {
                       onChange={(e) => setPromoCode(e.target.value)}
                       placeholder="Code eingeben"
                       className="font-mono uppercase text-xs"
+                      disabled={!!clientSecret}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleApplyPromo}
-                      disabled={isValidatingPromo}
+                      disabled={isValidatingPromo || !!clientSecret}
                     >
                       {isValidatingPromo ? '...' : 'Anwenden'}
                     </Button>
@@ -441,29 +646,10 @@ function CheckoutContent() {
                     </span>
                   </div>
                 </div>
-
-                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                  {paymentMethod === 'stripe' ? (
-                    <>
-                      <Lock className="h-4 w-4" />
-                      {isSubmitting
-                        ? 'Weiterleitung zu Stripe...'
-                        : `Mit Stripe bezahlen (CHF ${finalTotal.toFixed(2)})`}
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="h-4 w-4" />
-                      {isSubmitting
-                        ? 'Wird übermittelt...'
-                        : `Jetzt bestellen (CHF ${finalTotal.toFixed(2)})`}
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );

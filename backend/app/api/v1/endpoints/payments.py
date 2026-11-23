@@ -34,7 +34,161 @@ async def get_stripe_config():
         "mode": mode,
         "currency": "CHF",
         "publishable_key": settings.STRIPE_PUBLISHABLE_KEY,
-        "supported_methods": ["card", "apple_pay", "google_pay", "link"],
+        "supported_methods": ["card", "twint", "apple_pay", "google_pay", "link"],
+    }
+
+
+@router.post("/create-payment-intent")
+async def create_payment_intent(order_in: OrderCreate, db: AsyncSession = Depends(get_db)):
+    _configure_stripe()
+
+    query = (
+        select(CartItem)
+        .where(CartItem.session_id == order_in.session_id)
+        .options(
+            selectinload(CartItem.product).selectinload(Product.images),
+            selectinload(CartItem.variant),
+        )
+    )
+    result = await db.execute(query)
+    cart_items = result.scalars().all()
+    if not cart_items:
+        raise HTTPException(status_code=400, detail="Ihr Warenkorb ist leer.")
+
+    subtotal = 0.0
+    order_items = []
+    for it in cart_items:
+        p = it.product
+        v = it.variant
+        unit_price = p.base_price + (v.price_offset if v else 0.0)
+        subtotal += unit_price * it.quantity
+        img = p.images[0].image_url if p.images else None
+        order_items.append(
+            OrderItem(
+                product_id=p.id,
+                product_title=p.title,
+                variant_title=v.title if v else None,
+                unit_price=unit_price,
+                quantity=it.quantity,
+                image_url=img,
+            )
+        )
+
+    discount_amount = 0.0
+    if order_in.promo_code:
+        code_clean = order_in.promo_code.strip().upper()
+        res_disc = await db.execute(
+            select(DiscountCode).where(
+                DiscountCode.code == code_clean, DiscountCode.is_active == True
+            )
+        )
+        disc = res_disc.scalar_one_or_none()
+        if disc:
+            discount_amount = round(subtotal * (float(disc.discount_percent) / 100.0), 2)
+
+    shipping_cost = 0.0 if subtotal > 150.0 else 15.0
+    total_amount = round(max(0.5, subtotal - discount_amount + shipping_cost), 2)
+    amount_cents = max(50, int(round(total_amount * 100)))
+
+    random_suffix = "".join(random.choices(string.digits, k=4))
+    order_number = f"PB-2026-{random_suffix}"
+    invoice_number = f"INV-2026-{random_suffix}"
+
+    new_order = Order(
+        order_number=order_number,
+        invoice_number=invoice_number,
+        customer_email=order_in.customer_email,
+        customer_name=order_in.customer_name,
+        shipping_address=order_in.shipping_address.model_dump(),
+        subtotal=round(subtotal, 2),
+        discount_amount=discount_amount,
+        shipping_cost=shipping_cost,
+        total_amount=total_amount,
+        currency="CHF",
+        status="Zahlung ausstehend",
+        payment_method=order_in.payment_method or "Karte / TWINT (In-App)",
+        payment_status="Ausstehend",
+        created_at=datetime.datetime.utcnow(),
+        items=order_items,
+    )
+    db.add(new_order)
+    await db.flush()
+    await db.refresh(new_order)
+
+    try:
+        intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency="chf",
+            automatic_payment_methods={"enabled": True},
+            receipt_email=order_in.customer_email,
+            description=f"PBSTYLE Bestellung {order_number}",
+            metadata={
+                "order_id": str(new_order.id),
+                "order_number": order_number,
+                "cart_session_id": order_in.session_id,
+            },
+        )
+    except stripe.error.StripeError as exc:
+        raise HTTPException(status_code=502, detail=f"Stripe-Fehler: {exc.user_message or str(exc)}")
+
+    new_order.stripe_payment_intent_id = intent.id
+    await db.flush()
+
+    return {
+        "client_secret": intent.client_secret,
+        "payment_intent_id": intent.id,
+        "order_id": new_order.id,
+        "order_number": order_number,
+        "amount_chf": total_amount,
+    }
+
+
+@router.post("/confirm-payment-intent/{payment_intent_id}")
+async def confirm_payment_intent(payment_intent_id: str, db: AsyncSession = Depends(get_db)):
+    _configure_stripe()
+
+    try:
+        intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+    except stripe.error.StripeError as exc:
+        raise HTTPException(status_code=400, detail=f"Ungültige Zahlung: {str(exc)}")
+
+    metadata = intent.get("metadata") or {}
+    order_id = metadata.get("order_id")
+    cart_session_id = metadata.get("cart_session_id")
+
+    query = (
+        select(Order)
+        .where(
+            Order.id == int(order_id)
+            if order_id
+            else Order.stripe_payment_intent_id == payment_intent_id
+        )
+        .options(selectinload(Order.items))
+    )
+    res = await db.execute(query)
+    order = res.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="Bestellung nicht gefunden.")
+
+    status_val = intent.get("status")
+    if status_val == "succeeded":
+        order.status = "Bezahlt (Stripe)"
+        order.payment_status = "Bezahlt"
+        order.stripe_payment_intent_id = payment_intent_id
+        if cart_session_id:
+            await db.execute(delete(CartItem).where(CartItem.session_id == cart_session_id))
+        if not order.invoice_sent:
+            sent = await send_order_invoice_email(order)
+            if sent:
+                order.invoice_sent = True
+                order.invoice_sent_at = datetime.datetime.utcnow()
+        await db.flush()
+
+    return {
+        "paid": status_val == "succeeded",
+        "status": status_val,
+        "payment_intent_id": payment_intent_id,
+        "order": OrderRead.model_validate(order),
     }
 
 

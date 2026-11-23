@@ -195,3 +195,47 @@ export async function verifyStripeSessionApi(sessionId: string): Promise<StripeV
   }
   return await res.json();
 }
+
+export interface PaymentIntentResponse {
+  client_secret: string;
+  payment_intent_id: string;
+  order_id: number;
+  order_number: string;
+  amount_chf: number;
+}
+
+export async function createPaymentIntentApi(
+  payload: CreateOrderPayload
+): Promise<PaymentIntentResponse> {
+  const res = await fetch(`${getApiBase()}/payments/create-payment-intent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.detail || `Zahlung konnte nicht initialisiert werden (${res.status})`);
+  }
+  return await res.json();
+}
+
+export interface ConfirmPaymentIntentResponse {
+  paid: boolean;
+  status: string;
+  payment_intent_id: string;
+  order: Order;
+}
+
+export async function confirmPaymentIntentApi(
+  paymentIntentId: string
+): Promise<ConfirmPaymentIntentResponse> {
+  const res = await fetch(
+    `${getApiBase()}/payments/confirm-payment-intent/${encodeURIComponent(paymentIntentId)}`,
+    { method: 'POST' }
+  );
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.detail || `Zahlungsbestätigung fehlgeschlagen (${res.status})`);
+  }
+  return await res.json();
+}

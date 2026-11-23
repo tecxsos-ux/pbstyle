@@ -24,6 +24,7 @@ import {
   Printer,
   Receipt,
   RefreshCw,
+  RotateCcw,
   Search,
   Send,
   ShoppingBag,
@@ -142,6 +143,14 @@ export default function AdminDashboardPage() {
   const [trackingCarrier, setTrackingCarrier] = useState('Schweizer Post «Pro Clima»');
   const [trackingNote, setTrackingNote] = useState('');
   const [isSavingTracking, setIsSavingTracking] = useState(false);
+
+  // Return & Refund
+  const [refundModalOrder, setRefundModalOrder] = useState<any>(null);
+  const [refundAmount, setRefundAmount] = useState<number>(0);
+  const [refundReturnStatus, setRefundReturnStatus] = useState<string>('Erstattet');
+  const [refundReason, setRefundReason] = useState<string>('');
+  const [refundRestock, setRefundRestock] = useState<boolean>(true);
+  const [isRefunding, setIsRefunding] = useState<boolean>(false);
 
   // Instagram
   const [instagramSettings, setInstagramSettings] = useState<any>(null);
@@ -666,6 +675,46 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const openRefundModal = (order: any) => {
+    setRefundModalOrder(order);
+    setRefundAmount(Number(order.total_amount || 0));
+    setRefundReturnStatus('Erstattet');
+    setRefundReason('');
+    setRefundRestock(true);
+  };
+
+  const handleProcessRefund = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!refundModalOrder || refundAmount <= 0) return;
+    setIsRefunding(true);
+    try {
+      const res = await fetch(`/api/v1/admin/orders/${refundModalOrder.id}/refund`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refund_amount: Number(refundAmount),
+          return_status: refundReturnStatus,
+          reason: refundReason.trim() || null,
+          restock_items: refundRestock,
+          send_email: true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        showToast(data.message || 'Rückgabe & Rückerstattung erfolgreich verarbeitet.');
+        setRefundModalOrder(null);
+        await Promise.all([loadOverview(), loadInventory()]);
+      } else {
+        showToast(data.detail || 'Rückerstattung fehlgeschlagen.');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Fehler bei der Rückerstattung.');
+    } finally {
+      setIsRefunding(false);
+    }
+  };
+
   const filteredInventory = useMemo(() => {
     return inventory.filter((item) => {
       if (lowStockOnly && item.stock > item.low_stock_threshold) return false;
@@ -1092,7 +1141,7 @@ export default function AdminDashboardPage() {
                                 </Badge>
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 pt-1">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                               <Button variant="outline" size="sm" asChild className="w-full px-2">
                                 <a
                                   href={`/api/v1/admin/invoices/${ord.id}/html`}
@@ -1120,6 +1169,15 @@ export default function AdminDashboardPage() {
                               >
                                 <Mail className="h-3.5 w-3.5" />
                                 Mail
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                                onClick={() => openRefundModal(ord)}
+                              >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                                Refund
                               </Button>
                             </div>
                           </CardContent>
@@ -1188,6 +1246,15 @@ export default function AdminDashboardPage() {
                                   >
                                     <Mail className="h-3.5 w-3.5" />
                                     Senden
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                    onClick={() => openRefundModal(ord)}
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" />
+                                    Refund
                                   </Button>
                                 </TableCell>
                               </TableRow>
@@ -1666,7 +1733,7 @@ export default function AdminDashboardPage() {
                               )}
                             </div>
                           </div>
-                          <div className="grid grid-cols-3 gap-2 pt-1">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                             <Button variant="outline" size="sm" asChild className="w-full px-2">
                               <a
                                 href={`/api/v1/admin/invoices/${ord.id}/html`}
@@ -1694,6 +1761,15 @@ export default function AdminDashboardPage() {
                             >
                               <Send className="h-3.5 w-3.5" />
                               Mail
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+                              onClick={() => openRefundModal(ord)}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              Refund
                             </Button>
                           </div>
                         </CardContent>
@@ -1769,6 +1845,15 @@ export default function AdminDashboardPage() {
                                 >
                                   <Send className="h-3.5 w-3.5" />
                                   Per Mail senden
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                  onClick={() => openRefundModal(ord)}
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                  Refund
                                 </Button>
                               </TableCell>
                             </TableRow>
@@ -2743,7 +2828,7 @@ export default function AdminDashboardPage() {
               >
                 Abbrechen
               </Button>
-              <Button
+                <Button
                 type="submit"
                 variant="bronze"
                 disabled={isSendingCoupon || couponSelectedClientIds.length === 0}
@@ -2755,6 +2840,85 @@ export default function AdminDashboardPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG 10: ORDER RETURN & REFUND */}
+      <Dialog
+        open={!!refundModalOrder}
+        onOpenChange={(open) => !open && setRefundModalOrder(null)}
+      >
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Rückgabe &amp; Rückerstattung</DialogTitle>
+            <DialogDescription>
+              Bestellung {refundModalOrder?.order_number} ({refundModalOrder?.customer_name}) — erstattet bei Stripe-Zahlung direkt über die Stripe API und sendet eine Bestätigung via info@pbstyle.ch.
+            </DialogDescription>
+          </DialogHeader>
+          {refundModalOrder && (
+            <form onSubmit={handleProcessRefund} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Erstattungsbetrag (CHF)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0.50"
+                    max={refundModalOrder.total_amount}
+                    required
+                    value={refundAmount}
+                    onChange={(e) => setRefundAmount(Number(e.target.value))}
+                    className="font-mono"
+                  />
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    Max: CHF {Number(refundModalOrder.total_amount || 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Rückgabestatus</Label>
+                  <Select
+                    value={refundReturnStatus}
+                    onChange={(e) => setRefundReturnStatus(e.target.value)}
+                  >
+                    <option value="Erstattet">Erstattet (Vollständig)</option>
+                    <option value="Teilerstattung">Teilerstattung</option>
+                    <option value="Rückgabe erhalten">Rückgabe erhalten</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Grund / Notiz für den Klienten (optional)</Label>
+                <Textarea
+                  rows={3}
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  placeholder="z.B. Ringgröße passt nicht — Rücksendung erhalten und Betrag erstattet."
+                />
+              </div>
+
+              <label className="flex items-center justify-between p-3 rounded-md border border-border bg-muted/30 cursor-pointer text-xs">
+                <span>Artikel automatisch wieder ins Lager einbuchen</span>
+                <Switch checked={refundRestock} onCheckedChange={setRefundRestock} />
+              </label>
+
+              <DialogFooter className="gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRefundModalOrder(null)}
+                >
+                  Abbrechen
+                </Button>
+                <Button type="submit" variant="destructive" disabled={isRefunding}>
+                  <RotateCcw className="h-4 w-4" />
+                  {isRefunding
+                    ? 'Wird erstattet...'
+                    : `CHF ${Number(refundAmount || 0).toFixed(2)} erstatten`}
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

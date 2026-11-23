@@ -190,6 +190,12 @@ class OrderRead(BaseModel):
     tracking_carrier: Optional[str] = None
     tracking_url: Optional[str] = None
     shipped_at: Optional[datetime] = None
+    stripe_payment_intent_id: Optional[str] = None
+    return_status: Optional[str] = None
+    refund_id: Optional[str] = None
+    refund_amount: Optional[float] = 0.0
+    refund_reason: Optional[str] = None
+    refunded_at: Optional[datetime] = None
     created_at: datetime
     items: List[OrderItemRead] = []
     class Config:
@@ -216,6 +222,14 @@ class SendCouponRequest(BaseModel):
     code: str
     discount_percent: float = Field(gt=0, le=100)
     custom_message: Optional[str] = None
+
+
+class OrderRefundRequest(BaseModel):
+    refund_amount: float = Field(gt=0)
+    return_status: str = "Erstattet"
+    reason: Optional[str] = None
+    restock_items: bool = True
+    send_email: bool = True
 
 # Customer Schemas
 class CustomerRead(BaseModel):
