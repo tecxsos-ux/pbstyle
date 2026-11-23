@@ -62,7 +62,7 @@ export default function AccountPage() {
           </span>
           <CardTitle className="text-3xl">Registrierung &amp; Konto</CardTitle>
           <CardDescription>
-            Registrieren Sie sich für den PBSTYLE Atelier Club und erhalten Sie sofort Ihre persönliche Willkommens-E-Mail inklusive 20% Vorteilscode.
+            Registrieren Sie sich für den PBSTYLE Atelier Club und erhalten Sie sofort Ihre persönliche Willkommens-E-Mail mit allen Mitglieder-Privilegien.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

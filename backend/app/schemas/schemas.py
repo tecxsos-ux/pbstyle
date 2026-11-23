@@ -210,6 +210,13 @@ class UserRegisterRequest(BaseModel):
     phone: Optional[str] = None
     company: Optional[str] = None
 
+
+class SendCouponRequest(BaseModel):
+    customer_ids: List[int]
+    code: str
+    discount_percent: float = Field(gt=0, le=100)
+    custom_message: Optional[str] = None
+
 # Customer Schemas
 class CustomerRead(BaseModel):
     id: int

@@ -41,7 +41,7 @@ function CheckoutContent() {
   const [country, setCountry] = useState('Schweiz');
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'wire'>('stripe');
 
-  const [promoCode, setPromoCode] = useState('PBSTYLE20');
+  const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState<number>(0);
   const [promoMessage, setPromoMessage] = useState<string>('');
   const [isValidatingPromo, setIsValidatingPromo] = useState<boolean>(false);
@@ -384,14 +384,14 @@ function CheckoutContent() {
                 <div className="space-y-2">
                   <Label htmlFor="promo-code" className="flex items-center gap-1.5">
                     <Tag className="h-3 w-3 text-bronze" />
-                    Gutscheincode (Tipp: PBSTYLE20)
+                    Gutscheincode
                   </Label>
                   <div className="flex gap-2">
                     <Input
                       id="promo-code"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
-                      placeholder="PBSTYLE20"
+                      placeholder="Code eingeben"
                       className="font-mono uppercase text-xs"
                     />
                     <Button

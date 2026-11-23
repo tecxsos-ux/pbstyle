@@ -28,6 +28,7 @@ import {
   Send,
   ShoppingBag,
   Store,
+  Tag,
   Trash2,
   TrendingUp,
   Truck,
@@ -88,6 +89,14 @@ export default function AdminDashboardPage() {
   const [crmSearch, setCrmSearch] = useState('');
   const [crmTierFilter, setCrmTierFilter] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+
+  // Coupon Dispatch to Selected Clients
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [couponSelectedClientIds, setCouponSelectedClientIds] = useState<number[]>([]);
+  const [couponCode, setCouponCode] = useState('PBSTYLE15');
+  const [couponDiscountPercent, setCouponDiscountPercent] = useState<number>(15);
+  const [couponMessage, setCouponMessage] = useState('');
+  const [isSendingCoupon, setIsSendingCoupon] = useState(false);
 
   // Inventory
   const [inventory, setInventory] = useState<any[]>([]);
@@ -533,6 +542,55 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const openCouponModal = (preselectedClientIds?: number[]) => {
+    setCouponSelectedClientIds(
+      preselectedClientIds && preselectedClientIds.length > 0
+        ? preselectedClientIds
+        : customers.map((c) => c.id)
+    );
+    setCouponMessage('');
+    setIsCouponModalOpen(true);
+  };
+
+  const toggleCouponClient = (id: number) => {
+    setCouponSelectedClientIds((prev) =>
+      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    );
+  };
+
+  const handleSendCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (couponSelectedClientIds.length === 0) {
+      showToast('Bitte mindestens einen Klienten auswählen.');
+      return;
+    }
+    setIsSendingCoupon(true);
+    try {
+      const res = await fetch('/api/v1/admin/coupons/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_ids: couponSelectedClientIds,
+          code: couponCode.trim().toUpperCase(),
+          discount_percent: Number(couponDiscountPercent),
+          custom_message: couponMessage.trim() || null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        showToast(data.message || 'Gutschein erfolgreich versandt.');
+        setIsCouponModalOpen(false);
+      } else {
+        showToast(data.detail || 'Gutschein konnte nicht versandt werden.');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Fehler beim Versenden des Gutscheins.');
+    } finally {
+      setIsSendingCoupon(false);
+    }
+  };
+
   const openDispatchModal = (order: any) => {
     setDispatchModalOrder(order);
     setDispatchRecipientEmail(order.customer_email);
@@ -828,6 +886,17 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {activeTab === 'crm' && (
+              <Button
+                variant="bronze"
+                size="sm"
+                onClick={() => openCouponModal()}
+                className="h-9"
+              >
+                <Tag className="h-4 w-4" />
+                <span className="hidden sm:inline">Gutschein senden</span>
+              </Button>
+            )}
             {activeTab === 'inventory' && (
               <>
                 <Button
@@ -1202,15 +1271,26 @@ export default function AdminDashboardPage() {
                             </span>
                           </div>
 
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => setSelectedCustomer({ ...c })}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Concierge Profil bearbeiten
-                          </Button>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              variant="bronze"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => openCouponModal([c.id])}
+                            >
+                              <Tag className="h-3.5 w-3.5" />
+                              Gutschein
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => setSelectedCustomer({ ...c })}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                              Profil
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -1268,7 +1348,15 @@ export default function AdminDashboardPage() {
                               <TableCell className="text-center font-mono">
                                 {c.orders_count}
                               </TableCell>
-                              <TableCell className="text-right">
+                              <TableCell className="text-right space-x-2">
+                                <Button
+                                  variant="bronze"
+                                  size="sm"
+                                  onClick={() => openCouponModal([c.id])}
+                                >
+                                  <Tag className="h-3.5 w-3.5" />
+                                  Gutschein
+                                </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
@@ -2534,6 +2622,139 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG 9: SEND COUPON CODE TO SELECTED CLIENTS */}
+      <Dialog open={isCouponModalOpen} onOpenChange={setIsCouponModalOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gutschein an Klienten senden</DialogTitle>
+            <DialogDescription>
+              Wählen Sie die gewünschten Klienten aus — der Code wird automatisch aktiviert und über info@pbstyle.ch versandt.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSendCoupon} className="space-y-4">
+            {/* Client Multi-Select List */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>
+                  Empfänger ({couponSelectedClientIds.length} / {customers.length})
+                </Label>
+                <div className="flex gap-3 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => setCouponSelectedClientIds(customers.map((c) => c.id))}
+                    className="text-bronze hover:underline"
+                  >
+                    Alle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCouponSelectedClientIds([])}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Keine
+                  </button>
+                </div>
+              </div>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-border divide-y divide-border/60 bg-muted/20">
+                {customers.map((c) => {
+                  const checked = couponSelectedClientIds.includes(c.id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggleCouponClient(c.id)}
+                      className={`w-full px-3 py-2.5 flex items-center justify-between gap-2 text-left text-xs transition-colors ${
+                        checked ? 'bg-bronze/10' : 'hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground truncate">{c.full_name}</div>
+                        <div className="font-mono text-[10px] text-muted-foreground truncate">
+                          {c.email}
+                        </div>
+                      </div>
+                      <span
+                        className={`h-5 w-5 rounded border flex items-center justify-center shrink-0 ${
+                          checked
+                            ? 'border-bronze bg-bronze text-bronze-foreground'
+                            : 'border-input bg-background'
+                        }`}
+                      >
+                        {checked && <CheckCircle2 className="h-3.5 w-3.5" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Coupon Code & Discount % */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Gutscheincode</Label>
+                <Input
+                  required
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="z.B. VIP15"
+                  className="font-mono uppercase"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Rabatt (%)</Label>
+                <div className="flex gap-1.5">
+                  {[10, 15, 20, 25].map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => setCouponDiscountPercent(pct)}
+                      className={`flex-1 h-10 rounded-md border font-mono text-xs font-medium transition-colors ${
+                        couponDiscountPercent === pct
+                          ? 'border-bronze bg-bronze/15 text-foreground'
+                          : 'border-border bg-card text-muted-foreground hover:border-bronze/50'
+                      }`}
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Persönliche Nachricht (optional)</Label>
+              <Textarea
+                rows={3}
+                value={couponMessage}
+                onChange={(e) => setCouponMessage(e.target.value)}
+                placeholder="z.B. Exklusiv für unsere VIP-Sammler zur neuen Edition 2026."
+              />
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCouponModalOpen(false)}
+              >
+                Abbrechen
+              </Button>
+              <Button
+                type="submit"
+                variant="bronze"
+                disabled={isSendingCoupon || couponSelectedClientIds.length === 0}
+              >
+                <Send className="h-4 w-4" />
+                {isSendingCoupon
+                  ? 'Wird gesendet...'
+                  : `Gutschein senden (${couponSelectedClientIds.length})`}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

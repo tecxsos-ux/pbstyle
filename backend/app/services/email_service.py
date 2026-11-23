@@ -188,27 +188,13 @@ async def send_welcome_email(recipient_email: str, full_name: str, tier: str = "
       </tr>
     </table>
 
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-           style="background-color:#111214; border-radius:4px; margin: 20px 0;">
-      <tr>
-        <td style="padding: 18px 24px; text-align:center;">
-          <div style="font-family:'Courier New', Courier, monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#C9A97C;">
-            IHR WILLKOMMENSVORTEIL (20% RABATT)
-          </div>
-          <div style="font-family:'Courier New', Courier, monospace; font-size:22px; font-weight:700; letter-spacing:4px; color:#FAF6EF; margin-top:6px;">
-            PBSTYLE20
-          </div>
-        </td>
-      </tr>
-    </table>
-
     <p style="margin:16px 0 0 0; font-size:13px; color:#666A73;">
       Bei individuellen Wünschen, Ringgrößen-Beratung oder Maßanfertigungen antworten Sie einfach direkt auf diese E-Mail.
     </p>
     """
 
     html_content = _wrap_luxury_email(
-        preheader="Willkommen im PBSTYLE Atelier Club — Ihr persönlicher Zugang & 20% Willkommensvorteil.",
+        preheader="Willkommen im PBSTYLE Atelier Club — Ihr persönlicher Zugang wurde aktiviert.",
         eyebrow="Willkommen im Atelier Club",
         headline="Präzision. Beständigkeit. Willkommen.",
         body_html=body_html,
@@ -219,7 +205,7 @@ async def send_welcome_email(recipient_email: str, full_name: str, tier: str = "
     text_content = (
         f"Guten Tag {full_name},\n\n"
         f"herzlich willkommen im PBSTYLE Atelier Club ({tier}).\n"
-        f"Ihr Willkommenscode für 20% Rabatt: PBSTYLE20\n\n"
+        f"Ihr persönlicher Zugang wurde erfolgreich aktiviert.\n\n"
         f"Kollektion entdecken: {base_url}/catalog\n\n"
         f"PBSTYLE Atelier Zürich | info@pbstyle.ch"
     )
@@ -227,6 +213,82 @@ async def send_welcome_email(recipient_email: str, full_name: str, tier: str = "
     return await send_email(
         recipient_email=recipient_email,
         subject="Willkommen im PBSTYLE Atelier Club — Ihr persönlicher Zugang",
+        html_body=html_content,
+        text_body=text_content,
+    )
+
+
+async def send_coupon_email(
+    recipient_email: str,
+    full_name: str,
+    code: str,
+    discount_percent: float,
+    custom_message: Optional[str] = None,
+) -> bool:
+    base_url = settings.FRONTEND_URL.rstrip("/")
+    safe_name = html.escape(full_name or "Geschätzter Klient")
+    clean_code = code.strip().upper()
+    pct_display = int(discount_percent) if float(discount_percent).is_integer() else round(discount_percent, 1)
+
+    custom_html = ""
+    if custom_message and custom_message.strip():
+        custom_html = f"""
+        <div style="background-color:#F8F7F4; border-left:3px solid #9A7B56; padding:14px 18px; margin: 18px 0; font-size:13px; color:#2B2D32;">
+          {html.escape(custom_message.strip()).replace(chr(10), '<br />')}
+        </div>
+        """
+
+    body_html = f"""
+    <p style="margin:0 0 16px 0;">Guten Tag {safe_name},</p>
+    <p style="margin:0 0 20px 0;">
+      als Zeichen unserer Wertschätzung freuen wir uns, Ihnen einen persönlichen <strong>PBSTYLE Atelier-Gutschein</strong> überreichen zu dürfen.
+    </p>
+
+    {custom_html}
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+           style="background-color:#111214; border-radius:6px; margin: 24px 0; border: 1px solid #9A7B56;">
+      <tr>
+        <td style="padding: 26px 28px; text-align:center;">
+          <div style="font-family:'Courier New', Courier, monospace; font-size:10px; letter-spacing:2.5px; text-transform:uppercase; color:#C9A97C;">
+            EXKLUSIVER PRIVILEG-CODE ({pct_display}% RABATT)
+          </div>
+          <div style="font-family:'Courier New', Courier, monospace; font-size:26px; font-weight:700; letter-spacing:4px; color:#FAF6EF; margin-top:10px;">
+            {html.escape(clean_code)}
+          </div>
+          <div style="font-size:11px; color:#A3A7B0; margin-top:10px;">
+            Einfach im Warenkorb an der Kasse eingeben
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:12px 0 0 0; font-size:13px; color:#666A73;">
+      Gültig auf unsere gesamte Kollektion aus massivem 950er Platin, Titan Grade 5 und Chirurgenstahl 316L.
+    </p>
+    """
+
+    html_content = _wrap_luxury_email(
+        preheader=f"Ihr persönlicher PBSTYLE Gutscheincode {clean_code} ({pct_display}% Rabatt).",
+        eyebrow="Persönliche Einladung",
+        headline=f"{pct_display}% Atelier-Privileg für Sie",
+        body_html=body_html,
+        cta_label="Jetzt Kollektion entdecken",
+        cta_url=f"{base_url}/catalog",
+    )
+
+    text_content = (
+        f"Guten Tag {full_name},\n\n"
+        f"als geschätzter PBSTYLE Klient erhalten Sie Ihren persönlichen Gutscheincode:\n"
+        f"Code: {clean_code} ({pct_display}% Rabatt)\n\n"
+        + (f"{custom_message.strip()}\n\n" if custom_message and custom_message.strip() else "")
+        + f"Jetzt entdecken: {base_url}/catalog\n\n"
+        f"PBSTYLE Atelier Zürich | info@pbstyle.ch"
+    )
+
+    return await send_email(
+        recipient_email=recipient_email,
+        subject=f"Ihr persönlicher PBSTYLE Gutschein ({pct_display}% Rabatt): {clean_code}",
         html_body=html_content,
         text_body=text_content,
     )

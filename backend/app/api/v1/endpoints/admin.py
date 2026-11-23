@@ -17,6 +17,7 @@ from app.models.models import (
     CartItem,
     Category,
     Customer,
+    DiscountCode,
     InstagramPost,
     Order,
     OrderItem,
@@ -30,9 +31,14 @@ from app.schemas.schemas import (
     CustomerCrmRead, CustomerCrmUpdate,
     InventoryItemRead, InventoryStockUpdate, ProductCreate,
     InvoiceDetail, InvoiceItemDetail, SendInvoiceRequest, SendInvoiceResponse,
-    AdminOverviewMetrics, OrderRead, OrderTrackingUpdate
+    AdminOverviewMetrics, OrderRead, OrderTrackingUpdate, SendCouponRequest
 )
-from app.services.email_service import build_tracking_url, send_order_invoice_email, send_tracking_email
+from app.services.email_service import (
+    build_tracking_url,
+    send_coupon_email,
+    send_order_invoice_email,
+    send_tracking_email,
+)
 
 router = APIRouter()
 
@@ -747,4 +753,76 @@ async def update_order_tracking(
             else f"Tracking-Nummer {tracking_clean} gespeichert."
         ),
         "order": OrderRead.model_validate(order),
+    }
+
+
+# 6. COUPON MANAGEMENT & CLIENT DISPATCH
+@router.get("/coupons", response_model=List[Dict[str, Any]])
+async def list_admin_coupons(db: AsyncSession = Depends(get_db)):
+    res = await db.execute(select(DiscountCode).order_by(DiscountCode.id.desc()))
+    coupons = res.scalars().all()
+    return [
+        {
+            "id": c.id,
+            "code": c.code,
+            "discount_percent": c.discount_percent,
+            "is_active": c.is_active,
+        }
+        for c in coupons
+    ]
+
+
+@router.post("/coupons/send", response_model=Dict[str, Any])
+async def send_coupon_to_clients(
+    req: SendCouponRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    if not req.customer_ids:
+        raise HTTPException(status_code=400, detail="Bitte mindestens einen Klienten auswählen.")
+
+    clean_code = req.code.strip().upper().replace(" ", "")
+    if not clean_code:
+        raise HTTPException(status_code=400, detail="Bitte einen gültigen Gutscheincode eingeben.")
+
+    # Upsert discount code so it works immediately at checkout
+    disc_res = await db.execute(select(DiscountCode).where(DiscountCode.code == clean_code))
+    discount = disc_res.scalar_one_or_none()
+    if discount:
+        discount.discount_percent = req.discount_percent
+        discount.is_active = True
+    else:
+        discount = DiscountCode(
+            code=clean_code,
+            discount_percent=req.discount_percent,
+            is_active=True,
+        )
+        db.add(discount)
+    await db.flush()
+
+    # Fetch selected customers
+    cust_res = await db.execute(select(Customer).where(Customer.id.in_(req.customer_ids)))
+    selected_customers = cust_res.scalars().all()
+    if not selected_customers:
+        raise HTTPException(status_code=404, detail="Ausgewählte Klienten nicht gefunden.")
+
+    sent_count = 0
+    for c in selected_customers:
+        ok = await send_coupon_email(
+            recipient_email=c.email,
+            full_name=c.full_name,
+            code=clean_code,
+            discount_percent=req.discount_percent,
+            custom_message=req.custom_message,
+        )
+        if ok:
+            sent_count += 1
+
+    pct_label = int(req.discount_percent) if float(req.discount_percent).is_integer() else req.discount_percent
+    return {
+        "success": sent_count > 0,
+        "code": clean_code,
+        "discount_percent": req.discount_percent,
+        "sent_count": sent_count,
+        "total_selected": len(selected_customers),
+        "message": f"Gutschein {clean_code} ({pct_label}%) erfolgreich an {sent_count} von {len(selected_customers)} Klienten über info@pbstyle.ch versandt.",
     }
